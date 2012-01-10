@@ -16,12 +16,16 @@ Flowy \cite{kkanev:thesis:2009}\cite{kkanev:2010} is the first prototype impleme
 
 The pipeline consists of a number of independent processing elements that are connected to one another using UNIX-based pipes. Each element receives the content from the previous pipe, performs an operation and pushes it to the next element in the pipeline. Figure \ref{fig:flowy-pipeline} shows an overview of the processing pipeline. The flow record attributes used in this pipeline exactly correlate with the attributes defines in the \ac{IPFIX} Information Model specified in RFC 5102 \cite{rfc5102}. A complete description on the semantics of each element in the pipeline can be found in \cite{vmarinov:thesis:2009}
 
-  \subsection{Splitter}\label{subsec:splitter}
-  \subsection{Filter}\label{subsec:filter}
-  \subsection{Grouper}\label{subsec:grouper}
-  \subsection{Group-Filter}\label{subsec:group-filter}
-  \subsection{Merger}\label{subsec:merger}
-  \subsection{Ungrouper}\label{subsec:ungrouper}
+\subsection{Splitter}\label{subsec:splitter}
+The \texttt{splitter} takes the flow-records data as input in the \texttt{flow-tools} compatible format. It is responsible to duplicate the input data out to several branches without any processing whatsoever. This allows each of the branches to have an identical copy of the flow data to process it independently.
+
+\subsection{Filter}\label{subsec:filter}
+
+
+ \subsection{Grouper}\label{subsec:grouper}
+ \subsection{Group-Filter}\label{subsec:group-filter}
+ \subsection{Merger}\label{subsec:merger}
+ \subsection{Ungrouper}\label{subsec:ungrouper}
 
 \section{Python Framework}\label{sec:python-framework}
 	\subsection{PyTables and PLY}\label{subsec:pytable-ply}
