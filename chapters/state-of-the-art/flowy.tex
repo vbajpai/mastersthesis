@@ -17,12 +17,14 @@ Flowy \cite{kkanev:thesis:2009}\cite{kkanev:2010} is the first prototype impleme
 The pipeline consists of a number of independent processing elements that are connected to one another using UNIX-based pipes. Each element receives the content from the previous pipe, performs an operation and pushes it to the next element in the pipeline. Figure \ref{fig:flowy-pipeline} shows an overview of the processing pipeline. The flow record attributes used in this pipeline exactly correlate with the attributes defines in the \ac{IPFIX} Information Model specified in RFC 5102 \cite{rfc5102}. A complete description on the semantics of each element in the pipeline can be found in \cite{vmarinov:thesis:2009}
 
 \subsection{Splitter}\label{subsec:splitter}
-The \texttt{splitter} takes the flow-records data as input in the \texttt{flow-tools} compatible format. It is responsible to duplicate the input data out to several branches without any processing whatsoever. This allows each of the branches to have an identical copy of the flow data to process it independently.
+The splitter takes the flow-records data as input in the \texttt{flow-tools} compatible format. It is responsible to duplicate the input data out to several branches without any processing whatsoever. This allows each of the branches to have an identical copy of the flow data to process it independently.
 
 \subsection{Filter}\label{subsec:filter}
+The filter performs \emph{absolute} filtering on the input flow-records data. The flow-records that pass the filtering criterion are forwarded to the grouper, the rest of the flow-records are dropped. The filter compares separate fields of a flow-record against either a constant value or a value on a different field of the \emph{same} flow-record. The filter cannot \texttt{relatively} compare two different incoming flow-records
 
+\subsection{Grouper}\label{subsec:grouper}
+The grouper performs aggregation of the input flow-records data. It consists of a number of rule modules that correspond to a specific subgroup. A flow-record in order to be a part of the group should be a part of at-least one subgroup. A flow-record can be a part of multiple subgroups within a group. In addition a flow-record cannot be part of multiple groups. The grouping rules can be either absolute or relative. The newly formed groups which are passed on to the group filter can also contain meta-information about the flow-records contained within the group using the aggregate clause defined as part of the grouper query.
 
- \subsection{Grouper}\label{subsec:grouper}
  \subsection{Group-Filter}\label{subsec:group-filter}
  \subsection{Merger}\label{subsec:merger}
  \subsection{Ungrouper}\label{subsec:ungrouper}
