@@ -2,9 +2,20 @@
 \chapter{Flowy}\label{ch:flowy-design}
 %************************************************
 
-Flowy \cite{kkanev:thesis:2009}\cite{kkanev:2010} is the first prototype implementation of a stream-based flow record query language \cite{vmarinov:thesis:2009}\cite{vmarinov:2009}\cite{vmarinov:2008}. The query language allows to describe patterns in flow-records in a declarative and orthogonal fashion, making it easy to read and understand.
+Flowy \cite{kkanev:thesis:2009}\cite{kkanev:2010} is the first prototype implementation of a stream-based flow record query language \cite{vmarinov:thesis:2009}\cite{vmarinov:2009}\cite{vmarinov:2008}. The query language allows to describe patterns in flow-records in a declarative and orthogonal fashion, making it easy to read and flexible enough to describe complex relationships among a given set of flows. 
 
 \section{Processing Pipeline}\label{sec:processing-pipeline}
+
+\begin{figure}[h!]	
+\begin{center}
+  \includegraphics* [width=1.0\linewidth]{figures/flowy-pipeline}	
+  \caption{Flowy: Processing Pipeline \cite{vmarinov:2009}}
+  \label{fig:flowy-pipeline}
+\end{center}
+\end{figure}
+
+The pipeline consists of a number of independent processing elements that are connected to one another using UNIX-based pipes. Each element receives the content from the previous pipe, performs an operation and pushes it to the next element in the pipeline. Figure \ref{fig:flowy-pipeline} shows an overview of the processing pipeline. The flow record attributes used in this pipeline exactly correlate with the attributes defines in the \ac{IPFIX} Information Model specified in RFC 5102 \cite{rfc5102}. A complete description on the semantics of each element in the pipeline can be found in \cite{vmarinov:thesis:2009}
+
   \subsection{Splitter}\label{subsec:splitter}
   \subsection{Filter}\label{subsec:filter}
   \subsection{Grouper}\label{subsec:grouper}
