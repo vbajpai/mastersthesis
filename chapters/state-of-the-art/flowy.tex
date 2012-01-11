@@ -20,17 +20,31 @@ The pipeline consists of a number of independent processing elements that are co
 The splitter takes the flow-records data as input in the \texttt{flow-tools} compatible format. It is responsible to duplicate the input data out to several branches without any processing whatsoever. This allows each of the branches to have an identical copy of the flow data to process it independently.
 
 \subsection{Filter}\label{subsec:filter}
-The filter performs \emph{absolute} filtering on the input flow-records data. The flow-records that pass the filtering criterion are forwarded to the grouper, the rest of the flow-records are dropped. The filter compares separate fields of a flow-record against either a constant value or a value on a different field of the \emph{same} flow-record. The filter cannot \texttt{relatively} compare two different incoming flow-records
+The filter performs \emph{absolute} filtering on the input flow-records data. The flow-records that pass the filtering criterion are forwarded to the grouper, the rest of the flow-records are dropped. The filter compares separate fields of a flow-record against either a constant value or a value on a different field of the \emph{same} flow-record. The filter cannot \emph{relatively} compare two different incoming flow-records
 
 \subsection{Grouper}\label{subsec:grouper}
 The grouper performs aggregation of the input flow-records data. It consists of a number of rule modules that correspond to a specific subgroup. A flow-record in order to be a part of the group should be a part of at-least one subgroup. A flow-record can be a part of multiple subgroups within a group. In addition a flow-record cannot be part of multiple groups. The grouping rules can be either absolute or relative. The newly formed groups which are passed on to the group filter can also contain meta-information about the flow-records contained within the group using the aggregate clause defined as part of the grouper query.
 
- \subsection{Group-Filter}\label{subsec:group-filter}
- \subsection{Merger}\label{subsec:merger}
- \subsection{Ungrouper}\label{subsec:ungrouper}
+\subsection{Group-Filter}\label{subsec:group-filter}
+The group-filter performs \emph{absolute} filtering on the input group-records data. The group-records that pass the filtering criterion are forwarded to the merger, the rest of the group-records are dropped. The group-filter compares separate fields (or aggregated fields) of a flow-record against either a constant value or a value on a different field of the \emph{same} flow-record. The group-filter cannot \emph{relatively} compare two different incoming group-records
+
+\subsection{Merger}\label{subsec:merger}
+The merger performs relative filtering on the N-tuples of groups formed from the N stream of groups passed on from the group-filter as input. The merger rule module consists of a number of a submodules, where the output of the merger is the set difference of the output of the first submodule with the union of the output of the rest of the submodules. The relative filtering on the groups are applied to express timing and concurrency constraints using Allen interval algebra \cite{fallen:1983}
+
+\subsection{Ungrouper}\label{subsec:ungrouper}
+The ungrouper unwraps the tuples of group-records into individual flow-records, ordered by their timestamps. The duplicate flow-records appearing from several group-records are eliminated and are sent as output only once. 
 
 \section{Python Framework}\label{sec:python-framework}
-	\subsection{PyTables and PLY}\label{subsec:pytable-ply}
-	\subsection{Records}\label{subsec:records}
-	\subsection{Filters and Rules}\label{subsec:filters-rules}
-	\subsection{Branches and Branch Masks}\label{subsec:branches-branchmasks}
+
+The Python framework is subdivided into two main modules: the validator module and the execution module. The validator module is used for syntax checking and interconnecting of all the stages of the processing pipeline and the execution module is used to perform actions at each stage of the runtime operation. 
+
+\subsection{PyTables and PLY}\label{subsec:pytable-ply}
+Flowy uses PyTables \cite{falted:2003} to store the flow-records. PyTables is built on top of the \ac{HDF} library and can exploit the hierarchical nature of the flow-records to efficiently handle large amounts of flow data. In addition, Flowy uses \ac{PLY} for generating a \ac{LALR} parser and providing extensive input validation, error reporting and validation on the execution module.
+
+\subsection{Records}\label{subsec:records}
+Flow-records are the principal unit of data exchange throughout Flowy's processing pipeline. The prototype implementation allows the \texttt{Record} class to be dynamically generated allowing future implementations to easily plug in support for \ac{IPFIX} or even newer versions of NetFlow \cite{rfc3954} exports. The \texttt{Record} class handles the reading of the flow-records and saving them in PyTables for future processing.
+
+\subsection{Filters and Rules}\label{subsec:filters-rules}
+
+
+\subsection{Branches and Branch Masks}\label{subsec:branches-branchmasks}
