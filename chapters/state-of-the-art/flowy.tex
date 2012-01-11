@@ -4,8 +4,16 @@
 
 Flowy \cite{kkanev:thesis:2009}\cite{kkanev:2010} is the first prototype implementation of a stream-based flow record query language \cite{vmarinov:thesis:2009}\cite{vmarinov:2009}\cite{vmarinov:2008}. The query language allows to describe patterns in flow-records in a declarative and orthogonal fashion, making it easy to read and flexible enough to describe complex relationships among a given set of flows. 
 
-\section{Processing Pipeline}\label{sec:processing-pipeline}
+\section{Python Framework}\label{sec:python-framework}
+Flowy is written in Python. The framework is subdivided into two main modules: the validator module and the execution module. The validator module is used for syntax checking and interconnecting of all the stages of the processing pipeline and the execution module is used to perform actions at each stage of the runtime operation. 
 
+\subsection{PyTables and PLY}\label{subsec:pytable-ply}
+Flowy uses PyTables \cite{falted:2003} to store the flow-records. PyTables is built on top of the \ac{HDF} library and can exploit the hierarchical nature of the flow-records to efficiently handle large amounts of flow data. In addition, Flowy uses \ac{PLY} for generating a \ac{LALR} parser and providing extensive input validation, error reporting and validation on the execution module.
+
+\subsection{Records}\label{subsec:records}
+Flow-records are the principal unit of data exchange throughout Flowy's processing pipeline. The prototype implementation allows the \texttt{Record} class to be dynamically generated allowing future implementations to easily plug in support for \ac{IPFIX} or even newer versions of NetFlow \cite{rfc3954} exports. The \texttt{Record} class handles the reading of the flow-records and saving them in PyTables for future processing.
+
+\section{Processing Pipeline}\label{sec:processing-pipeline}
 \begin{figure}[h!]	
 \begin{center}
   \includegraphics* [width=1.0\linewidth]{figures/flowy-pipeline}	
@@ -13,14 +21,17 @@ Flowy \cite{kkanev:thesis:2009}\cite{kkanev:2010} is the first prototype impleme
   \label{fig:flowy-pipeline}
 \end{center}
 \end{figure}
-
 The pipeline consists of a number of independent processing elements that are connected to one another using UNIX-based pipes. Each element receives the content from the previous pipe, performs an operation and pushes it to the next element in the pipeline. Figure \ref{fig:flowy-pipeline} shows an overview of the processing pipeline. The flow record attributes used in this pipeline exactly correlate with the attributes defines in the \ac{IPFIX} Information Model specified in RFC 5102 \cite{rfc5102}. A complete description on the semantics of each element in the pipeline can be found in \cite{vmarinov:thesis:2009}
 
 \subsection{Splitter}\label{subsec:splitter}
 The splitter takes the flow-records data as input in the \texttt{flow-tools} compatible format. It is responsible to duplicate the input data out to several branches without any processing whatsoever. This allows each of the branches to have an identical copy of the flow data to process it independently.
 
+The \texttt{splitter} module handles the duplication of the \texttt{Record} instances to separate branches. Instead of duplicating each flow-record to every branch (as specified in the specification), the implementation follows a pragmatic approach by filtering the records beforehand against all the defined filter rules to determine which branches a flow-record might end up in and saves this information in a record-mask tuple of boolean flags. The \texttt{go(...)} method in the \texttt{Splitter} class then iterates over all the (record, record-mask) pairs to dispatch the records to corresponding branches marked by their masks using the \texttt{split(...)} method. The class uses branch names to branch objects mapping to achieve the dispatch.
+
 \subsection{Filter}\label{subsec:filter}
 The filter performs \emph{absolute} filtering on the input flow-records data. The flow-records that pass the filtering criterion are forwarded to the grouper, the rest of the flow-records are dropped. The filter compares separate fields of a flow-record against either a constant value or a value on a different field of the \emph{same} flow-record. The filter cannot \emph{relatively} compare two different incoming flow-records
+
+The \texttt{filter} module handles the filtering stage of the pipeline. Since in the implementation the filtering stage occurs before the splitting stage, a single \texttt{Filter} class instance suffices for all the branches. Within the \texttt{filter} module, each filtering statement is converted into a \texttt{Rule} class instance, against which the flow-records are matched. The \texttt{Rule} instances are constructed using the (branch mask, logical operator, arguments) tuple. After matching the records against the rules, the record's branch mask is set and is then used by the splitter to dispatch the records to the filtered branches.
 
 \subsection{Grouper}\label{subsec:grouper}
 The grouper performs aggregation of the input flow-records data. It consists of a number of rule modules that correspond to a specific subgroup. A flow-record in order to be a part of the group should be a part of at-least one subgroup. A flow-record can be a part of multiple subgroups within a group. In addition a flow-record cannot be part of multiple groups. The grouping rules can be either absolute or relative. The newly formed groups which are passed on to the group filter can also contain meta-information about the flow-records contained within the group using the aggregate clause defined as part of the grouper query.
@@ -33,18 +44,3 @@ The merger performs relative filtering on the N-tuples of groups formed from the
 
 \subsection{Ungrouper}\label{subsec:ungrouper}
 The ungrouper unwraps the tuples of group-records into individual flow-records, ordered by their timestamps. The duplicate flow-records appearing from several group-records are eliminated and are sent as output only once. 
-
-\section{Python Framework}\label{sec:python-framework}
-
-The Python framework is subdivided into two main modules: the validator module and the execution module. The validator module is used for syntax checking and interconnecting of all the stages of the processing pipeline and the execution module is used to perform actions at each stage of the runtime operation. 
-
-\subsection{PyTables and PLY}\label{subsec:pytable-ply}
-Flowy uses PyTables \cite{falted:2003} to store the flow-records. PyTables is built on top of the \ac{HDF} library and can exploit the hierarchical nature of the flow-records to efficiently handle large amounts of flow data. In addition, Flowy uses \ac{PLY} for generating a \ac{LALR} parser and providing extensive input validation, error reporting and validation on the execution module.
-
-\subsection{Records}\label{subsec:records}
-Flow-records are the principal unit of data exchange throughout Flowy's processing pipeline. The prototype implementation allows the \texttt{Record} class to be dynamically generated allowing future implementations to easily plug in support for \ac{IPFIX} or even newer versions of NetFlow \cite{rfc3954} exports. The \texttt{Record} class handles the reading of the flow-records and saving them in PyTables for future processing.
-
-\subsection{Filters and Rules}\label{subsec:filters-rules}
-
-
-\subsection{Branches and Branch Masks}\label{subsec:branches-branchmasks}
