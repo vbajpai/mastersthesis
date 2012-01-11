@@ -64,8 +64,7 @@ The \texttt{groupfilter} module handles the filtering of group-records. The \tex
 The \texttt{timeindex} module handles the mapping of the time intervals to the flow-records. The time index is used by the merger stage to learn about the records that satisfy the Allen relations. The \texttt{add(...)} method in the \texttt{TimeIndex} class is used to add new records to the time index. The \texttt{get\_interval\_records(...)} method on the other hand is used to retrieve records within a particular time interval.
 
 \subsubsection{Group-Filter Validator}\label{subsubsec:group-filter-validator}
-The \texttt{splitter\_validator} module handles the splitter processing stage.
-The \texttt{SplitterValidator} class within the module uses the \texttt{Parser} and \texttt{FilterValidator} instances passed to it to create a \texttt{Splitter} instance and its child \texttt{Branch} instances.
+The \texttt{groupfilter\_validator} module handles the group-filter processing stage. The \texttt{GroupFilterValidator} class within the module uses the \texttt{Parser} and \texttt{Grouper} instances passed to it to create a \texttt{GroupFilter} instance. The check for the referenced fields is performed against the aggregate clause defined in grouper statements. The class instance uses the \texttt{AcceptGroupFilter} instance in case a branch does \emph{not} have a group filter defined for it.
 
 \subsection{Merger}\label{subsec:merger}
 The merger performs relative filtering on the N-tuples of groups formed from the N stream of groups passed on from the group-filter as input. The merger rule module consists of a number of a submodules, where the output of the merger is the set difference of the output of the first submodule with the union of the output of the rest of the submodules. The relative filtering on the groups are applied to express timing and concurrency constraints using Allen interval algebra \cite{fallen:1983}
@@ -74,15 +73,15 @@ The merger performs relative filtering on the N-tuples of groups formed from the
 The \texttt{merger} module handles the merging of stream of groups passed as input. It is implemented as a nested branch loop organized in an alphabetical order where every branch is a separate \texttt{for-loop} over its records. During iteration, each branch loop executes the rules that matches the arguments defined in the group record tuple and subsequently passes them to the lower level for further processing. The \texttt{Merger} class represents the highest level branch loop and as such it must iterate over all of its records since it does not have any rules to impose restrictions on the possible records. The \texttt{MergerBranch} on the other hand represents an ordinary branch loop with rules.
 
 \subsubsection{Merger Validator}\label{subsubsec:merger-validator}
-The \texttt{splitter\_validator} module handles the splitter processing stage.
-The \texttt{SplitterValidator} class within the module uses the \texttt{Parser} and \texttt{FilterValidator} instances passed to it to create a \texttt{Splitter} instance and its child \texttt{Branch} instances.
+The \texttt{merger\_validator} module handles the merger processing stage.
+The \texttt{MergerValidator} class within the module uses the \texttt{Parser} and \texttt{GroupFilterValidator} instances passed to it to create a \texttt{Merger} instance once the check on referenced fields and branch names has passed. In addition, the validator also ensures semantic checks on Allen algebra such as whether the Allen relation arguments are correctly ordered, whether the Allen rules with the same set of arguments are connected by an OR and whether each branch loop is reachable by an Allen relation (or a chain of Allen relations) from the top level branch.
 
 \subsection{Ungrouper}\label{subsec:ungrouper}
 The ungrouper unwraps the tuples of group-records into individual flow-records, ordered by their timestamps. The duplicate flow-records appearing from several group-records are eliminated and are sent as output only once. 
 
 \subsubsection{Ungrouper Implementation}\label{subsubsec:ungrouper-impl}
-The \texttt{ungrouper} module handles the unwrapping of the group-records. The generation of flow-records can also be suppressed using \texttt{-no-records-ungroup} command line option. The \texttt{Ungrouper} class instance is initialized using a merger file and an explicit export order.
+The \texttt{ungrouper} module handles the unwrapping of the group-records. The generation of flow-records can also be suppressed using the \texttt{-no-records-ungroup} command line option. The \texttt{Ungrouper} class instance is initialized using a merger file and an explicit export order.
 
 \subsubsection{Ungrouper Validator}\label{subsubsec:ungrouper-validator}
-The \texttt{splitter\_validator} module handles the splitter processing stage.
-The \texttt{SplitterValidator} class within the module uses the \texttt{Parser} and \texttt{FilterValidator} instances passed to it to create a \texttt{Splitter} instance and its child \texttt{Branch} instances.
+The \texttt{ungrouper\_validator} module handles the ungrouper processing stage.
+The \texttt{UngrouperValidator} class within the module uses the \texttt{Parser} and \texttt{MergerValidator} instances passed to it to create a \texttt{Ungrouper} instance. This processing stage does \emph{not} require any validation.
