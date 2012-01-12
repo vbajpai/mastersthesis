@@ -87,3 +87,13 @@ The \texttt{ungrouper} module handles the unwrapping of the group-records. The g
 \subsubsection{Ungrouper Validator}\label{subsubsec:ungrouper-validator}
 The \texttt{ungrouper\_validator} module handles the ungrouper processing stage.
 The \texttt{UngrouperValidator} class within the module uses the \texttt{Parser} and \texttt{MergerValidator} instances passed to it to create a \texttt{Ungrouper} instance. This processing stage does \emph{not} require any validation.
+
+\section{Future Outlook}\label{sec:flowy-future}
+\subsection{Reduced Copying}\label{subsec:reduced-copying}
+The \texttt{reset(...)} method of the \texttt{BranchMask} class performs a deepcopy on objects which significantly lowers performance. The invocation of this method can be inhibited by either removing the branch mask mechanism for simpler queries or removing it entirely. In addition avoiding usage of immutable containers (tuples) can also reduce internal copying during mutation.
+
+\subsection{Using PyTables in-kernel searches}\label{subsec:pytable-inkernel}
+PyTables can accelerate flow-records selection using a \texttt{where} iterator. The \texttt{where} clause is passed to the PyTables kernel which is written in C, therefore the selection can occur at C speed and only the filtered flow-records reach the Python space. This would require PyTables in-kernel search query support in the filtering rules and the \texttt{pytables} module would have to be extended to read from PyTables filtered flow-records. 
+
+\subsection{Multithreaded Merger}\label{subsec:multithreaded merger}
+The merger stage in the processing pipeline is currently the most computation intensive operation and is unfortunately single-threaded. As suggested in \cite{kkanev:thesis:2009} it should be possible to handle the outermost branch loop using multiple threads in a non-blocking fashion to improve performance. 
