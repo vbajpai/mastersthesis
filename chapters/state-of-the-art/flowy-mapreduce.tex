@@ -5,10 +5,27 @@
 Flowy, although clearly setting itself apart with its additional functionality to query intricate patterns in the flows demonstrates relatively high execution times when compared to contemporary flow-processing tools. A recent study \cite{pnemeth:thesis:2010} revealed that a sample query run on small record set (around 250MB) took 19 minutes on Flowy as compared to 45 seconds on \texttt{flow-tools}. It, therefore is imperative that the application will benefit from distributed and parallel processing. To this end, recent efforts were made to investigate possibility of making Flowy Map/Reduce aware \cite{pnemeth:thesis:2010}
 
 \section{Map/Reduce Frameworks}\label{sec:map-reduce}
+
+Map/Reduce is a programming model for processing large data sets by automatically parallelizing the computation across large-scale clusters of machines \cite{jdean:2004}. It defines an abstraction scheme where the users specify the computation in terms of a \texttt{map} and \texttt{reduce} function and the underlying systems hides away the intricate details of parallelization, fault tolerance, data distribution and load balancing behind an \ac{API}.
+
+\subsection{Apache Hadoop}\label{subsec:hadoop}
+Apache Hadoop is a Map/Reduce Framework written in Java that exposes a simple programming API to distribute large scale processing across clusters of computers \cite{twhite:hadoop:2010}. However in order to make Flowy play well with the framework, the implementation either has to use a Python wrapper around the Java \ac{API} or translate the complete implementation to Java through Jython. Even more since Flowy uses \ac{HDF} files for it's I/O processing, staging the \ac{HDF} files properly in the \ac{HDFS} \cite{kshvachko:2010} and then later streaming them using Hadoop Streaming utility would still be an issue as suggested in \cite{pnemeth:thesis:2010}
+	
+\subsection{The Disco Project}\label{subsec:disco}
+Disco is a distributed computing platform using the Map/Reduce framework for large-scale data intensive applications \cite{pmundkur:2011}. The core of the platform is written in Erlang and the standard library to interface with the core is written in Python. Since the \texttt{map} and \texttt{reduce} jobs can be easily written as Python functions and dispatched to the worker threads in a pre-packaged format, it is less difficult to setup Disco to utilize Flowy as a \texttt{map} function. In addition, the usage of \ac{HDF} files for I/O processing pose no additional modifications whatsoever since the input data files can be anywhere and supplied to the worker threads in absolute paths.
+
 \section{Parallelizing Flowy}\label{sec:parallel-flowy}
-	\subsection{Installing Disco}\label{subsec:install-disco}
-	\subsection{Slicing Inputs}\label{subsec:slice-input}
+\begin{figure}[h!]
+\begin{center}
+  \includegraphics* [width=1.0\linewidth]{figures/flowy-mapreduce}	
+  \caption{Parallelizing Flowy using Map/Reduce \cite{pnemeth:thesis:2010}}
+  \label{fig:flowy-mapreduce}
+\end{center}
+\end{figure}
+In an attempt to parallelize Flowy, it was run as a map function on a successful single node Disco installation as shown in \ref{flowy-mapreduce}. Although the setup on a multiple node cluster would be theoretically almost the same, Flowy has not yet been tested in such a scenario.
+	
+\subsection{Slicing Inputs}\label{subsec:slice-input}
 		\subsubsection{Using \emph{only} Filters}\label{subsec:filters-only}
 		\subsubsection{Using Groupers}\label{subsec:using-groupers}
 		\subsubsection{Using Mergers}\label{subsec:using-mergers}
-	\subsection{Flowy as a Map Function}\label{subsec:flowy-map}
+\subsection{Flowy as a Map Function}\label{subsec:flowy-map}
