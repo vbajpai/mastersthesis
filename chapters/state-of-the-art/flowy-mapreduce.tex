@@ -1,3 +1,14 @@
 %***********************************************************************
 \chapter{Flowy Improvements using Map/Reduce}\label{ch:flowy-mapreduce}
 %***********************************************************************
+
+Flowy, although clearly setting itself apart with its additional functionality to query intricate patterns in the flows demonstrates relatively high execution times when compared to contemporary flow-processing tools. A recent study \cite{pnemeth:thesis:2010} revealed that a sample query run on small record set (around 250MB) took 19 minutes on Flowy as compared to 45 seconds on \texttt{flow-tools}. It, therefore is imperative that the application will benefit from distributed and parallel processing. To this end, recent efforts were made to investigate possibility of making Flowy Map/Reduce aware \cite{pnemeth:thesis:2010}
+
+\section{Map/Reduce Frameworks}\label{sec:map-reduce}
+\section{Parallelizing Flowy}\label{sec:parallel-flowy}
+	\subsection{Installing Disco}\label{subsec:install-disco}
+	\subsection{Slicing Inputs}\label{subsec:slice-input}
+		\subsubsection{Using \emph{only} Filters}\label{subsec:filters-only}
+		\subsubsection{Using Groupers}\label{subsec:using-groupers}
+		\subsubsection{Using Mergers}\label{subsec:using-mergers}
+	\subsection{Flowy as a Map Function}\label{subsec:flowy-map}
