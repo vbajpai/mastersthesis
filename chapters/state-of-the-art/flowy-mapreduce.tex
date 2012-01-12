@@ -22,10 +22,33 @@ Disco is a distributed computing platform using the Map/Reduce framework for lar
   \label{fig:flowy-mapreduce}
 \end{center}
 \end{figure}
-In an attempt to parallelize Flowy, it was run as a map function on a successful single node Disco installation as shown in \ref{flowy-mapreduce}. Although the setup on a multiple node cluster would be theoretically almost the same, Flowy has not yet been tested in such a scenario.
+In an attempt to parallelize Flowy, it was run as a map function on a successful single node Disco installation as shown in \ref{fig:flowy-mapreduce}. Although the setup on a multiple node cluster would be theoretically almost equivalent, Flowy has not yet been tested in such a scenario.
 	
 \subsection{Slicing Inputs}\label{subsec:slice-input}
-		\subsubsection{Using \emph{only} Filters}\label{subsec:filters-only}
-		\subsubsection{Using Groupers}\label{subsec:using-groupers}
-		\subsubsection{Using Mergers}\label{subsec:using-mergers}
+When running several instances of Flowy, it is imperative to effectively slice the input flow-records data in such a way so as to minimize the redundancy in distribution of input. To achieve this, the semantics of the flow-query needs to be examined from the simplest to the most complex cases. However, it is also important to realize that as of now it is not possible to \emph{leave} out any stage in the Flowy's processing pipeline and the following examination was based on such an assumption.
+
+\subsubsection{Using \emph{only} Filters}\label{subsec:filters-only}
+A flow query that involves only the filtering stage of the processing pipeline can slice its input flow data by either adding explicit export timestamps to allow each branch to skip records or separate out the input flow data into multiple input files for each branch.
+
+\subsubsection{Using Groupers}\label{subsec:using-groupers}
+A flow query that also involves groupers and group-filters cannot use static slice boundaries since the grouping rules can be either absolute or relative. As a result, Flowy needs to be made aware of slice boundaries by passing the timestamps as command line parameters. In such a scenario, each branch will skip the pre-slices, whereby the actual slices and the post-slices will be processed to create relevant groups as shown in figure \ref{fig:flowy-grouper-slices}. It is advisable to slice the flow-records at low traffic spots to avoid the risk of cutting the records belonging to the same group.
+\begin{figure}[h!]
+\begin{center}
+  \includegraphics* [width=1.0\linewidth]{figures/flowy-grouper-slices}	
+  \caption{Slice Boundaries Aware Flowy \cite{pnemeth:thesis:2010}}
+  \label{fig:flowy-grouper-slices}
+\end{center}
+\end{figure}
+The idea of skipping pre-slices and sweeping across post-slices can result in many fragmented redundant groups. These can be identified by the \texttt{reduce} function by removing the groups that are a proper subset of the previous group in the slice at the cost of additional complexity as shown in figure \ref{fig:flowy-redundant-groups}
+\begin{figure}[h!]
+\begin{center}
+  \includegraphics* [width=1.0\linewidth]{figures/flowy-redundant-groups}	
+  \caption{Flowy: Redundant Groups \cite{pnemeth:thesis:2010}}
+  \label{fig:flowy-redundant-groups}
+\end{center}
+\end{figure}
+
+\subsubsection{Using Mergers}\label{subsec:using-mergers}
+The relative dependency in the merger stage of the pipeline is even worse, since the comparison needs to take place between groups resulting from the output of separate \texttt{map} functions. This calls for inhibiting parallelism up to and including the group-filter stage. As a result each worker thread would return back its filtered groups to the master node, which then would apply the rules of the merger stage to all the received groups at once in a \texttt{reduce} function. In such a scenario, although the branch with the longest runtime complexity will become the bottleneck for the merger, the overall runtime would still be dramatically reduced when the number of branches are large as suggested in \cite{jschauer:2012}
+
 \subsection{Flowy as a Map Function}\label{subsec:flowy-map}
