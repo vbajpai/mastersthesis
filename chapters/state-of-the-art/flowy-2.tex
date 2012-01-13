@@ -30,6 +30,53 @@ A C library was written to parse and read/write flow-records in \texttt{flow-too
 A custom C library was written to directly read/write data in the \texttt{flow-tools} format to provide a drop-in replacement for PyTables and overcome the overhead of format conversions. The library sequentially reads the complete flow-records into memory to support random access required for relative filtering. Each flow-record is stored in a \texttt{char} array and the offsets to each field are stored in a separate \texttt{struct}. The array of such records are indexed allowing fast retrieval in $O(1)$ time. The C library is currently limited to support \emph{only} \texttt{flow-tools} formats; \texttt{nfdump} file formats are yet to be supported.
 
 \subsection{Rewrite of Core Algorithms in C}\label{subsec:core-alg-c}
+A design decision was made to rewrite the entire processing pipeline in C. However, currently the core cannot parse the flow-query file, therefore the execution is triggered by a tedious manual filling of the \texttt{structs} by the contents of the query. 
+
+\lstset{caption=Filter Rule Struct \cite{jschauer:thesis:2011}, 
+				tabsize=2, language=C, numbers=left,stepnumber=1,
+				numberstyle=\ttfamily\color{gray}, keywordstyle=\color{blue},
+				frame=shadowbox, rulesepcolor=\color{black}, 	
+			  label=lst:filterrule, belowskip=10pt}
+\begin{lstlisting}
+struct filter_rule {
+	size_t field_offset;
+	uint64_t value;
+	uint64_t delta;
+	bool (*func)(
+		char *record,
+		size_t field_offset,
+		uint64_t value,
+		uint64_t delta);
+};
+\end{lstlisting}
+
+A filter stage \texttt{struct} is shown in listing \ref{lst:filterrule}. The field to be filtered is indicated using a \texttt{field\_offset} and \texttt{field\_length} in the \texttt{char} array of a records. The value to be compared against with is also supplied which can be either a static value or another field of a record. \texttt{func} is a function pointer to the operation that is to be carried out on a record whose record identifier is passed to it. The filter runs in $O(n)$ time as it needs to traverse through all the records of the \texttt{char} array.
+
+\lstset{caption=Merger Rule Struct \cite{jschauer:thesis:2011}, 
+				tabsize=2, language=C, numbers=left,stepnumber=1,
+				numberstyle=\ttfamily\color{gray}, keywordstyle=\color{blue},
+				frame=shadowbox, rulesepcolor=\color{black}, 	
+			  label=lst:mergerrrule, belowskip=10pt}
+\begin{lstlisting}
+struct merger_rule {
+	size_t branch1;
+	size_t field1;
+	size_t branch2;
+	size_t field2;
+	uint64_t delta;
+	bool (*func)(struct group *group1,
+		size_t field1,
+		struct group *group2,
+		size_t field2,
+		uint64_t delta);
+};
+\end{lstlisting}
+
+Similarly, a merger stage \texttt{struct} is shown in listing \ref{lst:mergerrrule}. \texttt{branch\{1,2\}} are branch identifiers and \texttt{field\{1,2\}} are the aggregated field identifers in the order of aggregation. \texttt{func} is a function pointer pointing to the operation to be carried out. The merger runs in $O(n^k)$ time where $k$ is the number of branches. The \texttt{char} arrays in each branch are disjoint since a record cannot be part of more than one group.
+
+The current core implementation also strictly adheres to the processing pipeline shown in figure \ref{fig:flowy-pipeline}. As such, it is not currently possible to skip stages. In addition it is not currently possible to have more than one merger or grouper in the flow-query or aggregate fields in the grouper module since \texttt{char} array storage is not possible. 
+
+To overcome the limitations, the future outlook at this stage is to allow the Python prototype to parse and validate the flow query file which in turn would pass the contents to a Cython wrapper which on the fly will forward them to the core to properly fill in the \texttt{structs}. 
 
 \section{Benchmarks}\label{sec:benchmarks}
 \section{Future Outlook}\label{sec:flowy2-future}
