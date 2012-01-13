@@ -16,7 +16,7 @@ The runtime breakup of individual stages of the processing pipeline as shown in 
 
 In addition, pushing the flow-records data from one stage of the pipeline to another involved deep copying of the whole flow data whereby a mere passing across of a reference across a pipeline in a branch would have sufficed. Similar behavior is visible when the grouper when passing group records saved the individual flow-records in a temporary location tagged with the groups and/or subgroups they belonged to.
 
-The decision decision to use PyTables to read and write flow-records in \ac{HDF} format also added to the complexity.
+The decision decision to use PyTables to read and write flow-records in \ac{HDF} format also added to the complexity. Since, the input flow-records were most of the time in either \texttt{flow-tools} or \texttt{nfdump} file-formats, each time they had to be converted into \ac{HDF} file formats prior to Flowy's execution which was unnecessary.
 
 \subsection{Unmodified Parts}\label{subsec:unmodified-parts}
 The flow-querier parser written in \ac{PLY} and the validators written for each stage of the processing pipeline that check for semantics correctness were left unmodified, since their execution time was invariant of the size of the input data and slightly varying on the query complexity in itself.
@@ -27,6 +27,8 @@ Thread affinity masks were set for each new thread created to delegate the threa
 A C library was written to parse and read/write flow-records in \texttt{flow-tools} compatible format. The C library was connected to the Python prototype using Cython \cite{dseljebotn:2009}\cite{wilbers:2009}. This allowed the flow-records to be easily referenced by an identifier, thereby giving away the need to every time copy all the flow-records when moving ahead in the processing pipeline. Cython was used since it allowed to write C extensions in a Pythonic way by strong-typing variables, calling native C libraries and allowing usage of pointers and structs, thereby providing the best of both worlds \cite{sbehnel:2011}. 
 
 \subsection{Data Format}\label{subsec:data-format}
+A custom C library was written to directly read/write data in the \texttt{flow-tools} format to provide a drop-in replacement for PyTables and overcome the overhead of format conversions. The library sequentially reads the complete flow-records into memory to support random access required for relative filtering. Each flow-record is stored in a \texttt{char} array and the offsets to each field are stored in a separate \texttt{struct}. The array of such records are indexed allowing fast retrieval in $O(1)$ time. The C library is currently limited to support \emph{only} \texttt{flow-tools} formats; \texttt{nfdump} file formats are yet to be supported.
+
 \subsection{Rewrite of Core Algorithms in C}\label{subsec:core-alg-c}
 
 \section{Benchmarks}\label{sec:benchmarks}
