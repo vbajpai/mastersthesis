@@ -36,7 +36,7 @@ A design decision was made to rewrite the entire processing pipeline in C. Howev
 				tabsize=2, language=C, numbers=left,stepnumber=1,
 				numberstyle=\ttfamily\color{gray}, keywordstyle=\color{blue},
 				frame=shadowbox, rulesepcolor=\color{black}, 	
-			  label=lst:filterrule, belowskip=10pt}
+			  label=lst:filterrule, aboveskip=20pt, captionpos=b}
 \begin{lstlisting}
 struct filter_rule {
 	size_t field_offset;
@@ -56,7 +56,7 @@ A filter stage \texttt{struct} is shown in listing \ref{lst:filterrule}. The fie
 				tabsize=2, language=C, numbers=left,stepnumber=1,
 				numberstyle=\ttfamily\color{gray}, keywordstyle=\color{blue},
 				frame=shadowbox, rulesepcolor=\color{black}, 	
-			  label=lst:mergerrrule, belowskip=10pt}
+			  label=lst:mergerrrule, aboveskip=20pt, captionpos=b}
 \begin{lstlisting}
 struct merger_rule {
 	size_t branch1;
@@ -79,9 +79,31 @@ The current core implementation also strictly adheres to the processing pipeline
 To overcome the limitations, the future outlook at this stage is to allow the Python prototype to parse and validate the flow query file which in turn would pass the contents to a Cython wrapper which on the fly will forward them to the core to properly fill in the \texttt{structs}. 
 
 \section{Benchmarks}\label{sec:benchmarks}
+\begin{figure}[h!]
+\begin{center}
+  \includegraphics* [width=0.6\linewidth]{figures/flowy2-benchmarks}	
+  \caption{Flowy vs Flowy2 \cite{jschauer:thesis:2011}}
+  \label{fig:flowy2-benchmarks}
+\end{center}
+\end{figure}
+A flow query with the union aggregations stripped off was used as a sample to compare the runtime performance of Flowy \cite{kkanev:thesis:2009} with Flowy2 \cite{jschauer:thesis:2011} . The benchmarks are shown in figure \ref{fig:flowy2-benchmarks}. It is conspicuous how well the replacement of the core algorithms from Python to C turned out to be. 
+
+\lstset{caption=Flowy2 vs \texttt{flow-tools} \cite{jschauer:thesis:2011}, 
+				tabsize=2, keywordstyle=\color{blue}, language=bash,
+				frame=shadowbox, rulesepcolor=\color{black}, 	
+			  label=lst:flowy2vflowtools, aboveskip=20pt, captionpos=b,
+				moredelim=[s][\ttfamily]{"}{"}}
+\begin{lstlisting}
+$ time sh -c "flow-cat traces | flow-filter -P80"
+$ time sh -c "flow-cat traces | ./flowy"
+\end{lstlisting}
+
+In another test, Flowy2's functionality was reduced to absolute filtering to compare its performance with a state-of-the-art \texttt{flow-tools} analysis tool using \ref{lst:flowy2vflowtools}. It turned out Flowy2 performed just as comparable if not better on an average.
+
+
 \section{Future Outlook}\label{sec:flowy2-future}
 	\subsection{System Integration}\label{subsec:system-integration}
-	\subsection{Searching with Trees}\label{subsec:search-trees}
+	\subsection{Searching with Trees}\label{subsec:search-trees} 
 	\subsection{Specialized Functions in Inner Loops}\label{subsec:special-fns}
 	\subsection{Efficient Multithreading}\label{subsec:multithreading}
 	\subsection{Additional Functionality}\label{subsec:additional-functionality}
