@@ -2,14 +2,33 @@
 \chapter{Flowy 2.0}\label{ch:flowy-2}
 %**************************************
 
-In an attempt to make the first prototype implementation of Flowy comparable with the contemporary flow-record analysis tools, the substitution of the performance hit sections of the Python code was thought out. Flowy 2.0 \cite{jschauer:thesis:2011} is the outcome of a complete rewrite of the core of the prototype implementation in C making it relatively faster in orders of magnitude.
+In an attempt to make the first prototype implementation of Flowy comparable with the contemporary flow-record analysis tools, the substitution of the performance hit sections of the Python code was thought out. Flowy 2.0 \cite{jschauer:thesis:2011} is the outcome of a complete rewrite of the core of the prototype implementation in C making it relatively faster in orders of magnitude. 
 
-\section{Performance Issues}\label{sec:performance-issues}
-\section{Improvements}\label{sec:improvements}
-	\subsection{Unmodified Parts}\label{subsec:unmodified-parts}
-	\subsection{Early Improvements}\label{subsec:early-improvements}
-	\subsection{Data Format}\label{subsec:data-format}
-	\subsection{Rewrite of Core Algorithms in C}\label{subsec:core-alg-c}
+\section{Performance Issues and Improvements}\label{sec:performance-issues}
+\begin{figure}[h!]
+\begin{center}
+  \includegraphics* [width=1.0\linewidth]{figures/flowy2-profiling}	
+  \caption{Runtime Breakup of Individual Stages \cite{jschauer:thesis:2011}}
+  \label{fig:flowy2-profiling}
+\end{center}
+\end{figure}
+The runtime breakup of individual stages of the processing pipeline as shown in \ref{fig:flowy2-profiling} reveal that the grouper and merger incur a massive performance hit. A quick investigation hints towards usage of large deep nested loops in the merger with a worst-case $O(n^3)$ runtime complexity.
+
+In addition, pushing the flow-records data from one stage of the pipeline to another involved deep copying of the whole flow data whereby a mere passing across of a reference across a pipeline in a branch would have sufficed. Similar behavior is visible when the grouper when passing group records saved the individual flow-records in a temporary location tagged with the groups and/or subgroups they belonged to.
+
+The decision decision to use PyTables to read and write flow-records in \ac{HDF} format also added to the complexity.
+
+\subsection{Unmodified Parts}\label{subsec:unmodified-parts}
+The flow-querier parser written in \ac{PLY} and the validators written for each stage of the processing pipeline that check for semantics correctness were left unmodified, since their execution time was invariant of the size of the input data and slightly varying on the query complexity in itself.
+
+\subsection{Early Improvements}\label{subsec:early-improvements}
+Thread affinity masks were set for each new thread created to delegate the thread to a separate processor core. \texttt{try/except} blocks were narrowed down to only code that needed to be exception handled. A test-suite was developed with few sample queries and input traces to validate Flowy's results for regression analysis. A \texttt{setup.py} script was written to facilitate installation of Flowy and its dependencies and \texttt{options.py} was replaced with \texttt{flowy.conf} configuration file with the standard human-readable key-value pairs. The command line option handling was switched from \texttt{optparse} to \texttt{argparse} module and a switch was added for easy profiling. The profiling output was modified as well to allow standard tab delimiters which can be easily parsed by other tools. The flow query was also  extended to allow file contents to be supplied using \texttt{stdin}. Variable names that are now part of Python identifiers were renamed. 
+
+A C library was written to parse and read/write flow-records in \texttt{flow-tools} compatible format. The C library was connected to the Python prototype using Cython \cite{dseljebotn:2009}\cite{wilbers:2009}. This allowed the flow-records to be easily referenced by an identifier, thereby giving away the need to every time copy all the flow-records when moving ahead in the processing pipeline. Cython was used since it allowed to write C extensions in a Pythonic way by strong-typing variables, calling native C libraries and allowing usage of pointers and structs, thereby providing the best of both worlds \cite{sbehnel:2011}. 
+
+\subsection{Data Format}\label{subsec:data-format}
+\subsection{Rewrite of Core Algorithms in C}\label{subsec:core-alg-c}
+
 \section{Benchmarks}\label{sec:benchmarks}
 \section{Future Outlook}\label{sec:flowy2-future}
 	\subsection{System Integration}\label{subsec:system-integration}
