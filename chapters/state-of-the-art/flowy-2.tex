@@ -2,17 +2,29 @@
 \chapter{Flowy $2.0$}\label{ch:flowy-2}
 %**************************************
 
-In an attempt to make the first prototype implementation of Flowy comparable with the contemporary flow-record analysis tools, the substitution of the performance hit sections of the Python code was thought out. Flowy $2.0$ \cite{jschauer:thesis:2011} is the outcome of a complete rewrite of the core of the prototype implementation in C making it relatively faster in orders of magnitude. 
-
-\section{Performance Issues and Improvements}\label{sec:performance-issues}
-\begin{figure}[h!]
-\begin{center}
-  \includegraphics* [width=1.0\linewidth]{figures/flowy2-profiling}	
-  \caption{Runtime Breakup of Individual Stages \cite{jschauer:thesis:2011}}
-  \label{fig:flowy2-profiling}
-\end{center}
-\end{figure}
-The runtime breakup of individual stages of the processing pipeline as shown in \ref{fig:flowy2-profiling} reveal that the grouper and merger incur a massive performance hit. A quick investigation hints towards usage of large deep nested loops in the merger with a worst-case $O(n^3)$ runtime complexity.
+In an attempt to make the first prototype implementation of Flowy comparable with the contemporary flow-record analysis tools, the substitution of the performance hit sections of the Python code was thought out. Flowy $2.0$ \cite{jschauer:thesis:2011} is the outcome of a complete rewrite of the core of the prototype implementation in C making it relatively faster in orders of magnitude.
+ 
+\begin{table}[h!]
+	\begin{tabular}{|c|c|c|c|c|}
+	\hline	
+	no. of records & overall & filter & grouper & merger \\
+	\hline
+	\hline 
+	$103k$ & $1177s$ & $28s (2\%)$ & $240s (20\%)$ & $909s (77\%)$\\
+	\hline 
+	$337k$ & $20875s$ & $110s (1\%)$ & $2777s (13\%)$ & $17988s (86\%)$\\
+	\hline
+	$656k$ & $70035s$ & $202s (0\%)$ & $8499s (12\%)$ & $61334s (87\%)$\\
+	\hline
+	$868k$ & $131578s$ & $274s (0\%)$ & $15913s (12\%)$ & $115391s (87\%)$\\
+	\hline
+	$1161k$ & $234714s$ & $1212s (1\%)$ & $25480s (11\%)$ & $208022s (88\%)$\\
+	\hline
+	\end{tabular}
+\caption{Runtime Breakup of Individual Stages \cite{jschauer:thesis:2011}}
+\label{tab:flowy2-profiling}
+\end{table}
+The runtime breakup of individual stages of the processing pipeline as shown in \ref{tab:flowy2-profiling} reveal that the grouper and merger incur a massive performance hit. A quick investigation hints towards usage of large deep nested loops in the merger with a worst-case $O(n^3)$ runtime complexity.
 
 In addition, pushing the flow-records data from one stage of the pipeline to another involved deep copying of the whole flow data whereby a mere passing across of a reference across a pipeline in a branch would have sufficed. Similar behavior is visible when the grouper when passing group records saved the individual flow-records in a temporary location tagged with the groups and/or subgroups they belonged to.
 
@@ -77,14 +89,29 @@ Similarly, a merger stage \texttt{struct} is shown in listing \ref{lst:mergerrru
 The current core implementation also strictly adheres to the processing pipeline shown in figure \ref{fig:flowy-pipeline}. As such, it is not currently possible to skip stages. In addition it is not currently possible to have more than one merger or grouper in the flow-query or aggregate fields in the grouper module since \texttt{char} array storage is not possible. 
 
 \section{Benchmarks}\label{sec:benchmarks}
-\begin{figure}[h!]
-\begin{center}
-  \includegraphics* [width=0.6\linewidth]{figures/flowy2-benchmarks}	
-  \caption{Flowy vs Flowy2 \cite{jschauer:thesis:2011}}
-  \label{fig:flowy2-benchmarks}
-\end{center}
-\end{figure}
-A flow query with the union aggregations stripped off was used as a sample to compare the runtime performance of Flowy \cite{kkanev:thesis:2009} with Flowy2 \cite{jschauer:thesis:2011} . The benchmarks are shown in figure \ref{fig:flowy2-benchmarks}. It is conspicuous how well the replacement of the core algorithms from Python to C turned out to be. 
+\begin{table}[h!]
+	\begin{center}
+		\begin{tabular}{|c|c|c|}
+		\hline	
+		Number of records & Flowy & Flowy $2.0$ \\
+		\hline
+		\hline 
+		$103k$ & $1177s$ & $0.3s$\\
+		\hline 
+		$337k$ & $20875s$ & $3.4s$\\
+		\hline
+		$656k$ & $70035s$ & $13s$\\
+		\hline
+		$868k$ & $131578s$ & $23s$\\
+		\hline
+		$1161k$ & $234714s$ & $86s$\\
+		\hline
+		\end{tabular}
+	\end{center}
+\caption{Flowy vs Flowy2 \cite{jschauer:thesis:2011}}
+\label{tab:flowy2-benchmarks}
+\end{table}
+A flow query with the union aggregations stripped off was used as a sample to compare the runtime performance of Flowy \cite{kkanev:thesis:2009} with Flowy2 \cite{jschauer:thesis:2011} . The benchmarks are shown in figure \ref{tab:flowy2-benchmarks}. It is conspicuous how well the replacement of the core algorithms from Python to C turned out to be. 
 
 \lstset{caption=Flowy2 vs \texttt{flow-tools} \cite{jschauer:thesis:2011}, 
 				tabsize=2, keywordstyle=\color{blue}, language=bash,
