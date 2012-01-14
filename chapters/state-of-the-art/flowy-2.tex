@@ -76,8 +76,6 @@ Similarly, a merger stage \texttt{struct} is shown in listing \ref{lst:mergerrru
 
 The current core implementation also strictly adheres to the processing pipeline shown in figure \ref{fig:flowy-pipeline}. As such, it is not currently possible to skip stages. In addition it is not currently possible to have more than one merger or grouper in the flow-query or aggregate fields in the grouper module since \texttt{char} array storage is not possible. 
 
-To overcome the limitations, the future outlook at this stage is to allow the Python prototype to parse and validate the flow query file which in turn would pass the contents to a Cython wrapper which on the fly will forward them to the core to properly fill in the \texttt{structs}. 
-
 \section{Benchmarks}\label{sec:benchmarks}
 \begin{figure}[h!]
 \begin{center}
@@ -100,10 +98,20 @@ $ time sh -c "flow-cat traces | ./flowy"
 
 In another test, Flowy2's functionality was reduced to absolute filtering to compare its performance with a state-of-the-art \texttt{flow-tools} analysis tool using \ref{lst:flowy2vflowtools}. It turned out Flowy2 performed just as comparable if not better on an average.
 
-
 \section{Future Outlook}\label{sec:flowy2-future}
-	\subsection{System Integration}\label{subsec:system-integration}
-	\subsection{Searching with Trees}\label{subsec:search-trees} 
-	\subsection{Specialized Functions in Inner Loops}\label{subsec:special-fns}
-	\subsection{Efficient Multithreading}\label{subsec:multithreading}
-	\subsection{Additional Functionality}\label{subsec:additional-functionality}
+In a follow up to a commendable effort in making the Flowy prototype drastically improve by orders of magnitude, the author in \cite{jschauer:thesis:2011} has suggested numerous areas of improvement to make the software fully functional again.
+
+\subsection{System Integration}\label{subsec:system-integration}
+The Python prototype is currently left unused. The idea is at this stage is to allow the Python prototype to parse and validate the flow query file which in turn would pass the contents to a Cython wrapper which on the fly will forward them to the core to properly fill in the structs. At this point, the C core will process the query pipeline and eventually forward back the results to the Python prototype which it can use to display the results in a human friendly format.
+
+\subsection{Searching with Trees}\label{subsec:search-trees} 
+The benchmarks performed in \cite{jschauer:thesis:2011} had a complexity of $O(n^2)$ for the grouper and merger. This was when the number of branches in the pipeline was reduced to maximum of $2$ and the flow-query had a single module for both the merger and grouper. With the current implementation, this complexity is deemed to increase exponentially as the number of records, branches and the grouper, merger modules in the flow-query increase. Therefore, having a search tree lookup for the grouper and merger stage would help bring the runtime costs down, whereby one of the fields will be traversed sequentially in $O(n)$ time and for each field comparison will be performed  by search tree lookups in $O(log(n))$ time bringing down the complexity to $O(nlog(n))$. B+trees would essentially work in this case, since records can still be traversed sequentially along a list after a search tree lookup. 
+
+\subsection{Specialized Functions in Inner Loops}\label{subsec:special-fns}
+The comparison operations are currently passed an offset and the length of the field type to be compared as shown in listings \ref{lst:filterrule},  \ref{lst:mergerrrule}. The length needs to be checked before making a cast to an appropriate type inside these functions. Such checks can be avoided by writing specialized functions for each combination of the field type $(33)$ and supported operations $(19)$ totaling to $20K$ functions. Such functions can be dynamically generated from the Python code and would take around $3$MiB of space in memory as suggested in \cite{jschauer:thesis:2011} which looks like worth the effort considering these functions are invoked from the innermost loops in each stage of the pipeline, and therefore squeezing such optimizations would go a long way in improving the C core.
+
+\subsection{Efficient Multithreading}\label{subsec:multithreading}
+The core C implementation currently has limited multithreading. Each branch in the pipeline runs on a separate thread and uses affinity masks to delegate the thread to a separate processor core. However, this implies that merger and ungrouper stages still remain single-threaded and the multithreaded utilization largely depends on the query being executed. The situation can be improved by writing a \texttt{pthreads} wrapper that auto detects the number of available cores, creates a appropriate size thread pool and equally divides the tasks among the threads in the pool. This would also lead to increased complexity of managing mutual exclusion of shared memory and needs to be investigated.
+
+\subsection{Additional Functionality}\label{subsec:additional-functionality}
+The core C implementation currently can only parse flow-records in \texttt{flow-tools} and support for \texttt{nfdump} file formats is left out. The comparison (>> and <<) and aggregation (intersect) operations are not full blown and can be extended. The possibility to write the filters in \ac{CNF} form still needs to investigated. 
