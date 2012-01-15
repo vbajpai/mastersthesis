@@ -6,7 +6,7 @@ The developed stream-based flow-querier helped to underpin a number of recent re
 
 \section{Application Identification using Flow 
 Signatures}\label{sec:application-signatures}
-The idea behind this study was to identify applications using flow traces on a network by analyzing potential left-behind signatures that describe them \cite{vperelman:2011}\cite{vperelman:thesis:2010}. This was based on the hypothesis that each application type generates unique flow signatures that might work as a fingerprint feature. To achieve this, a collection of network traces were recorded from several users and subsequently analyzed. The identified signatures were formalized by writing flow queries that were executed on Flowy \cite{kkanev:2010}. Several separate instances of the network traces were queried to evaluate the approach and come to a conclusion. 
+The idea behind this study was to identify applications using flow traces on a network by analyzing potential left-behind signatures that describe them \cite{vperelman:2011, vperelman:thesis:2010}. This was based on the hypothesis that each application type generates unique flow signatures that might work as a fingerprint feature. To achieve this, a collection of network traces were recorded from several users and subsequently analyzed. The identified signatures were formalized by writing flow queries that were executed on Flowy \cite{kkanev:2010}. Several separate instances of the network traces were queried to evaluate the approach and come to a conclusion. 
 
 \lstset{caption=A Flowy Query to identify Skype \cite{vperelman:thesis:2010}, 
 				tabsize=2, language=C, numbers=left,stepnumber=1,
@@ -130,8 +130,12 @@ The filter \texttt{F\_SSDP} is used to identify the four identical \ac{UDP} mult
 \end{table}
 The identification results obtained from the analysis of flow-traces from ten unique users are compiled together in table \ref{tab:flow-sig-results}. The results demonstrate a success rate of $96\%$ for the five applications tested.  This study reveals that it is possible to identify applications from their network flow fingerprints and is a first step towards automating the complete process whereby machine learning techniques would be used to automatically generate flow-queries and identify new applications and even more so newer versions of the same application. 
 
-
 \section{Cybermetrics: User Identification}\label{sec:cybermetrics}
+The idea of identification of users based on biometric patterns such as keystroke dynamics \cite{fbergadano:2002}, mouse interactions \cite{aahmed:2007} or activity cycles in online games \cite{kchen:2007} has been long known. This study takes the idea even further by using flow-record patterns as a characteristic (cybermetrics) to identify a user on a network \cite{nmelnikov:thesis:2010, nmelnikov:2010}. Such a cybermetric user identification can be used for the purpose of providing secure access, system administration and network management.
+
+ 
+
+
 \section{IPv6 Transition Failure Identification}\label{sec:ipv6transeval}
 \section{TCP level Spam Detection}\label{sec:spam-detection}
 \section{OpenFlow}\label{sec:openflow}
