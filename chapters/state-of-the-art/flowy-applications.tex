@@ -34,7 +34,6 @@ S branch A -> F_SSDP -> G_SSDP -> GF_SSDP -> M
 S branch B -> F_NAT_PMP -> G_NAT_PMP -> GF_NAT_PMP -> M
 M -> U -> "output"
 \end{lstlisting}
-
 A formalized Flowy query to identify Skype from the flow traces for an instance is described in listing \ref{lst:skypequery}. The filter, grouper and group-filter sections of each branch are shown separately in listings \ref{lst:skypebranchA} and \ref{lst:skypebranchB}. Additional queries identifying variety of web browsers, mail clients, IM clients and media players can be found in \cite{vperelman:thesis:2010}.
 
 \begin{center}
@@ -92,7 +91,6 @@ A formalized Flowy query to identify Skype from the flow traces for an instance 
 	\end{lstlisting}
 \end{minipage}
 \end{center}
-
 The filter \texttt{F\_SSDP} is used to identify the four identical \ac{UDP} multicast messages the client sends out using \ac{SSDP} \cite{mbodlaender:2005}. Similarly \texttt{F\_NAT\_PMP} filter is used to identify four \ac{NAT-PMP} \cite{draft-cheshire-nat-pmp-03} messages sent over UDP. The groupers \texttt{G\_SSDP} and \texttt{G\_NAT\_PMP} group together flow records with the same source and destination IP address and the aggregate clauses describe the meta information with unique source IP addresses for each group records along with the total bytes carried within each group. The meta information is used to further filter the group-records in \texttt{GF\_SSDP} and \texttt{GF\_NAT\_PMP} modules. 
 
 \begin{table}[h!]
@@ -150,10 +148,27 @@ Initial research efforts started with identifying application signatures in flow
   \label{fig:cybermetrics-geography}
 \end{center}
 \end{figure}
-The authors also looked into the geographical affiliations of different users by analyzing the \ac{ccTLD} of the browsed websites. They proposed a hypothesis that a user's origins strongly \marginpar{geographical preferences} influences its browsing activity in relation to the destination (or language) oriented websites it usually visits. The analysis of the results established that the top five visited \ac{ccTLD}s constituted more than $85\%$ of the overall number of a user's visits (excluding generic TLDs) as shown in figure \ref{fig:cybermetrics-geography}.
+The authors also looked into the geographical affiliations of different users by analyzing the \ac{ccTLD} of the browsed websites. They proposed a hypothesis that a user's origins strongly \marginpar{geographical preferences} influences their browsing activity. The analysis of the results established that the top five visited \ac{ccTLD}s constituted more than $85\%$ of the overall number of a user's visits as shown in figure \ref{fig:cybermetrics-geography}.
+ 
+\begin{figure}[h!]
+\begin{center}
+  \includegraphics* [width=0.6\linewidth]{figures/cybermetrics-daily-distrib}	
+  \caption{Cybermetrics: Daily Distributions for HTTP Traffic 	
+					 \cite{nmelnikov:thesis:2010}}
+  \label{fig:cybermetrics-daily-distrib}
+\end{center}
+\end{figure}
+In the end, the authors introduced a proof-of-concept method of user differentiation based on statistical features. These features considered daily distributions of parameters that were based on different port numbers. \marginpar{flow-record statistics}For instance, figure \ref{fig:cybermetrics-daily-distrib} shows the daily distribution of different users based on their \ac{HTTP} traffic usage. It was also witnessed that the time duration also played a key role in the process of feature formation, whereby the number of longer flows increased with the duration and consequently resulted in higher cross-correlations as shown in figure \ref{fig:cybermetrics-cross-correlate}  
+\begin{figure}[h!]
+\begin{center}
+  \includegraphics* [width=0.6\linewidth]{figures/cybermetrics-cross-correlate}	
+  \caption{Cybermetrics: Cross Correlation of Traces with Varying Times 	
+					 \cite{nmelnikov:thesis:2010}}
+  \label{fig:cybermetrics-cross-correlate}
+\end{center}
+\end{figure}
 
-
-The user feature extraction and eventual evaluation was performed on two different data sets. One of the data sets contained flow-records from known number of users and the other at a metering point of a university containing potentially a number of unknown users. The evaluation results testified the influence of the extracted features in potential user differentiation. 
+This research is a first attempt to identify users based on their network flow fingerprints and the on-going effort is focussing on sophisticated machine learning techniques to learn behavioral patterns of known users to identify them in the future from their current network-flow traces.
 
 \section{IPv6 Transition Failure Identification}\label{sec:ipv6transeval}
 \section{TCP level Spam Detection}\label{sec:spam-detection}
