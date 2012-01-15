@@ -6,6 +6,129 @@ The developed stream-based flow-querier helped to underpin a number of recent re
 
 \section{Application Identification using Flow 
 Signatures}\label{sec:application-signatures}
+The idea behind this study was to identify applications using flow traces on a network by analyzing potential left-behind signatures that describe them \cite{vperelman:2011}\cite{vperelman:thesis:2010}. This was based on the hypothesis that each application type generates unique flow signatures that might work as a fingerprint feature. To achieve this, a collection of network traces were recorded from several users and subsequently analyzed. The identified signatures were formalized by writing flow queries that were executed on Flowy \cite{kkanev:2010}. Several separate instances of the network traces were queried to evaluate the approach and come to a conclusion. 
+
+\lstset{caption=A Flowy Query to identify Skype \cite{vperelman:thesis:2010}, 
+				tabsize=2, language=C, numbers=left,stepnumber=1,
+				basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+				keywordstyle=\color{blue}, frame=shadowbox, rulesepcolor=\color{black}, 	
+			  label=lst:skypequery, aboveskip=20pt, captionpos=b}
+\begin{lstlisting}
+splitter S {}
+	
+...
+
+merger M {
+	module m1 {
+		branches A, B
+		A.srcip = B.srcip
+		A o B OR B o A
+	}
+	export m1
+}
+
+ungrouper U {}
+		
+"input" -> S
+S branch A -> F_SSDP -> G_SSDP -> GF_SSDP -> M
+S branch B -> F_NAT_PMP -> G_NAT_PMP -> GF_NAT_PMP -> M
+M -> U -> "output"
+\end{lstlisting}
+
+A formalized Flowy query to identify Skype from the flow traces for an instance is described in listing \ref{lst:skypequery}. The filter, grouper and group-filter sections of each branch are shown separately in listings \ref{lst:skypebranchA} and \ref{lst:skypebranchB}. Additional queries identifying variety of web browsers, mail clients, IM clients and media players can be found in \cite{vperelman:thesis:2010}.
+
+\begin{center}
+\begin{minipage}{.44\textwidth}
+	\lstset{caption=Skype Branch A \cite{vperelman:thesis:2010}, 
+					tabsize=2, language=C, numbers=left,stepnumber=1,
+					basicstyle=\tiny\ttfamily,numberstyle=\ttfamily\color{gray},
+					keywordstyle=\color{blue},frame=shadowbox, rulesepcolor=\color{black}, 	
+				  label=lst:skypebranchB, aboveskip=20pt, captionpos=b}
+	\begin{lstlisting}
+	filter F_SSDP {
+		dstport = 1900
+		port = protocol("UDP")	
+		dstip = 239.255.255.250
+	}
+
+	grouper G_SSDP {
+		module g1 {
+			srcip = scrip
+			dstip = dstip
+			srcport = srcport
+		}
+		aggregate srcip, sum(bytes) as B
+	}
+
+	groupfilter GF_SSDP {
+		B = 321
+	}
+	\end{lstlisting}
+\end{minipage}
+\hfill
+\begin{minipage}{.44\textwidth}
+	\lstset{caption=Skype Branch B \cite{vperelman:thesis:2010}, 
+					tabsize=2, language=C, numbers=left,stepnumber=1,
+					basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+					keywordstyle=\color{blue},frame=shadowbox, rulesepcolor=\color{black}, 	
+				  label=lst:skypebranchA, aboveskip=20pt, captionpos=b}
+	\begin{lstlisting}
+	filter F_NAT_PMP {
+		dstport = 5351
+		port = protocol("UDP")	
+	}
+
+	grouper G_NAT_PMP {
+		module g1 {
+			srcip = scrip
+			dstip = dstip
+		}
+		aggregate srcip, sum(bytes) as B
+	}
+
+	groupfilter GF_NAT_PMP {
+		B = 160
+	}
+	\end{lstlisting}
+\end{minipage}
+\end{center}
+
+The filter \texttt{F\_SSDP} is used to identify the four identical \ac{UDP} multicast messages the client sends out using \ac{SSDP} \cite{mbodlaender:2005}. Similarly \texttt{F\_NAT\_PMP} filter is used to identify four \ac{NAT-PMP} \cite{draft-cheshire-nat-pmp-03} messages sent over UDP. The groupers \texttt{G\_SSDP} and \texttt{G\_NAT\_PMP} group together flow records with the same source and destination IP address and the aggregate clauses describe the meta information with unique source IP addresses for each group records along with the total bytes carried within each group. The meta information is used to further filter the group-records in \texttt{GF\_SSDP} and \texttt{GF\_NAT\_PMP} modules. 
+
+\begin{table}[h!]
+	\begin{center}
+		\tiny
+		\begin{tabular}{|c|c|c|c|c|c|}
+		\hline	
+		UserID & Skype & Opera & Amarok & Chrome & Live \\
+		\hline
+		\hline 
+		u$0$ & \ding{52} & \ding{109} & \ding{54} & \ding{109} & \ding{109} \\
+		\hline             
+		u$1$ & \ding{52} & \ding{109} & \ding{109} & \ding{109} & \ding{109} \\
+		\hline             
+		u$2$ & \ding{109} & \ding{109} & \ding{109} & \ding{109} & \ding{109} \\
+		\hline             
+		u$3$ & \ding{52} & \ding{109} & \ding{54} & \ding{109} & \ding{109} \\
+		\hline             
+		u$4$ & \ding{109} & \ding{109} & \ding{109} & \ding{109} & \ding{109} \\
+		\hline             
+		u$5$ & \ding{52} & \ding{109} & \ding{52} & \ding{52} & \ding{109} \\
+		\hline             
+		u$6$ & \ding{109} & \ding{109} & \ding{109} & \ding{109} & \ding{109} \\
+		\hline
+		u$7$ & \ding{109} & \ding{52} & \ding{52} & \ding{109} & \ding{109} \\
+		\hline
+		u$8$ & \ding{109} & \ding{109} & \ding{109} & \ding{109} & \ding{109} \\
+		\hline
+		u$9$ & \ding{52} & \ding{52} & \ding{52} & \ding{52} & \ding{109} \\
+		\hline
+		\end{tabular}
+	\end{center}
+\caption{Application Flow Signatures: Results \cite{vperelman:thesis:2010}}
+\label{tab:flow-sig-results}
+\end{table}
+The identification results obtained from the analysis of flow-traces from ten unique users are compiled together in table \ref{tab:flow-sig-results}. The results demonstrate a success rate of $96\%$ for the five applications tested.  This study reveals that it is possible to identify applications from their network flow fingerprints and is a first step towards automating the complete process whereby machine learning techniques would be used to automatically generate flow-queries and identify new applications and even more so newer versions of the same application. 
 
 
 \section{Cybermetrics: User Identification}\label{sec:cybermetrics}
