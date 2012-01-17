@@ -172,6 +172,49 @@ This research is a first attempt to identify users based on their network flow f
 \section{IPv$6$ Transition Failure Identification}\label{sec:ipv6transeval}
 The IPv$4$ address space depletion is upon us and has become more imminent in the last few years. While IPv$6$ can readily expand the extent of the Internet, deploying it alone is clearly not a solution today and hence there are a continuum of transitioning solutions that would help in this migration. In this study \cite{vbajpai:2012} we evaluated the compatibility of popular applications with such transitioning solutions: NAT$64$ \cite{rfc6146} and Dual-Stack Lite \cite{rfc6333}. The goal was to find potential failures by identifying application failure signatures left behind in the flow-record traces using Flowy. These failure signatures could later be used by service providers to automate the detection and eventually shorten the deployment verification cycle.
 
+\begin{figure}[h!]
+\begin{center}
+  \includegraphics* [width=0.8\linewidth]{figures/ipv6transeval-nat64-setup}	
+  \caption{NAT$64$ Setup \cite{vbajpai:2012}}
+  \label{fig:ipv6transeval-nat64-setup}
+\end{center}
+\end{figure}
+In the NAT$64$ deployment testbed as shown in figure \ref{fig:ipv6transeval-nat64-setup}, the authors witnessed failure in $3$ applications: Skype, OpenVPN and Transmission. Flowy queries were defined to \marginpar{application operation under NAT$64$} establish failure signatures for each application. A formalized Flowy query to identify Skype failure signature for an instance is described in listing \ref{lst:skypefailure}. The filter sections of each branch are shown separately in listings \ref{lst:skypefailurebranchA} and \ref{lst:skypefailurebranchB}. 
+\begin{center}
+\begin{minipage}{.44\textwidth}
+	\lstset{caption=Branch A \cite{vbajpai:2012}, 
+					tabsize=2, language=C, numbers=left,stepnumber=1,
+					basicstyle=\tiny\ttfamily,numberstyle=\ttfamily\color{gray},
+					keywordstyle=\color{blue},frame=shadowbox, rulesepcolor=\color{black}, 	
+				  label=lst:skypefailurebranchA, aboveskip=20pt, captionpos=b}
+	\begin{lstlisting}
+	filter f-mDNS {
+	  dstport = 5353
+	  srcport = 5353
+	  dstip = 224.0.0.251
+	  duration > 1 sec
+	  duration < 5 sec
+	}
+	\end{lstlisting}
+\end{minipage}
+\hfill
+\begin{minipage}{.44\textwidth}
+	\lstset{caption=Branch B-C-D \cite{vbajpai:2012}, 
+					tabsize=2, language=C, numbers=left,stepnumber=1,
+					basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+					keywordstyle=\color{blue},frame=shadowbox, rulesepcolor=\color{black}, 	
+				  label=lst:skypefailurebranchB, aboveskip=20pt, captionpos=b}
+	\begin{lstlisting}
+	filter f-login1 {
+	  dstport = 443
+	  duration > 55 sec
+	  duration < 59 sec
+	}
+	\end{lstlisting}
+\end{minipage}
+\end{center}
+
+Filter \texttt{f-mDNS} is used to filter multicast messages used by Skype to discover clients in the link-local network sent to the destination IP address-port combination $(224.0.0.251:5353)$. Filter \texttt{f-login1} is used to filter $3$ unsuccessful attempts to contact the login server each in a separate branch. The \marginpar{skype failure signature} source port and the duration increases with decreasing number of packets for each subsequent flow. 
 \lstset{caption=Skype Failure Signature \cite{vbajpai:2012}, 
 				tabsize=2, language=C, numbers=left,stepnumber=1,
 				basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
@@ -223,43 +266,11 @@ S br LOGIN3 -> f-login3 -> g-login3 -> gf-login3 -> M
 M -> U -> "output"
 
 \end{lstlisting}
+The groupers count the number of packets in each flow-records using \texttt{pckt-sum} which is later utilized by the merger stage to distinguish the branches. The group-filter stage finally is used to filter out groups with more than one record.
 
-A formalized Flowy query to identify Skype failure signature for NAT$64$ is described in listing \ref{lst:skypefailure} for an instance. The filter sections of each branch are shown separately in listings \ref{lst:skypefailurebranchA} and \ref{lst:skypefailurebranchB}. 
+The NAT$64$ translation works when the applications running on the IPv$6$-only host explicitly make DNS requests to allow DNS$64$ to capture and masquerade them as fake IPv$6$ addresses that are eventually \marginpar{failure when using IPv$4$ literals}sent to the NAT$64$ box. If the applications use IPv$4$ literals to contact the servers, DNS$64$ is skipped and therefore NAT$64$ cannot perform the translation. This was reason behind the failure of the other two applications (OpenVPN and Transmission).
 
-\begin{center}
-\begin{minipage}{.44\textwidth}
-	\lstset{caption=Branch A \cite{vbajpai:2012}, 
-					tabsize=2, language=C, numbers=left,stepnumber=1,
-					basicstyle=\tiny\ttfamily,numberstyle=\ttfamily\color{gray},
-					keywordstyle=\color{blue},frame=shadowbox, rulesepcolor=\color{black}, 	
-				  label=lst:skypefailurebranchA, aboveskip=20pt, captionpos=b}
-	\begin{lstlisting}
-	filter f-mDNS {
-	  dstport = 5353
-	  srcport = 5353
-	  dstip = 224.0.0.251
-	  duration > 1 sec
-	  duration < 5 sec
-	}
-	\end{lstlisting}
-\end{minipage}
-\hfill
-\begin{minipage}{.44\textwidth}
-	\lstset{caption=Branch B-C-D \cite{vbajpai:2012}, 
-					tabsize=2, language=C, numbers=left,stepnumber=1,
-					basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
-					keywordstyle=\color{blue},frame=shadowbox, rulesepcolor=\color{black}, 	
-				  label=lst:skypefailurebranchB, aboveskip=20pt, captionpos=b}
-	\begin{lstlisting}
-	filter f-login1 {
-	  dstport = 443
-	  duration > 55 sec
-	  duration < 59 sec
-	}
-	\end{lstlisting}
-\end{minipage}
-\end{center}
-
+This study sets across a baseline to automate the failure detection by formalizing queries against flow-records. While a more exhaustive study encompassing wider set of applications still needs to be carried out, it is imperative that this unique approach is not just limited to IPv$6$ transition technologies, but can be utilized to identify failures in more generic cases.
 
 \section{TCP level Spam Detection}\label{sec:spam-detection}
 \section{OpenFlow}\label{sec:openflow}
