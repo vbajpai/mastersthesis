@@ -272,5 +272,16 @@ The NAT$64$ translation works when the applications running on the IPv$6$-only h
 
 This study sets across a baseline to automate the failure detection by formalizing queries against flow-records. While a more exhaustive study encompassing wider set of applications still needs to be carried out, it is imperative that this unique approach is not just limited to IPv$6$ transition technologies, but can be utilized to identify failures in more generic cases.
 
-\section{TCP level Spam Detection}\label{sec:spam-detection}
 \section{OpenFlow}\label{sec:openflow}
+OpenFlow \cite{nmckeown:2008} is an open standards protocol that runs between an Ethernet switch and an OpenFlow controller (a software designed to run on a x$86$ server) to securely manage the forwarding plane of the switch over the network as shown in figure \ref{fig:openflow-architecture}. This enables the controller to push out policies that dictate how to process flow-records crossing the networking infrastructure to eventually improve bandwidth, reduce latency and save power. 
+\begin{figure}[h!]
+\begin{center}
+  \includegraphics* [width=0.5\linewidth]{figures/openflow}	
+  \caption{OpenFlow Architecture \cite{newscientist:2009}}
+  \label{fig:openflow-architecture}
+\end{center}
+\end{figure}
+
+OpenFlow initially started as a way to allow researchers to experiment with new ideas in sufficiently realistic settings by allowing the live production networking gear to open a narrow programmable external interface to it whereby at the same time keeping the inner workings of the gear hidden and proprietary.  The idea took off outside the \marginpar{motivation} academic setting in recent years with the need of data centers requiring to run large-scale map/reduce jobs with full cross-sectional bandwidth. Such a requirement called for flexible forwarding and programmable networks to meet the application-specific needs. Today, the commercial underpinning of OpenFlow are driven by the \ac{IaaS} providers trying to virtualize their network architecture to solve the issue of multi-tenancy to implement \ac{NaaS}
+
+\section{TCP level Spam Detection}\label{sec:spam-detection}
