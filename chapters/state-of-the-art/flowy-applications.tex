@@ -8,7 +8,7 @@ The developed stream-based flow-querier helped to underpin a number of recent re
 Signatures}\label{sec:application-signatures}
 The idea behind this study was to identify applications using flow traces on a network by analyzing potential left-behind signatures that describe them \cite{vperelman:2011, vperelman:thesis:2010}. This was based on the hypothesis that each application type generates unique flow signatures that might work as a fingerprint feature. To achieve this, a collection of network traces were recorded from several users and subsequently analyzed. The identified signatures were formalized by writing flow queries that were executed on Flowy \cite{kkanev:2010}. Several separate instances of the network traces were queried to evaluate the approach and come to a conclusion. 
 
-\lstset{caption=A Flowy Query to identify Skype \cite{vperelman:thesis:2010}, 
+\lstset{caption=Skype Application Signature \cite{vperelman:thesis:2010}, 
 				tabsize=2, language=C, numbers=left,stepnumber=1,
 				basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
 				keywordstyle=\color{blue}, frame=shadowbox, rulesepcolor=\color{black}, 	
@@ -38,7 +38,7 @@ A formalized Flowy query to identify Skype from the flow traces for an instance 
 
 \begin{center}
 \begin{minipage}{.44\textwidth}
-	\lstset{caption=Skype Branch A \cite{vperelman:thesis:2010}, 
+	\lstset{caption=Branch A \cite{vperelman:thesis:2010}, 
 					tabsize=2, language=C, numbers=left,stepnumber=1,
 					basicstyle=\tiny\ttfamily,numberstyle=\ttfamily\color{gray},
 					keywordstyle=\color{blue},frame=shadowbox, rulesepcolor=\color{black}, 	
@@ -66,7 +66,7 @@ A formalized Flowy query to identify Skype from the flow traces for an instance 
 \end{minipage}
 \hfill
 \begin{minipage}{.44\textwidth}
-	\lstset{caption=Skype Branch B \cite{vperelman:thesis:2010}, 
+	\lstset{caption=Branch B \cite{vperelman:thesis:2010}, 
 					tabsize=2, language=C, numbers=left,stepnumber=1,
 					basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
 					keywordstyle=\color{blue},frame=shadowbox, rulesepcolor=\color{black}, 	
@@ -144,7 +144,7 @@ Initial research efforts started with identifying application signatures in flow
 \begin{figure}[h!]
 \begin{center}
   \includegraphics* [width=0.60\linewidth]{figures/cybermetrics-geography}	
-  \caption{Cybermetrics: Geographical Preferences \cite{nmelnikov:thesis:2010}}
+  \caption{Geographical Preferences \cite{nmelnikov:thesis:2010}}
   \label{fig:cybermetrics-geography}
 \end{center}
 \end{figure}
@@ -153,8 +153,7 @@ The authors also looked into the geographical affiliations of different users by
 \begin{figure}[h!]
 \begin{center}
   \includegraphics* [width=0.6\linewidth]{figures/cybermetrics-daily-distrib}	
-  \caption{Cybermetrics: Daily Distributions for HTTP Traffic 	
-					 \cite{nmelnikov:thesis:2010}}
+  \caption{Daily Distributions for HTTP Traffic \cite{nmelnikov:thesis:2010}}
   \label{fig:cybermetrics-daily-distrib}
 \end{center}
 \end{figure}
@@ -162,7 +161,7 @@ In the end, the authors introduced a proof-of-concept method of user differentia
 \begin{figure}[h!]
 \begin{center}
   \includegraphics* [width=0.6\linewidth]{figures/cybermetrics-cross-correlate}	
-  \caption{Cybermetrics: Cross Correlation of Traces with Varying Times 	
+  \caption{Cross Correlation of Traces with Varying Times 
 					 \cite{nmelnikov:thesis:2010}}
   \label{fig:cybermetrics-cross-correlate}
 \end{center}
@@ -171,8 +170,95 @@ In the end, the authors introduced a proof-of-concept method of user differentia
 This research is a first attempt to identify users based on their network flow fingerprints and the on-going effort is focussing on sophisticated machine learning techniques to learn behavioral patterns of known users to identify them in the future from their current network-flow traces.
 
 \section{IPv$6$ Transition Failure Identification}\label{sec:ipv6transeval}
-The IPv$4$ address space depletion is upon us and has become more imminent in the last few years. While IPv$6$ can readily expand the extent of the Internet, deploying it alone is clearly not a solution today and hence there are a continuum of transitioning solutions that would help in this migration. In this study \cite{vbajpai:2012} we evaluated the compatibility of popular applications with such transitioning solutions: NAT$64$ \cite{rfc6146} and Dual-Stack Lite \cite{rfc6333}. The goal was to find potential failures by identifying application failure signatures left behind in the flow-record traces using Flowy. These application signatures could later be used by service providers to automate the detection and eventually shorten the deployment verification cycle.
+The IPv$4$ address space depletion is upon us and has become more imminent in the last few years. While IPv$6$ can readily expand the extent of the Internet, deploying it alone is clearly not a solution today and hence there are a continuum of transitioning solutions that would help in this migration. In this study \cite{vbajpai:2012} we evaluated the compatibility of popular applications with such transitioning solutions: NAT$64$ \cite{rfc6146} and Dual-Stack Lite \cite{rfc6333}. The goal was to find potential failures by identifying application failure signatures left behind in the flow-record traces using Flowy. These failure signatures could later be used by service providers to automate the detection and eventually shorten the deployment verification cycle.
 
+\lstset{caption=Skype Failure Signature \cite{vbajpai:2012}, 
+				tabsize=2, language=C, numbers=left,stepnumber=1,
+				basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+				keywordstyle=\color{blue}, frame=shadowbox, rulesepcolor=\color{black}, 	
+			  label=lst:skypefailure, aboveskip=20pt, captionpos=b}
+\begin{lstlisting}
+splitter S {}
+	
+...
+
+grouper g-login1 {
+  module g1 {
+    srcport = srcport
+    dstip = dstip
+    dstport = dstport
+  }     
+  aggregate srcip, dstip, srcport, td,
+  sum(packets) as pckt-sum, count(rec_id) as n
+}
+
+merger M {
+  branches mDNS, LOGIN1, LOGIN2, LOGIN3
+		      
+  LOGIN1.srcip = LOGIN2.srcip
+  LOGIN2.srcip = LOGIN3.srcip
+  LOGIN1.dstip = LOGIN2.dstip
+  LOGIN2.dstip = LOGIN3.dstip
+	
+  LOGIN1.srcport = LOGIN2.srcport rdelta 1
+  LOGIN2.srcport = LOGIN3.srcport rdelta 1
+
+  LOGIN1.pckt-sum > LOGIN2.pckt-sum
+  LOGIN2.pckt-sum > LOGIN3.pckt-sum
+	
+  mDNS.td < LOGIN1.td
+  mDNS.td < LOGIN2.td
+  mDNS.td < LOGIN3.td
+	
+  mDNS < LOGIN1
+  mDNS < LOGIN2
+  mDNS < LOGIN3
+}
+
+"input"-> S
+S br mDNS -> f-mDNS -> g-mDNS -> gf-mDNS -> M
+S br LOGIN1 -> f-login1 -> g-login1 -> gf-login1 -> M
+S br LOGIN2 -> f-login2 -> g-login2 -> gf-login2 -> M
+S br LOGIN3 -> f-login3 -> g-login3 -> gf-login3 -> M
+M -> U -> "output"
+
+\end{lstlisting}
+
+A formalized Flowy query to identify Skype failure signature for NAT$64$ is described in listing \ref{lst:skypefailure} for an instance. The filter sections of each branch are shown separately in listings \ref{lst:skypefailurebranchA} and \ref{lst:skypefailurebranchB}. 
+
+\begin{center}
+\begin{minipage}{.44\textwidth}
+	\lstset{caption=Branch A \cite{vbajpai:2012}, 
+					tabsize=2, language=C, numbers=left,stepnumber=1,
+					basicstyle=\tiny\ttfamily,numberstyle=\ttfamily\color{gray},
+					keywordstyle=\color{blue},frame=shadowbox, rulesepcolor=\color{black}, 	
+				  label=lst:skypefailurebranchA, aboveskip=20pt, captionpos=b}
+	\begin{lstlisting}
+	filter f-mDNS {
+	  dstport = 5353
+	  srcport = 5353
+	  dstip = 224.0.0.251
+	  duration > 1 sec
+	  duration < 5 sec
+	}
+	\end{lstlisting}
+\end{minipage}
+\hfill
+\begin{minipage}{.44\textwidth}
+	\lstset{caption=Branch B-C-D \cite{vbajpai:2012}, 
+					tabsize=2, language=C, numbers=left,stepnumber=1,
+					basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+					keywordstyle=\color{blue},frame=shadowbox, rulesepcolor=\color{black}, 	
+				  label=lst:skypefailurebranchB, aboveskip=20pt, captionpos=b}
+	\begin{lstlisting}
+	filter f-login1 {
+	  dstport = 443
+	  duration > 55 sec
+	  duration < 59 sec
+	}
+	\end{lstlisting}
+\end{minipage}
+\end{center}
 
 
 \section{TCP level Spam Detection}\label{sec:spam-detection}
