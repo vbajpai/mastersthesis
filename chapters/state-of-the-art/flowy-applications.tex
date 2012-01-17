@@ -288,6 +288,6 @@ An OpenFlow switch manages a flow table to keep record of the flows crossing it.
 
 The OpenFlow protocol in itself is like an x$86$ instruction-set by itself. However, there is a lot of innovation possible at the software stack layer that can be built on top the controller that exposes the API and pushes this low-level instruction-set to the networking gear. For instance, the stack can deploy \marginpar{software stack} network-wide policies and administer \ac{ACLs} for each incoming flow or  allow seamless handover of mobile hosts by rerouting requests making the networking gear location-aware in itself. As such, it is conspicuous that the possibilities are endless and is the beginning of a kick-start of a new internet evolution.
 
-
+It is not difficult to anticipate that Flowy could be of much use for OpenFlow. It could be envisaged that the controller would define Flowy queries to get to a specific flow-entry in the flow table before sending action level instructions to the networking gear. \marginpar{Flowy and OpenFlow} In addition, Flowy could be extended to allow flow manipulation constructs to define the action instructions themselves which can be sent out by the controller. In a future outlook, Flowy can even be envisioned to allow procedural constructs (variables, functions, loops, conditions) around the declarative query to add power to what can be retrieved or sent back to the switches. 
 
 \section{TCP level Spam Detection}\label{sec:spam-detection}
