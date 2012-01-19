@@ -5,9 +5,109 @@
 In lieu of the significant leaps made by Flowy $2.0$ in making the initial prototype usable, additional efforts were made by the same author to work upon the enlisted areas of improvements mentioned in $\ref{sec:flowy2-future}$. To mark this evolution of initial prototype to the current bleeding edge state, it was decided to rename the implementation to F \cite{jschauer:2012} with an exhaustive performance evaluation against the state-of-the-art flow processing tools \cite{sromig:2000, phaag:2006} that operate on absolute filters.
 
 \section{Rule Interfaces}\label{sec:rule-interfaces}
+The design of the rule interfaces for a flow-query was rethought. An object-oriented approach was followed to abstract out details into multiple levels of inheritance. The \texttt{flowquery} struct for instance, is the parent of all the rule interfaces as shown in listing $\ref{lst:flowqueryrule}$.
+\lstset{caption=Flow Query Struct \cite{jschauer:2012}, 
+				tabsize=2, language=C, numbers=left,stepnumber=1,
+				numberstyle=\ttfamily\color{gray}, keywordstyle=\color{blue},
+				frame=shadowbox, rulesepcolor=\color{black}, 	
+			  label=lst:flowqueryrule, aboveskip=20pt, captionpos=b}
+\begin{lstlisting}
+struct flowquery {
+	size_t num_branches;
+	struct branch_info *branches;
+	struct merger_rule **mrules;
+};
+\end{lstlisting}
+
+\texttt{branch\_info} struct defines rules for each branch. It conglomerates filter, grouper and group-filter stages as shown in listing $\ref{lst:branchinforule}$. 
+\lstset{caption=Branch Info Struct \cite{jschauer:2012}, 
+				tabsize=2, language=C, numbers=left,stepnumber=1,
+				numberstyle=\ttfamily\color{gray}, keywordstyle=\color{blue},
+				frame=shadowbox, rulesepcolor=\color{black}, 	
+			  label=lst:branchinforule, aboveskip=20pt, captionpos=b}
+\begin{lstlisting}
+struct branch_info {
+	int branch_id;
+	struct ft_data *data;
+	struct filter_rule *filter_rules;
+	size_t num_filter_rules;
+	struct grouper_rule *group_modules;
+	size_t num_group_modules;
+	struct grouper_aggr *aggr;
+	size_t num_aggr;
+	struct gfilter_rule *gfilter_rules;
+	size_t num_gfilter_rules;
+	struct group **filtered_groups;
+	size_t num_filtered_groups;
+};
+\end{lstlisting}
+
+\begin{center}
+\begin{minipage}{.44\textwidth}
+	\lstset{caption=Grouper Struct \cite{vperelman:thesis:2010}, 
+					tabsize=2, language=C, numbers=left,stepnumber=1,
+					basicstyle=\tiny\ttfamily,numberstyle=\ttfamily\color{gray},
+					keywordstyle=\color{blue},frame=shadowbox, rulesepcolor=\color{black}, 	
+				  label=lst:grouperrule, aboveskip=20pt, captionpos=b}
+	\begin{lstlisting}
+	struct grouper_rule {
+		size_t field_offset1;
+		size_t field_offset2;
+		uint64_t delta;
+		uint16_t op;
+		bool (*func)(
+		  struct group *group,
+		  size_t field_offset1,
+		  char *record2,
+		  size_t field_offset2,
+		  uint64_t delta);
+	};
+	\end{lstlisting}
+\end{minipage}
+\hfill
+\begin{minipage}{.44\textwidth}
+	\lstset{caption=Group Struct \cite{vperelman:thesis:2010}, 
+					tabsize=2, language=C, numbers=left,stepnumber=1,
+					basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+					keywordstyle=\color{blue},frame=shadowbox, rulesepcolor=\color{black}, 	
+				  label=lst:grouprule, aboveskip=20pt, captionpos=b}
+	\begin{lstlisting}
+	struct group {
+		char        **members;
+		size_t      num_members;
+		struct aggr *aggr;
+		uint32_t    start;
+		uint32_t    end;
+	};
+
+	struct aggr {
+	  size_t   num_values;
+	  uint64_t *values;
+	};
+	\end{lstlisting}
+\end{minipage}
+\end{center}
+The group-filter struct is similar to the filter struct previously shown in listing $\ref{lst:filterrule}$. The grouper struct is shown in listing $\ref{lst:grouperrule}$ and is used to perform relative comparison on the flow-records. It takes in offsets of the fields to be grouped, their lengths and a comparison function. Possible comparison functions are \texttt{eq}, \texttt{ne}, \texttt{lt}, \texttt{gt}, \texttt{le} and \texttt{ge}. The comparison function creates a \texttt{group} instance, a pointer to which is passed to it. The group struct is shown in listing $\ref{lst:grouprule}$ which apart from the information about the members, also points to a grouper aggregation struct that contains meta-information resulting from calling an aggregation function. 
+\lstset{caption=Grouper Aggregation Struct \cite{jschauer:2012}, 
+				tabsize=2, language=C, numbers=left,stepnumber=1,
+				numberstyle=\ttfamily\color{gray}, keywordstyle=\color{blue},
+				frame=shadowbox, rulesepcolor=\color{black}, 	
+			  label=lst:grouperaggrrule, aboveskip=20pt, captionpos=b}
+\begin{lstlisting}
+struct grouper_aggr {
+	int module;
+	size_t field_offset;
+	struct aggr (*func)(
+	  char **group_records,
+	  size_t num_records,
+	  size_t field_offset);
+};
+\end{lstlisting}
+The grouper aggregation struct is shown in listing $\ref{lst:grouperaggrrule}$ and consists of the module to aggregate over, the field offset and the aggregation function. Possible aggregation functions are \texttt{static}, \texttt{count}, \texttt{union}, \texttt{min/max}, \texttt{mean/median}, \texttt{stddev}, \texttt{sum/prod}, \texttt{and/or/xor}. The merger stage struct is the same as was previously shown in listing $\ref{lst:mergerrrule}$ and allows relative comparison between groups from different branches. 
+
+The rules are now possible to be written in \ac{CNF}. \ac{CNF} allow the flexibility to define every possible logical expression with the available comparison operations. The comparison (\texttt{>>} and \texttt{<<}) and the \texttt{intersect} aggregation operations still need to be implemented though as was previously mentioned in section $\ref{subsec:additional-functionality}$. 
 
 \section{Flowy $2.0$ Improvements}\label{sec:flowy-2-improvements}
-
 \subsection{Efficient Rule Processing}\label{sec:rule-processing}
 \subsection{Binary Search for
  						Fast Relative Comparisons}\label{sec:binary-search}
