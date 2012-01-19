@@ -4,6 +4,7 @@
 
 In an attempt to make the first prototype implementation of Flowy comparable with the contemporary flow-record analysis tools, the substitution of the performance hit sections of the Python code was thought out. Flowy $2.0$ \cite{jschauer:thesis:2011} is the outcome of a complete rewrite of the core of the prototype implementation in C making it relatively faster in orders of magnitude.
  
+\section{Performance Issues}\label{sec:performance-issues}
 \begin{table}[h!]
 	\begin{tabular}{|c|c|c|c|c|}
 	\hline	
@@ -30,7 +31,7 @@ In addition, pushing the flow-records data from one stage of the pipeline to ano
 
 The decision decision to use PyTables to read and write flow-records in \ac{HDF} format also added to the complexity. Since, the input flow-records were most of the time in either \texttt{flow-tools} or \texttt{nfdump} file-formats, each time they had to be converted into \ac{HDF} file formats prior to Flowy's execution which was unnecessary.
 
-\subsection{Unmodified Parts}\label{subsec:unmodified-parts}
+\section{Flowy Improvements}\label{sec:flowy-improvements}
 The flow-querier parser written in \ac{PLY} and the validators written for each stage of the processing pipeline that check for semantics correctness were left unmodified, since their execution time was invariant of the size of the input data and slightly varying on the query complexity in itself.
 
 \subsection{Early Improvements}\label{subsec:early-improvements}
