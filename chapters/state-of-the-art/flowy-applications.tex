@@ -288,6 +288,48 @@ An OpenFlow switch manages a flow table to keep record of the flows crossing it.
 
 The OpenFlow protocol in itself is like an x$86$ instruction-set by itself. However, there is a lot of innovation possible at the software stack layer that can be built on top the controller that exposes the API and pushes this low-level instruction-set to the networking gear. For instance, the stack can deploy \marginpar{software stack} network-wide policies and administer \ac{ACLs} for each incoming flow or  allow seamless handover of mobile hosts by rerouting requests making the networking gear location-aware in itself. As such, it is conspicuous that the possibilities are endless and is the beginning of a kick-start of a new internet evolution.
 
-It is not difficult to anticipate that Flowy could be of much use for OpenFlow. It could be envisaged that the controller would define Flowy queries to get to a specific flow-entry in the flow table before sending action level instructions to the networking gear. \marginpar{Flowy and OpenFlow} In addition, Flowy could be extended to allow flow manipulation constructs to define the action instructions themselves which can be sent out by the controller. In a future outlook, Flowy can even be envisioned to allow procedural constructs (variables, functions, loops, conditions) around the declarative query to add power to what can be retrieved or sent back to the switches. 
+It is not difficult to anticipate that Flowy could be of much use for OpenFlow. It could be envisaged that the controller would define Flowy queries to get to a specific flow-entry in the flow table before sending action level instructions to the networking gear. \marginpar{flowy and openflow} In addition, Flowy could be extended to allow flow manipulation constructs to define the action instructions themselves which can be sent out by the controller. In a future outlook, Flowy can even be envisioned to allow procedural constructs (variables, functions, loops, conditions) around the declarative query to add power to what can be retrieved or sent back to the switches. 
 
-\section{TCP level Spam Detection}\label{sec:spam-detection}
+\section{Flow Level Spam Detection}\label{sec:spam-detection}
+
+\begin{table}[h!]
+	\begin{center}
+		\tiny
+		\begin{tabular}{|c|c|}
+		\hline	
+		Feature & Description  \\
+		\hline
+		\hline 
+		Pkts & Packets  \\
+		\hline
+		Rxmits & Retransmissions  \\
+		\hline
+		RSTs & Packets with RST bit set  \\
+		\hline
+		FINs & Packets with FIN bit set  \\
+		\hline
+		Cwnd0 & Times 0-window advertised  \\
+		\hline
+		CwndMin & Minimum window advertised  \\
+		\hline
+		MaxIdle & Maximum idle time between packets  \\
+		\hline
+		RTT & Initial round trip time estimate  \\
+		\hline
+		JitterVar & Variance of inter-packet delay  \\
+		\hline
+		\end{tabular}
+	\end{center}
+\caption{Features in Spam Flow \cite{rbeverly:2008}}
+\label{tab:email-flow-features}
+\end{table}
+Classical methods to mitigate spam such as content filtering and reputation analysis utilize the the weakness of spam messages and the places from where they originate from. Though currently effective, it's only a matter of time when spammers find a way to subvert around these vantage points. In this study \cite{rbeverly:2008, rbeverly:2011}, the authors analyze the transport level characteristics of the email flows to differentiate between spam and legitimate email. These characteristics exploit the fundamental weakness of each spam: the requirements to send large amounts of the same email on resource constrained links owned by compromised botnets which is unlikely to change in the near future. They reason that a spammer's traffic is more likely to experience \ac{TCP} timeouts, retransmissions, resets and variable \ac{RTT} estimates. Based on this hypothesis they extract $13$ learning features as shown in table \ref{tab:email-flow-features} to formalize a machine learning problem. 
+
+\begin{figure}[h!]
+\begin{center}
+  \includegraphics* [width=0.7\linewidth]{figures/email-flow}	
+  \caption{Spam Flow Classifier \cite{rbeverly:2008}}
+  \label{fig:email-flow}
+\end{center}
+\end{figure}
+The data collection methodology is depicted in figure \ref{fig:email-flow} where \ac{TCP} packets corresponding to email messages are extracted and examined on a per-email flow basis. The packets in an email flow are coalesced together by using \ac{TCP} port numbers in the email headers. Using machine learning feature selection, \marginpar{a spam classifier} a spam classifier is built that matches each flow to a binary spam/ham ground-truth label. \ac{SVMs} \cite{vvapnik:1995} are used for classification and \ac{FF} \cite{yyang:1997} is used for feature selection to find a set of features that provide the least training error. It turns out the classifier achieves $90\%$ accuracy with $78\%$ detectability of false-negatives from a particular content filter. 
