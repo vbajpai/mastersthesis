@@ -108,8 +108,36 @@ The grouper aggregation struct is shown in listing $\ref{lst:grouperaggrrule}$ a
 The rules are now possible to be written in \ac{CNF}. \ac{CNF} allow the flexibility to define every possible logical expression with the available comparison operations. The comparison (\texttt{>>} and \texttt{<<}) and the \texttt{intersect} aggregation operations still need to be implemented though as was previously mentioned in section $\ref{subsec:additional-functionality}$. 
 
 \section{Flowy $2.0$ Improvements}\label{sec:flowy-2-improvements}
+This study focusses on optimizing deep nested loops in each processing stage and improving the overall complexity of the grouper and merger as previous enlisted in sections $\ref{subsec:special-fns}$ and $\ref{subsec:search-trees}$.
+
 \subsection{Efficient Rule Processing}\label{sec:rule-processing}
+The comparison operations, previously were required to make costly checks on the length of the field type passed to them, to be able to make appropriate casts. Such checks are now no longer needed. F now allows filtering of records (and groups) via two methods: using specialized comparison functions or using one main fall through \texttt{switch} statement. The implementation defaults to using specialized comparison functions to encourage modularity in source code. 
+
+\lstset{caption=Auto Generated Comparison Functions \cite{jschauer:2012}, 
+				tabsize=2, language=C, numbers=left,stepnumber=1,
+				numberstyle=\ttfamily\color{gray}, keywordstyle=\color{blue},
+				frame=shadowbox, rulesepcolor=\color{black}, 	
+			  label=lst:autocompfunc, aboveskip=20pt, captionpos=b}
+\begin{lstlisting}
+bool filter_eq_uint8_t(...);
+bool filter_eq_uint16_t(...);
+...
+\end{lstlisting}
+In the default method, there is a comparison function defined for every possible field length $(33)$ and comparison operations $(19)$. These functions are generated using a \marginpar{using function pointers}Python script \footnote{\texttt{fun\_gen.py}} and are declared/defined in \texttt{auto\_comps.\{h,c\}} as shown in listing $\ref{lst:autocompfunc}$. The rule definitions are now able to make calls using a function name derived from the combination of field length, delta type and operation. This subverts the need to define complex branching statements and reduces complexity. 
+
+\lstset{caption=Auto Generated Switch Statement \cite{jschauer:2012}, 
+				tabsize=2, language=C, numbers=left,stepnumber=1,
+				numberstyle=\ttfamily\color{gray}, keywordstyle=\color{blue},
+				frame=shadowbox, rulesepcolor=\color{black}, 	
+			  label=lst:autoswitch, aboveskip=20pt, captionpos=b}
+\begin{lstlisting}
+switch (group_modules[k].op) {
+  case RULE_EQ | RULE_S1_8 | RULE_S2_8 | RULE_ABS:
+  case RULE_EQ | RULE_S1_8 | RULE_S2_8 | RULE_REL:
+  ...
+\end{lstlisting}
+In the other method, the logic is executed by comparing the field length and the operation \marginpar{using switch statement} by falling through a huge switch statement. Such a huge switch statement is again generated using the same Python script and is defined in \texttt{auto\_switch.c} as shown in listing $\ref{lst:autoswitch}$.  
+
 \subsection{Binary Search for
  						Fast Relative Comparisons}\label{sec:binary-search}
-
 \section{Benchmarks}\label{sec:f-benchmarks}
