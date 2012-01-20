@@ -146,5 +146,18 @@ In order to reduce the number of comparisons in these stages, using a binary sea
 
 However, it still looks like having an actual search tree would benefit the grouper and merger, whereby one of the fields will be traversed sequentially in $O(n)$ \marginpar{using search trees} time and for each field, the comparison will be performed by search tree lookups in $O(log(n))$ time bringing down the complexity to $O(nlog(n))$ and is a future action item.
 
-
 \section{Benchmarks}\label{sec:f-benchmarks}
+In order to evaluate how well F now performs with these added improvements, the authors decided to compare it with the state-of-the-art flow-processing tools: \texttt{flow-tools} $\cite{sromig:2000}$ and \texttt{nfdump} $\cite{phaag:2006}$. Since these tools do not currently support relative filtering of flow-records, a set of $3$ queries involving only absolute filters was defined as shown in listing $\ref{lst:f-benchmark-queries}$ and evaluated on a set of $500K-10M$ flow-records.  
+
+\lstset{caption=Queries to Benchmark F \cite{jschauer:2012}, 
+				tabsize=2, language=C, numbers=left,stepnumber=1,
+				numberstyle=\ttfamily\color{gray}, keywordstyle=\color{blue},
+				frame=shadowbox, rulesepcolor=\color{black}, 	
+			  label=lst:f-benchmark-queries, aboveskip=20pt, captionpos=b}
+\begin{lstlisting}
+src port 80
+src port 80 or dst port 25
+src port 443 or (src port 80 and dst port 25)
+\end{lstlisting}
+
+It turned out that F performed as well if not better than the other flow-processing tools. F's complexity linearly increased with the increase in flow-records, thereby demonstrating a complexity of $O(n)$.
