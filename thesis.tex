@@ -20,14 +20,14 @@
 \pagenumbering{arabic}
 
 \cleardoublepage
-\ctparttext{You can put some informational part preamble text here}
+\ctparttext{\input{sections/introduction.tex}}
 \part{Introduction}
 \include{chapters/introduction/traffic-measurement-approaches}
 \include{chapters/introduction/flow-export-protocols}
 \include{chapters/introduction/languages-and-tools}
 
 \cleardoublepage
-\ctparttext{You can put some informational part preamble text here}
+\ctparttext{\input{sections/state-of-the-art.tex}}
 \part{State of the Art}
 \include{chapters/state-of-the-art/flowy}
 \include{chapters/state-of-the-art/flowy-mapreduce}
@@ -36,14 +36,15 @@
 \include{chapters/state-of-the-art/flowy-applications}
 
 \cleardoublepage
+\ctparttext{\input{sections/motivation.tex}}
 \part{Motivation}
 
 \cleardoublepage
-\ctparttext{You can put some informational part preamble text here}
+\ctparttext{\input{sections/work-plan.tex}}
 \part{Work Plan}
 
 \cleardoublepage
-\ctparttext{You can put some informational part preamble text here}
+\ctparttext{\input{sections/implementation-and-evaluation.tex}}
 \part{Implementation and Evaluation}
 \include{chapters/implementation-and-evaluation/design}
 \include{chapters/implementation-and-evaluation/implementation}
