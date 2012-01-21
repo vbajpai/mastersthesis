@@ -28,5 +28,7 @@ The \ac{RMON} Framework \cite{rfc3577} for \ac{SNMP} \cite{rfc1157} defines a nu
 
 The novelity of this technique lies in the ability to immediately communicate important information to the managing station using events and alarms. The constructs are extremely flexible in giving full control over what conditions will cause an alarm \marginpar{pros and cons} and subsequently what event will be generated. The event-driven nature of such a monitoring platform however still does not satisfy the requirements of traffic analysis applications since the data that is pushed out is highly aggregated and lacks enough details to be useful. 
 
-
 \section{Remote Metering}\label{sec:remote-metering}
+In this technique, meters are deployed at the network measurement points to capture flow data according to a predefined set of rules specified by the user. The model, as defined by the \ac{RTFM} working group \cite{rfc2722} has been designed to be protocol agnostic and restrictive in the amount of flow data that can transmitted across the network and stored to reduce the processing time of network analysis applications. 
+
+The feature that sets this technique apart is the flexibility given to the user to specify their flow measurement requirements, thereby allowing them to filter out the traffic they do not care about. This calls for the users, to at the very outset analyze \marginpar{pros and cons} and freeze their requirements before they start off to capture the traffic. This is analogous to the flaws inherit in the waterfall model \cite{wroyce:1987} of software design, whereby one need to design the design before one designs it.
