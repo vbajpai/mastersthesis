@@ -3,6 +3,18 @@
 %*****************************************************
 
 \section{Capturing Packets}\label{sec:capturing-packets}
+In this technique, raw packets traversing a monitoring point are captured for traffic measurement. The measurements can be done either live or the packets can be saved in a trace file for offline analysis. The trace files can range from containing mere headers to entire packets depending on the level of detailed analysis required. 
+
+\texttt{tcpdump} \cite{... } is a premier tool used for packet analysis. \texttt{wireshark} \cite{...} is a \marginpar{tools} tool that comes with a graphical interface and has some integrated sorting and filtering techniques in addition to what is available in \texttt{tcpdump}. 
+
+This approach benefits from the astounding level of detail it can provide. It allows deep packet inspection of the traces, thereby exposing even the application content being exchanged \marginpar{pros and cons} across the network. This calls for privacy concerns and can even bring in legal repercussions to make this technique unattractive for traffic analyzers today. In addition, the actual usage of this method comes at a higher price of its storage overhead and its inability to scale to larger setups.
+
+\marginpar{applicability}
+
+
 \section{Capturing Flows}\label{sec:capturing-flows}
+
+
+
 \section{Remote Monitoring}\label{sec:remote-monitoring}
 \section{Remote Metering}\label{sec:remote-metering}
