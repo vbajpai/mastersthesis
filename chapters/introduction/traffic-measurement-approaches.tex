@@ -5,7 +5,7 @@
 \section{Capturing Packets}\label{sec:capturing-packets}
 In this technique, raw packets traversing a monitoring point are captured for traffic measurement. The measurements can be done either live or the packets can be saved in a trace file for offline analysis. The trace files can range from containing mere headers to entire packets depending on the level of detailed analysis required. 
 
-\texttt{tcpdump} \cite{... } is a premier tool used for packet analysis. \texttt{wireshark} \cite{...} is a \marginpar{tools} tool that comes with a graphical interface and has some integrated sorting and filtering techniques in addition to what is available in \texttt{tcpdump}. 
+\texttt{tcpdump} \cite{...} is a premier tool used for packet analysis. \texttt{wireshark} \cite{...} is a \marginpar{tcpdump and wireshark} tool that comes with a graphical interface and has some integrated sorting and filtering techniques in addition to what is available in \texttt{tcpdump}. 
 
 This approach benefits from the astounding level of detail it can provide. It allows deep packet inspection of the traces, thereby exposing even the application content being exchanged \marginpar{pros and cons} across the network. This calls for privacy concerns and can even bring in legal repercussions to make this technique unattractive for traffic analyzers today. In addition, the actual usage of this method comes at a higher price of its storage overhead and its inability to scale to larger setups.
 
@@ -15,11 +15,18 @@ This approach benefits from the astounding level of detail it can provide. It al
 \section{Capturing Flows}\label{sec:capturing-flows}
 In this technique, packets traversing a monitoring point are not captured raw, instead they are aggregated together based on some common characteristics. The common characteristics are learnt by inspecting the packet headers as they cross the monitoring point. Flow-records resulting from such an aggregation are then exported to a collector from where they can be later retrieved for further analysis. These flow-records in addition to containing information about the packets within flow, also contain accounting details which can be extremely helpful in dissecting them. 
 
-netflow {...} and ipfix \cite{...} \marginpar{flow-based protocols}
+netflow {...} and ipfix \cite{...} \marginpar{netflow and ipfix}
 
 Hardware-assisted aggregation of the packets helps solve the storage overhead and scalability limitation of packet capturing techniques. However, with the ever-increasing \marginpar{pros and cons} speed of network links in our internet backbone today, this issue scares us of its homecoming. In addition, the tradeoff of aggregation benefits lop-sides towards reduced inspection capabilities when the traffic is mainly comprised of large number of short-lived flows. 
 
 \marginpar{applicability}
 
 \section{Remote Monitoring}\label{sec:remote-monitoring}
+In this technique, dedicated monitoring probes are deployed on network segments to continuously collect vital statistics and perform network diagnostic operations. The probes are configured to proactively monitor the network and automatically check for error conditions to later log and notify them to the management station. 
+
+The \ac{RMON} Framework \cite{rfc3577} for \ac{SNMP} \cite{rfc1157} defines a number of \ac{MIB} objects to be used by these monitoring probes. The \ac{RMON}-1 standard \cite{rfc2819} for instance, defines a \ac{MIB} \marginpar{rmon} module to collect statistics, capture and filter packet contents at the logical link layer. The architecture in this standard has been further extended with a feature upgrade by the \ac{RMON}-2 standard \cite{rfc4502} to support similar analysis up to the application layer.
+
+The novelity of this technique lies in the ability to immediately communicate important information to the managing station using events and alarms. The constructs are extremely flexible in giving full control over what conditions will cause an alarm \marginpar{pros and cons} and subsequently what event will be generated. The event-driven nature of such a monitoring platform however still does not satisfy the requirements of traffic analysis applications since the data that is pushed out is highly aggregated and lacks enough details to be useful. 
+
+
 \section{Remote Metering}\label{sec:remote-metering}
