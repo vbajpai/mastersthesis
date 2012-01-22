@@ -5,7 +5,17 @@
 \section{Capturing Packets}\label{sec:capturing-packets}
 In this technique, raw packets traversing a monitoring point are captured for traffic measurement. The measurements can be done either live or the packets can be saved in a trace file for offline analysis. The trace files can range from containing mere headers to entire packets depending on the level of detailed analysis required. 
 
-\texttt{tcpdump} \cite{...} is a premier tool used for packet analysis. \texttt{wireshark} \cite{...} is a \marginpar{tcpdump and wireshark} tool that comes with a graphical interface and has some integrated sorting and filtering techniques in addition to what is available in \texttt{tcpdump}. 
+\lstset{caption=\texttt{tcpdump}: Example, 
+				tabsize=2, language=C, numbers=left,stepnumber=1,
+				numberstyle=\ttfamily\color{gray}, keywordstyle=\color{blue},
+				frame=shadowbox, rulesepcolor=\color{black}, 	
+			  label=lst:tcpdump-example, aboveskip=20pt, captionpos=b}
+\begin{lstlisting}
+$ tcpdump port 80 -w $FILE
+$ tcpdump -r $FILE
+\end{lstlisting}
+
+\texttt{tcpdump} and \texttt{wireshark} are the most popular tools used for packet capture and analysis. \texttt{tcpdump} \cite{tcpdump-manpage} is a premier command-line utility that uses the \texttt{libpcap} \cite{pcap-manpage} library for packet capture. A simple example to capture the \ac{HTTP} traffic in a file and later read from it is described in listing $\ref{lst:tcpdump-example}$. \marginpar{tcpdump} The power of \texttt{tcpdump}  comes from the richness of its expressions, the ability to combine them using logical connectives and extract specific portions of a packet using filters. \texttt{wireshark} \cite{wireshark-manpage} is a \ac{GUI} application, however it is aimed at both journeymen and packet analysis ninjas with a slew of features that it has to offer. \marginpar{wireshark} It supports a large number of protocols, has a straightforward layout with excellent documentation, and can run on all major operating systems today. 
 
 This approach benefits from the astounding level of detail it can provide. It allows deep packet inspection of the traces, thereby exposing even the application content being exchanged \marginpar{pros and cons} across the network. This calls for privacy concerns and can even bring in legal repercussions to make this technique unattractive for traffic analyzers today. In addition, the actual usage of this method comes at a higher price of its storage overhead and its inability to scale to larger setups.
 
