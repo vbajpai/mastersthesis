@@ -26,6 +26,8 @@ In this technique, packets traversing a monitoring point are not captured raw, i
 
 NetFlow and \ac{IPFIX} are the two popular standards of \ac{IP} flow information export. NetFlow \cite{rfc3954} is a proprietary network protocol designed by Cisco Systems. It \marginpar{netflow} allow routers to generate and export flow records to a designated collector. The latest version, NetFlow v$9$ provides flexibility of user-tailored export templates, \ac{MPLS} and \ac{IP}v$6$ support and a larger set of flow keys. \ac{IPFIX} \cite{rfc5101} on the other hand is an open standard by \ac{IETF} deemed to be the logical successor of NetFlow v$9$ on which it is based. The novelty of \marginpar{ipfix} the standard lies in its ability to describe record formats at runtime using templates based on an extensible and well-defined information model. The data transfer mechanism is simplistic and extensible by being unidirectional and transport protocol agnostic.  
 
+
+
 \marginpar{applicability}
 
 Hardware-assisted aggregation of the packets helps solve the storage overhead and scalability limitation of packet capturing techniques. However, with the ever-increasing \marginpar{pros and cons} speed of network links in our internet backbone today, this issue scares us of its homecoming. In addition, the tradeoff of aggregation benefits lop-sides towards reduced inspection capabilities when the traffic is mainly comprised of large number of short-lived flows. 
