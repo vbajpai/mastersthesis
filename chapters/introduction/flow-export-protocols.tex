@@ -3,5 +3,45 @@
 %****************************************************************
 
 \section{NetFlow}\label{sec:netflow}
+NetFlow \cite{rfc3954} by Cisco Systems is a protocol that allows network elements to export \ac{IP} flow information to designated collectors from where they can be later retrieved for further analyses. The collected flow-records are flexible enough to be used for a variety of purposes such as billing and mediation, network and user monitoring, resource provisioning, security analysis and data mining research works.  
+
+\begin{figure}[h!]
+\begin{center}
+  \includegraphics* [width=0.7\linewidth]{figures/netflow-overview}	
+  \caption{NetFlow: Overview \cite{nmelnikov:thesis:2010}}
+  \label{fig:netflow-overview}
+\end{center}
+\end{figure}
+
+NetFlow v$1$ was introduced in the $90$s, however it was only until v$5$ with the introduction of \ac{CIDR} and \ac{AS} support that the \marginpar{version history} technology got mainstream. Today, NetFlow v$9$ is the de-facto industry standard and is the bases for \ac{IETF}'s \ac{IPFIX} effort to create an across-the-board universal standard for \ac{IP} flow-export. The version history is summarized in table $\ref{tab:netflow-versions}$.
+\begin{table}[h!]
+	\begin{center}
+		\begin{tabular}{|c|c|}
+			\hline	
+			version & features \\
+			\hline
+			\hline 
+			v$1, \{2,3,4\}$ & original format with several internal releases \\
+			\hline 
+			v$5$ & \ac{CIDR}, \ac{AS} support and flow sequence numbers \\
+			\hline
+			v$\{6,7,8\}$ & router-based aggregation support \\
+			\hline
+			v$9$ & template-based with \ac{IP}v$6$, and \ac{MPLS} support \\
+			\hline
+			\ac{IPFIX} & universal standard, transport-protocol agnostic\\
+			\hline
+		\end{tabular}
+	\end{center}
+	\caption{NetFlow Version History}
+\label{tab:netflow-versions}
+\end{table}
+
+\marginpar{netflow v9}
+\marginpar{adaptive netflow}
+\marginpar{flexible netflow}
+\marginpar{flowrank}
+\marginpar{information loss or win?}
+
 \section{IPFIX}\label{sec:ipfix}
 \section{sFlow}\label{sec:sflow}
