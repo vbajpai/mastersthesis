@@ -52,9 +52,11 @@ The NetFlow version history is summarized in table $\ref{tab:netflow-versions}$.
 
 NetFlow v$9$ introduces templates in its export format. With templates, the exporter only needs to send required fields to the flow collector thereby reducing the volume of flow-data exported. In addition, fields can be added/removed from the flows without changing the export format. The transmission \marginpar{netflow v$9$} of records encapsulated in \ac{UDP} datagrams can lead to loss of flows when the link is congested and therefore the exporter and collector have usually been restricted to one-hop away dedicated links. To overcome this limitation, NetFlow v$9$ introduces transport support over congestion-aware \ac{SCTP}. In addition, NetFlow v$9$ also provides support for \ac{MPLS} and \ac{IP}v$6$ addresses. 
 
-The ever increasing traffic volume crossing high-speed links, has been creating an enormous pressure on the routers that also engaged in NetFlow export. Sampled NetFlow was thus introduced \marginpar{sampled netflow} to tone down the gigantic computation, by allowing them to skip over to every $n^{th}$ packet for flow export. The sampling rate is indicated in the export header and be configured on the fly.
+The ever increasing traffic volume crossing high-speed links, has been creating an enormous pressure on the routers that also engaged in NetFlow export. Sampled NetFlow was thus introduced by Cisco Systems as an extension to NetFlow v$9$ \marginpar{sampled netflow} to tone down the gigantic computation, by allowing the routers to skip over to every $n^{th}$ packet for flow export. The sampling rate $(n)$ is indicated in the export header and is either configured or randomly selected. 
 
-\marginpar{adaptive netflow}
+Though sampled NetFlow does a good job in reducing the exported traffic volume, the sampling rate is still static which either reduces accuracy at low traffic volumes or increases memory use at high traffic volumes. An adaptive algorithm introduced in \cite{cestan:2004} helps overcome this difficulty. The introduced renormalization technique helps guarantee that the sampling rate can not only adjust to variable traffic mixes but also to network congestion. It also ensures that the flow records do not span over measurement bins to be able to guarantee statistical accuracy. The authors claim, that \marginpar{adaptive netflow} these updates are easily deployable to any NetFlow v$9$ router through a software update. In addition they say, a simple hardware add-on (flow counting extension), can also add capability to accurately count non-\ac{TCP} flows, a feature long waiting to be seen NetFlow v$9$.
+
+
 \marginpar{flexible netflow}
 \marginpar{flowrank}
 \marginpar{information loss or win?}
