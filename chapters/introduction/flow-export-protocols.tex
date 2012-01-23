@@ -24,7 +24,7 @@ A flow is defined by a $7$-tuple flow-key, namely: \texttt{\{srcIP}, \texttt{dst
   \label{fig:netflow-overview}
 \end{center}
 \end{figure}
-A high-level abstracted functioning of the NetFlow protocol is shown in figure $\ref{fig:netflow-overview}$. The flow exporter reads the \ac{IP} packets that cross its boundary to generate flow-records. The flow-records are exported based on some predefined expiration rules, such as a \ac{TCP} \texttt{FIN} or \texttt{RST}, an inactivity timeout, a regular export timeout or crossing a low memory threshold. To achieve efficiency when handling large amounts of traffic, the flow-records are encapsulated in \ac{UDP} datagrams \marginpar{protocol operation} and are deleted from the exporter once transmitted. On the other end, the collector on receiving these flow-records, decodes and stores them locally to be used for further processing. 
+A high-level abstracted functioning of NetFlow is shown in figure $\ref{fig:netflow-overview}$. The flow exporter reads the \ac{IP} packets that cross its boundary to generate flow-records. The flow-records are exported based on some predefined expiration rules, such as a \ac{TCP} \texttt{FIN} or \texttt{RST}, an inactivity timeout, a regular export timeout or crossing a low memory threshold. To achieve efficiency when handling large amounts of traffic, the flow-records are encapsulated in \ac{UDP} datagrams \marginpar{protocol operation} and are deleted from the exporter once transmitted. On the other end, the collector on receiving these flow-records, decodes and stores them locally to be used for further processing. 
 
 The NetFlow version history is summarized in table $\ref{tab:netflow-versions}$. NetFlow v$1$ was introduced in the $90$s, however it was only until v$5$ with the introduction of \ac{CIDR} and \ac{AS} support that the \marginpar{version history} technology got mainstream. Today, NetFlow v$9$ is the de-facto industry standard and is the bases for \ac{IETF}'s \ac{IPFIX} effort to create a universal specification for \ac{IP} flow-export. 
 \begin{table}[h!]
@@ -52,7 +52,8 @@ The NetFlow version history is summarized in table $\ref{tab:netflow-versions}$.
 
 NetFlow v$9$ introduces templates in its export format. With templates, the exporter only needs to send required fields to the flow collector thereby reducing the volume of flow-data exported. In addition, fields can be added/removed from the flows without changing the export format. The transmission \marginpar{netflow v$9$} of records encapsulated in \ac{UDP} datagrams can lead to loss of flows when the link is congested and therefore the exporter and collector have usually been restricted to one-hop away dedicated links. To overcome this limitation, NetFlow v$9$ introduces transport support over congestion-aware \ac{SCTP}. In addition, NetFlow v$9$ also provides support for \ac{MPLS} and \ac{IP}v$6$ addresses. 
 
-\marginpar{sampled netflow}
+The ever increasing traffic volume crossing high-speed links, has been creating an enormous pressure on the routers that also engaged in NetFlow export. Sampled NetFlow was thus introduced \marginpar{sampled netflow} to tone down the gigantic computation, by allowing them to skip over to every $n^{th}$ packet for flow export. The sampling rate is indicated in the export header and be configured on the fly.
+
 \marginpar{adaptive netflow}
 \marginpar{flexible netflow}
 \marginpar{flowrank}
