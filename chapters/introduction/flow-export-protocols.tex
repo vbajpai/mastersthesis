@@ -62,8 +62,25 @@ The challenge to identify relevant records in gigantic collected datasets have f
 
 Today, as the industry is moving towards data center virtualization, it has become inherently critical to obtain insights into the data center network behavior for optimizations and resource provisioning. Since, Flexible NetFlow's visibility is limited to the \ac{IP} protocol it currently cannot be used to monitor data-center traffic. NetFlow-lite was thus introduced by Cisco Systems, to flows at the layer $2/3$ level to increase data center visibility. NetFlow-lite \marginpar{netflow-lite} uses similar packet sampling mechanisms as introduced in Sampled NetFlow along with the combined flexibility of Flexible NetFlow v$9$ at the switch level. NetFlow-lite captures the layer $2$ traffic, encapsulates packet samples and pushes the NetFlow cache outside the switch into a element that can convert NetFlow-lite to Flexible NetFlow records. These flow-records are then later exported to legacy collectors from where they can be used for further processing. The authors in \cite{lderi:2011} provide the first implementation of NetFlow-Lite which works as an extension to nProbe \cite{lderi:2003} to seamlessly convert NetFlow-Lite records to NetFlow/\ac{IPFIX}.
 
-
-
-
 \section{IPFIX}\label{sec:ipfix}
+\ac{IPFIX} \cite{rfc5101} by \ac{IETF} is an interoperable protocol for \ac{IP} flow export. It is deemed to be the logical successor of Flexible NetFlow v$9$. The working group defines \ac{IPFIX} as, "a unidirectional, transport-independent protocol with flexible data representation and an information model covering most network management needs at layer $3$ and $4$". The \ac{PSAMP} working group \cite{rfc5476}, that defines standards to individually sample packets in a flow export using statistical methods has adopted \ac{IPFIX} as its underlying protocol for data transport.
+
+\begin{figure}[h!]
+\begin{center}
+  \includegraphics* [width=0.7\linewidth]{figures/ipfix-overview}	
+  \caption{\ac{IPFIX}: Overview \cite{pkohler:2003}}
+  \label{fig:ipfix-overview}
+\end{center}
+\end{figure}
+
+
+
+\marginpar{architecture}
+\marginpar{structures}
+\marginpar{dynamics}
+\marginpar{management}
+\marginpar{extensions}
+\marginpar{deployment}
+\marginpar{future}
+
 \section{sFlow}\label{sec:sflow}
