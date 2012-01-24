@@ -58,7 +58,10 @@ Though sampled NetFlow does a good job in reducing the exported traffic volume, 
 
 Flexible NetFlow is the newest version of NetFlow v$9$ that incorporates \ac{PSAMP} \cite{rfc5474} ideas to be able to select individual packets and export them in a packet record. The packet selection can be either deterministic or random depending on the chosen filters and sampling mechanism \cite{rfc5475}. The exported packet records can even be authenticated and encrypted using either \ac{TLS} \cite{rfc5246} or \ac{DTLS} \cite{rfc4347} \marginpar{flexible netflow} to prevent data manipulation across the route. Since \ac{PSAMP} is based on \ac{IPFIX} \cite{rfc5476}, only its limited feature set is currently supported by Flexible NetFlow. Additional features include ability to custom define flow-keys and flow-expiration rules to drastically reduce the amount of content exported by restricting it to only the needed flow-fields, and additional flows with immediate and permanent caches to suit the export timings to specific needs.
 
-\marginpar{flowrank}
+The challenge to identify relevant records in gigantic collected datasets have fumed recent independent studies to discover flow dependencies. For instance, the authors in \cite{swang:2010}, describe a model that uses flow timing information by extending \marginpar{flowrank} the PageRank \cite{lpage:1999} algorithm to rank and thereby extract the most relevant flows. Their model is weighted using parameters like the amount of bandwidth consumed and the likehood of security threat a flow might result in.
+
+
+\marginpar{netflow-lite}
 \marginpar{information loss or win?}
 
 \section{IPFIX}\label{sec:ipfix}
