@@ -68,14 +68,12 @@ Today, as the industry is moving towards data center virtualization, it has beco
 \begin{figure}[h!]
 \begin{center}
   \includegraphics* [width=0.7\linewidth]{figures/ipfix-overview}	
-  \caption{\ac{IPFIX}: Overview \cite{pkohler:2003}}
+  \caption{IPFIX: Overview \cite{pkohler:2003}}
   \label{fig:ipfix-overview}
 \end{center}
 \end{figure}
+The \ac{IPFIX} architecture is described in \cite{rfc5470} and is shown in figure \ref{fig:ipfix-overview}. The architecture consists of three elements: a meter, which generates flows from \ac{IP} packets, an exporter, which pushes these flows using \ac{IPFIX}, and \marginpar{architecture} a collector, that collects and saves these flows for offline storage. All these elements have a one-to-many relationship among them. The group is also working to define an intermediary element, that might work to either aggregate or anonymize the flows. 
 
-
-
-\marginpar{architecture}
 \marginpar{structures}
 \marginpar{dynamics}
 \marginpar{management}
