@@ -60,9 +60,10 @@ Flexible NetFlow is the newest version of NetFlow v$9$ that incorporates \ac{PSA
 
 The challenge to identify relevant records in gigantic collected datasets have fumed recent independent studies to discover flow dependencies. For instance, the authors in \cite{swang:2010}, describe a model that uses flow timing information by extending \marginpar{flowrank} the PageRank \cite{lpage:1999} algorithm to rank and thereby extract the most relevant flows. Their model is weighted using parameters like the amount of bandwidth consumed and the likehood of security threat a flow might result in.
 
+Today, as the industry is moving towards data center virtualization, it has become inherently critical to obtain insights into the data center network behavior for optimizations and resource provisioning. Since, Flexible NetFlow's visibility is limited to the \ac{IP} protocol it currently cannot be used to monitor data-center traffic. NetFlow-lite was thus introduced by Cisco Systems, to flows at the layer $2/3$ level to increase data center visibility. NetFlow-lite \marginpar{netflow-lite} uses similar packet sampling mechanisms as introduced in Sampled NetFlow along with the combined flexibility of Flexible NetFlow v$9$ at the switch level. NetFlow-lite captures the layer $2$ traffic, encapsulates packet samples and pushes the NetFlow cache outside the switch into a element that can convert NetFlow-lite to Flexible NetFlow records. These flow-records are then later exported to legacy collectors from where they can be used for further processing. The authors in \cite{lderi:2011} provide the first implementation of NetFlow-Lite which works as an extension to nProbe \cite{lderi:2003} to seamlessly convert NetFlow-Lite records to NetFlow/\ac{IPFIX}.
 
-\marginpar{netflow-lite}
-\marginpar{information loss or win?}
+
+
 
 \section{IPFIX}\label{sec:ipfix}
 \section{sFlow}\label{sec:sflow}
