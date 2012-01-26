@@ -99,9 +99,7 @@ A message is a fundamental unit of data exchange in \ac{IPFIX}. Each such messag
 \end{figure}
 An \ac{IPFIX} transport session is shown in figure $\ref{fig:ipfix-transport}$. It starts off with the \ac{EP} initiating a connection with the \ac{CP}. Once the connection is established, the \ac{EP} passes on the templates followed by the data that is described by them. These templates can later still be withdrawn by sending a control template of \ac{IE} count zero. The transport session can use either \ac{SCTP}, \ac{TCP} or \ac{UDP} as the \marginpar{transport and security} underlying protocol, although \ac{SCTP} is usually the preferred method given it allows selective reliability and congestion control. \ac{TCP} is supported to allow secure transport over \ac{TLS}, since \ac{DTLS} is only supported over \ac{UDP} and \ac{SCTP}. The connection-less behavior of \ac{UDP} calls for the template retransmission delay and template lifetime parameters to be exchanged between \ac{EP} and \ac{CP}. These transport sessions can also be stored in \ac{IPFIX} files and sent on top application layer protocols. 
 
-
-
-\todo[inline]{IPFIX: Message Structure, Protocol Design, Future \ldots}
+A \ac{MIB} to monitor \ac{IPFIX} devices using \ac{SNMP} is defined in \cite{rfc5815}. A similar configuration model to be used by NETCONF and YANG is being worked upon. In addition, several extensions have been defined to expand upon the protocol's functionality. For instance, \cite{rfc5103} defines optional templates to allow \marginpar{management, extensions and future of ipfix} bidirectional flows in a single \ac{IPFIX} export whereas \cite{rfc5474} supports aggregating common properties of multiple flows in a single record. \ac{IPFIX} is even being looked upon as the future application-layer logging protocol as well as the underlying protocol for RESTful architectures. As a result, efforts to support structured data export over \ac{IPFIX} are also under way.
 
 \section{sFlow}\label{sec:sflow}
 
