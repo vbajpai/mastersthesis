@@ -102,5 +102,14 @@ An \ac{IPFIX} transport session is shown in figure $\ref{fig:ipfix-transport}$. 
 A \ac{MIB} to monitor \ac{IPFIX} devices using \ac{SNMP} is defined in \cite{rfc5815}. A similar configuration model to be used by NETCONF and YANG is being worked upon. In addition, several extensions have been defined to expand upon the protocol's functionality. For instance, \cite{rfc5103} defines optional templates to allow \marginpar{management, extensions and future of ipfix} bidirectional flows in a single \ac{IPFIX} export whereas \cite{rfc5474} supports aggregating common properties of multiple flows in a single record. \ac{IPFIX} is even being looked upon as the future application-layer logging protocol as well as the underlying protocol for RESTful architectures. As a result, efforts to support structured data export over \ac{IPFIX} are also under way.
 
 \section{sFlow}\label{sec:sflow}
+sFlow \cite{rfc3176} by InMon Corporation is a competing technology used to capture traffic from switches and routers. It consists of an sFlow agent that captures traffic statistics and sends them across to a central data collector, called the sFlow analyzer. In order to be able to accurately monitor traffic at line speeds, the sFlow agent is built on a dedicated ASIC alongside the switching gear. In addition, the captured traffic is sampled before being encapsulated in sFlow datagrams and sent to the analyzer to provide scalability.
+
+
+
+\marginpar{sampling mechanisms}
+\marginpar{sflow and snmp}
+\marginpar{data format}
+\marginpar{security considerations}
+
 
 \todo[inline]{sFlow: Start it! \ldots}
