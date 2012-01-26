@@ -88,7 +88,18 @@ The \ac{IPFIX} architecture is described in \cite{rfc5470} and is shown in figur
 		\label{fig:ipfix-information-element}
 	\end{minipage}	
 \end{figure}
-A message is a fundamental unit of data exchange in \ac{IPFIX}. Each such message consists of a $16$-byte header along with a number of sets as shown in figure $\ref{fig:ipfix-message-structure}$. A set can either be a template or a data set. Each such set in the message again contains a $16$-bit header and a number of records \marginpar{messages and templates} associated with it. Each record within a template set is a template that refers to a data record.  A template consists of a number of \ac{IEs} as shown in figure $\ref{fig:ipfix-information-element}$. These \ac{IEs} are encoded using reduced-length encoding scheme. \ac{IANA} keeps a registry \footnote{\url{http://www.iana.org/assignments/ipfix/ipfix.xml}} of all the possible \ac{IEs} with a $16$-bit ID assigned to each one of them. Templates can also contain enterprise-specific \ac{IEs} that are scoped using \ac{PENs} \footnote{\url{http://www.iana.org/assignments/enterprise-numbers}}. 
+A message is a fundamental unit of data exchange in \ac{IPFIX}. Each such message consists of a $16$-byte header along with a number of sets as shown in figure $\ref{fig:ipfix-message-structure}$. A set can either be a template or a data set. Each such set in the message again contains a $16$-bit header and a number of records \marginpar{messages and templates} associated with it. Each record within a template set is a template that refers to a data record.  A template consists of a number of \ac{IE}s as shown in figure $\ref{fig:ipfix-information-element}$. These \ac{IE}s are encoded using reduced-length encoding scheme. \ac{IANA} keeps a registry \footnote{\url{http://www.iana.org/assignments/ipfix/ipfix.xml}} of all \ac{IE}s with a $16$-bit ID assigned to them. Templates can also contain enterprise-specific \ac{IE}s that are scoped using \ac{PENs} \footnote{\url{http://www.iana.org/assignments/enterprise-numbers}}. 
+
+\begin{figure}[h!]
+\begin{center}
+  \includegraphics* [width=0.5\linewidth]{figures/ipfix-transport}	
+  \caption{IPFIX: A Transport Session \cite{btrammell:2011}}
+  \label{fig:ipfix-transport}
+\end{center}
+\end{figure}
+An \ac{IPFIX} transport session is shown in figure $\ref{fig:ipfix-transport}$. It starts off with the \ac{EP} initiating a connection with the \ac{CP}. Once the connection is established, the \ac{EP} passes on the templates followed by the data that is described by them. These templates can later still be withdrawn by sending a control template of \ac{IE} count zero. The transport session can use either \ac{SCTP}, \ac{TCP} or \ac{UDP} as the \marginpar{transport and security} underlying protocol, although \ac{SCTP} is usually the preferred method given it allows selective reliability and congestion control. \ac{TCP} is supported to allow secure transport over \ac{TLS}, since \ac{DTLS} is only supported over \ac{UDP} and \ac{SCTP}. The connection-less behavior of \ac{UDP} calls for the template retransmission delay and template lifetime parameters to be exchanged between \ac{EP} and \ac{CP}. These transport sessions can also be stored in \ac{IPFIX} files and sent on top application layer protocols. 
+
+
 
 \todo[inline]{IPFIX: Message Structure, Protocol Design, Future \ldots}
 
