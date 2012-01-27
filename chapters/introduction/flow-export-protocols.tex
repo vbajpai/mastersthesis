@@ -69,7 +69,7 @@ Today, as the industry is moving towards data center virtualization, it has beco
 
 \begin{figure}[h!]
 \begin{center}
-  \includegraphics* [width=0.7\linewidth]{figures/ipfix-overview}	
+  \includegraphics* [width=0.8\linewidth]{figures/ipfix-overview}	
   \caption{IPFIX: Overview \cite{pkohler:2003}}
   \label{fig:ipfix-overview}
 \end{center}
@@ -79,13 +79,13 @@ The \ac{IPFIX} architecture is described in \cite{rfc5470} and is shown in figur
 \begin{figure}[ht]
 	\begin{minipage}[b]{0.49\linewidth}
 		\centering
-		\includegraphics[width=0.7\linewidth]{figures/ipfix-message-structure}
+		\includegraphics[width=1.0\linewidth]{figures/ipfix-message-structure}
 		\caption{IPFIX: Messages \cite{btrammell:2011}}
 		\label{fig:ipfix-message-structure}
 	\end{minipage}	
 	\begin{minipage}[b]{0.49\linewidth}
 		\centering
-		\includegraphics[width=0.7\linewidth]{figures/ipfix-information-element}
+		\includegraphics[width=1.0\linewidth]{figures/ipfix-information-element}
 		\caption{IPFIX: Templates \cite{btrammell:2011}}
 		\label{fig:ipfix-information-element}
 	\end{minipage}	
@@ -94,21 +94,29 @@ A message is a fundamental unit of data exchange in \ac{IPFIX}. Each such messag
 
 \begin{figure}[h!]
 \begin{center}
-  \includegraphics* [width=0.5\linewidth]{figures/ipfix-transport}	
+  \includegraphics* [width=0.7\linewidth]{figures/ipfix-transport}	
   \caption{IPFIX: A Transport Session \cite{btrammell:2011}}
   \label{fig:ipfix-transport}
 \end{center}
 \end{figure}
 An \ac{IPFIX} transport session is shown in figure $\ref{fig:ipfix-transport}$. It starts off with the \ac{EP} initiating a connection with the \ac{CP}. Once the connection is established, the \ac{EP} passes on the templates followed by the data that is described by them. These templates can later still be withdrawn by sending a control template of \ac{IE} count zero. The transport session can use either \ac{SCTP}, \ac{TCP} or \ac{UDP} as the \marginpar{transport and security} underlying protocol, although \ac{SCTP} is usually the preferred method given it allows selective reliability and congestion control. \ac{TCP} is supported to allow secure transport over \ac{TLS}, since \ac{DTLS} is only supported over \ac{UDP} and \ac{SCTP}. The connection-less behavior of \ac{UDP} calls for the template retransmission delay and template lifetime parameters to be exchanged between \ac{EP} and \ac{CP}. These transport sessions can also be stored in \ac{IPFIX} files and sent on top application layer protocols. 
 
-A \ac{MIB} to monitor \ac{IPFIX} devices using \ac{SNMP} is defined in \cite{rfc5815}. A similar configuration model to be used by NETCONF and YANG is being worked upon. In addition, several extensions have been defined to expand upon the protocol's functionality. For instance, \cite{rfc5103} defines optional templates to allow bidirectional flows in a single \ac{IPFIX} export whereas \cite{rfc5474} supports aggregating common properties of multiple flows in a \marginpar{management, extensions and future of ipfix} single record. \ac{IPFIX} is even being looked upon as the future application-layer logging protocol as well as the underlying protocol for RESTful architectures. As a result, efforts to support structured data export over \ac{IPFIX} are also under way.
+A \ac{MIB} to monitor \ac{IPFIX} devices using \ac{SNMP} is defined in \cite{rfc5815}. A similar configuration model to be used by NETCONF and YANG is being worked upon. In addition, several extensions have been defined to expand upon the protocol's functionality. For \marginpar{management, extensions and future of ipfix} instance, \cite{rfc5103} defines optional templates to allow bidirectional flows in a single \ac{IPFIX} export whereas \cite{rfc5474} supports aggregating common properties of multiple flows in a single record. \ac{IPFIX} is even being looked upon as the future application-layer logging protocol as well as the underlying protocol for RESTful architectures. As a result, efforts to support structured data export over \ac{IPFIX} are also under way.
 
 \section{sFlow}\label{sec:sflow}
-sFlow \cite{rfc3176} by InMon Corporation is a competing technology used to capture traffic from switches and routers. It consists of an sFlow agent that captures traffic statistics and sends them across to a central data collector, called the sFlow analyzer. In order to be able to accurately monitor traffic at line speeds, the sFlow agent is built on a dedicated ASIC alongside the switching gear. In addition, the captured traffic is sampled before being encapsulated in sFlow datagrams and sent to the analyzer to provide scalability.
+
+\begin{figure}[h!]
+\begin{center}
+  \includegraphics* [width=0.6\linewidth]{figures/sflow-overview}	
+  \caption{sFlow: Overview \cite{dell-userguide}}
+  \label{fig:sflow-overview}
+\end{center}
+\end{figure}
+sFlow \cite{rfc3176} by InMon Corporation is a competing technology used to capture traffic from switches and routers. It consists of an sFlow agent that captures traffic statistics and sends them across to a central data collector, called the sFlow analyzer as shown in figure $\ref{fig:sflow-overview}$. In order to be able to accurately monitor traffic at line speeds, the sFlow agent is built on a dedicated ASIC alongside the switching gear. In addition, the captured traffic is sampled before being encapsulated in sFlow datagrams and sent to the analyzer to provide scalability.
 
 A flow in sFlow is defined as all the packets that enter a source interface, are processed through a switching module, and eventually exit through a destination interface. Packet-based and Time-based are the two sampling methods supported by sFlow agents. Statistical packet-based sampling of switched flows uses a \marginpar{sampling mechanisms} counter that is decremented whenever a packet crosses the switching gear. A sample is taken whenever the counter hits zero and is then reset. A sample involves copying the packet header or a packet feature extraction. Time-based sampling of network interface statistics on the other hand involves the sFlow agent which is responsible for periodically polling each switching gear for feature extraction.
 
-sFlow provides a standard interface to configure and monitor the sFlow agents using \ac{SNMP}. This subverts the need to telnet to every switch of the network infrastructure and use its \ac{CLI} to make subtle changes which can turn out to be \marginpar{sflow and snmp} overly complex and time-consuming. A \ac{MIB} module to remotely control the sFlow agents is defined in \cite{rfc3176}. The \ac{MIB} module is \ac{SMI} v$2$ compliant and can be translated back to \ac{SMI} v$1$ without incurring any semantic differences.
+sFlow provides a standard interface to configure and monitor the sFlow agents using \ac{SNMP}. This subverts the need to telnet to every switch of the network infrastructure and use its \ac{CLI} \marginpar{sflow and snmp} to make subtle changes which can turn out to be overly complex and time-consuming. A \ac{MIB} module to remotely control the sFlow agents is defined in \cite{rfc3176}. The \ac{MIB} module is \ac{SMI} v$2$ compliant and can be translated back to \ac{SMI} v$1$ without incurring any semantic differences.
 
 sFlow uses a standard format to send sampled data from the sFlow agent to the sFlow analyzer. The data format is specified using \ac{XDR} \cite{rfc1014}. \ac{XDR} allows compact representation and efficient encoding (or decoding) of the sampled data. The \marginpar{data format} \ac{XDR} specified sampled data is sent using \ac{UDP} to a well-known host and port combination specified in the sFlow \ac{MIB}. \ac{UDP} is used as a transport mechanism owing to its less stringent buffer requirements and its robustness in delivering traffic information in a timely fashion.  
 
