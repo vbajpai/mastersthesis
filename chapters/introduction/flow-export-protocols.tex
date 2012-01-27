@@ -104,9 +104,11 @@ A \ac{MIB} to monitor \ac{IPFIX} devices using \ac{SNMP} is defined in \cite{rfc
 \section{sFlow}\label{sec:sflow}
 sFlow \cite{rfc3176} by InMon Corporation is a competing technology used to capture traffic from switches and routers. It consists of an sFlow agent that captures traffic statistics and sends them across to a central data collector, called the sFlow analyzer. In order to be able to accurately monitor traffic at line speeds, the sFlow agent is built on a dedicated ASIC alongside the switching gear. In addition, the captured traffic is sampled before being encapsulated in sFlow datagrams and sent to the analyzer to provide scalability.
 
+A flow in sFlow is defined as all the packets that enter a source interface, are processed through a switching module, and eventually exit through a destination interface. Packet-based and Time-based are the two sampling methods supported by sFlow agents. Statistical packet-based sampling of switched flows uses a \marginpar{sampling mechanisms} counter that is decremented whenever a packet crosses the switching gear. A sample is taken whenever the counter hits zero and is then reset. A sample involves copying the packet header or a packet feature extraction. Time-based sampling of network interface statistics on the other hand involves the sFlow agent which is responsible for periodically polling each switching gear for feature extraction.
 
 
-\marginpar{sampling mechanisms}
+
+
 \marginpar{sflow and snmp}
 \marginpar{data format}
 \marginpar{security considerations}
