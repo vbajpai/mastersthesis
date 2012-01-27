@@ -110,8 +110,4 @@ sFlow provides a standard interface to configure and monitor the sFlow agents us
 
 sFlow uses a standard format to send sampled data from the sFlow agent to the sFlow analyzer. The data format is specified using \ac{XDR} \cite{rfc1014}. \ac{XDR} allows compact representation and efficient encoding (or decoding) of the sampled data. The \marginpar{data format} \ac{XDR} specified sampled data is sent using \ac{UDP} to a well-known host and port combination specified in the sFlow \ac{MIB}. \ac{UDP} is used as a transport mechanism owing to its less stringent buffer requirements and its robustness in delivering traffic information in a timely fashion.  
 
-
-\marginpar{security considerations}
-
-
-\todo[inline]{sFlow: Start it! \ldots}
+sFlow does not provide any security measures to protect the sampled data being transferred to the sFlow analyzer and is therefore at the risk of being eavesdropped. The sFlow analyzer in itself also does not verify the source addresses of the sampled data; as such the sFlow datagrams can easily be spoofed and identified as coming from \marginpar{limitations and future} one of the participating sFlow agents. In essence, now with Flexible NetFlow and \ac{IPFIX} both providing \ac{PSAMP} support, the packet sampling novelty of sFlow is losing significance. At one point, the capability of sFlow to monitor traffic at the layer $2$ level was seen as an advantage as well, but that is also deemed to lose ground with the frequent adoption of NetFlow-lite.
