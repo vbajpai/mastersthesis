@@ -108,9 +108,9 @@ A flow in sFlow is defined as all the packets that enter a source interface, are
 
 sFlow provides a standard interface to configure and monitor the sFlow agents using \ac{SNMP}. This subverts the need to telnet to every switch of the network infrastructure and use its \ac{CLI} to make subtle changes which can turn out to be \marginpar{sflow and snmp} overly complex and time-consuming. A \ac{MIB} module to remotely control the sFlow agents is defined in \cite{rfc3176}. The \ac{MIB} module is \ac{SMI} v$2$ compliant and can be translated back to \ac{SMI} v$1$ without incurring any semantic differences.
 
+sFlow uses a standard format to send sampled data from the sFlow agent to the sFlow analyzer. The data format is specified using \ac{XDR} \cite{rfc1014}. \ac{XDR} allows compact representation and efficient encoding (or decoding) of the sampled data. The \marginpar{data format} \ac{XDR} specified sampled data is sent using \ac{UDP} to a well-known host and port combination specified in the sFlow \ac{MIB}. \ac{UDP} is used as a transport mechanism owing to its less stringent buffer requirements and its robustness in delivering traffic information in a timely fashion.  
 
 
-\marginpar{data format}
 \marginpar{security considerations}
 
 
