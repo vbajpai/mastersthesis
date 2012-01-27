@@ -106,10 +106,10 @@ sFlow \cite{rfc3176} by InMon Corporation is a competing technology used to capt
 
 A flow in sFlow is defined as all the packets that enter a source interface, are processed through a switching module, and eventually exit through a destination interface. Packet-based and Time-based are the two sampling methods supported by sFlow agents. Statistical packet-based sampling of switched flows uses a \marginpar{sampling mechanisms} counter that is decremented whenever a packet crosses the switching gear. A sample is taken whenever the counter hits zero and is then reset. A sample involves copying the packet header or a packet feature extraction. Time-based sampling of network interface statistics on the other hand involves the sFlow agent which is responsible for periodically polling each switching gear for feature extraction.
 
+sFlow provides a standard interface to configure and monitor the sFlow agents using \ac{SNMP}. This subverts the need to telnet to every switch of the network infrastructure and use its \ac{CLI} to make subtle changes which can turn out to be \marginpar{sflow and snmp} overly complex and time-consuming. A \ac{MIB} module to remotely control the sFlow agents is defined in \cite{rfc3176}. The \ac{MIB} module is \ac{SMI} v$2$ compliant and can be translated back to \ac{SMI} v$1$ without incurring any semantic differences.
 
 
 
-\marginpar{sflow and snmp}
 \marginpar{data format}
 \marginpar{security considerations}
 
