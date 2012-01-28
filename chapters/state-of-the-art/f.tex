@@ -5,7 +5,7 @@
 In lieu of the significant leaps made by Flowy $2.0$ in making the initial prototype usable, additional efforts were made by the same author to work upon the enlisted areas of improvements mentioned in $\ref{sec:flowy2-future}$. To mark this evolution of initial prototype to the current bleeding edge state, it was decided to rename the implementation to F \cite{jschauer:2012} with an exhaustive performance evaluation against the state-of-the-art flow processing tools \cite{sromig:2000, phaag:2006} that operate on absolute filters.
 
 \section{Rule Interfaces}\label{sec:rule-interfaces}
-The design of the rule interfaces for a flow-query was rethought. An object-oriented approach was followed to abstract out details into multiple levels of inheritance. The \texttt{flowquery} struct for instance, is the parent of all the rule interfaces as shown in listing $\ref{lst:flowqueryrule}$.
+The design of the rule interfaces for a flow-query was rethought. An object-oriented \marginpar{flowquery struct} approach was followed to abstract out details into multiple levels of inheritance. The \texttt{flowquery} struct for instance, is the parent of all the rule interfaces as shown in listing $\ref{lst:flowqueryrule}$.
 \lstset{caption=Flow Query Struct \cite{jschauer:2012}, 
 				tabsize=2, language=C, numbers=left,stepnumber=1,
 				numberstyle=\ttfamily\color{gray}, keywordstyle=\color{blue},
@@ -19,7 +19,7 @@ struct flowquery {
 };
 \end{lstlisting}
 
-\texttt{branch\_info} struct defines rules for each branch. It conglomerates filter, grouper and group-filter stages as shown in listing $\ref{lst:branchinforule}$. 
+\texttt{branch\_info} struct \marginpar{branchinfo struct} defines rules for each branch. It conglomerates filter, grouper and group-filter stages as shown in listing $\ref{lst:branchinforule}$. 
 \lstset{caption=Branch Info Struct \cite{jschauer:2012}, 
 				tabsize=2, language=C, numbers=left,stepnumber=1,
 				numberstyle=\ttfamily\color{gray}, keywordstyle=\color{blue},
@@ -87,7 +87,7 @@ struct branch_info {
 	\end{lstlisting}
 \end{minipage}
 \end{center}
-The group-filter struct is similar to the filter struct previously shown in listing $\ref{lst:filterrule}$. The grouper struct is shown in listing $\ref{lst:grouperrule}$ and is used to perform relative comparison on the flow-records. It takes in offsets of the fields to be grouped, their lengths and a comparison function. Possible comparison functions are \texttt{eq}, \texttt{ne}, \texttt{lt}, \texttt{gt}, \texttt{le} and \texttt{ge}. The comparison function creates a \texttt{group} instance, a pointer to which is passed to it. The group struct is shown in listing $\ref{lst:grouprule}$ which apart from the information about the members, also points to a grouper aggregation struct that contains meta-information resulting from calling an aggregation function. 
+The group-filter struct is similar to the filter struct previously shown in listing $\ref{lst:filterrule}$. The grouper struct is shown in listing $\ref{lst:grouperrule}$ and is used to perform relative comparison on the flow-records. It takes in offsets of the fields to be grouped, their lengths and a comparison function. Possible \marginpar{grouper and group struct} comparison functions are \texttt{eq}, \texttt{ne}, \texttt{lt}, \texttt{gt}, \texttt{le} and \texttt{ge}. The comparison function creates a \texttt{group} instance, a pointer to which is passed to it. The group struct is shown in listing $\ref{lst:grouprule}$ which apart from the information about the members, also points to a grouper aggregation struct that contains meta-information resulting from calling an aggregation function. 
 \lstset{caption=Grouper Aggregation Struct \cite{jschauer:2012}, 
 				tabsize=2, language=C, numbers=left,stepnumber=1,
 				numberstyle=\ttfamily\color{gray}, keywordstyle=\color{blue},
@@ -103,9 +103,9 @@ struct grouper_aggr {
 	  size_t field_offset);
 };
 \end{lstlisting}
-The grouper aggregation struct is shown in listing $\ref{lst:grouperaggrrule}$ and consists of the module to aggregate over, the field offset and the aggregation function. Possible aggregation functions are \texttt{static}, \texttt{count}, \texttt{union}, \texttt{min/max}, \texttt{mean/median}, \texttt{stddev}, \texttt{sum/prod}, \texttt{and/or/xor}. The merger stage struct is the same as was previously shown in listing $\ref{lst:mergerrrule}$ and allows relative comparison between groups from different branches. 
+The grouper aggregation struct is shown in listing $\ref{lst:grouperaggrrule}$ and consists of the module to aggregate over, the field offset and the aggregation function. \marginpar{grouper aggregation struct} Possible aggregation functions are \texttt{static}, \texttt{count}, \texttt{union}, \texttt{min/max}, \texttt{mean/median}, \texttt{stddev}, \texttt{sum/prod}, \texttt{and/or/xor}. The merger stage struct is the same as was previously shown in listing $\ref{lst:mergerrrule}$ and allows relative comparison between groups from different branches. 
 
-The rules are now possible to be written in \ac{CNF}. \ac{CNF} allow the flexibility to define every possible logical expression with the available comparison operations. The comparison (\texttt{>>} and \texttt{<<}) and the \texttt{intersect} aggregation operations still need to be implemented though as was previously mentioned in section $\ref{subsec:additional-functionality}$. 
+The rules are now possible to be written in \ac{CNF}. \ac{CNF} allow the flexibility to define every possible logical expression with the available comparison operations. \marginpar{rules in cnf} The comparison (\texttt{>>} and \texttt{<<}) and the \texttt{intersect} aggregation operations still need to be implemented though as was previously mentioned in section $\ref{subsec:additional-functionality}$. 
 
 \section{Flowy $2.0$ Improvements}\label{sec:flowy-2-improvements}
 This study focusses on optimizing deep nested loops in each processing stage and improving the overall complexity of the grouper and merger as previous enlisted in sections $\ref{subsec:special-fns}$ and $\ref{subsec:search-trees}$.
@@ -147,7 +147,7 @@ In order to reduce the number of comparisons in these stages, using a binary sea
 However, it still looks like having an actual search tree would benefit the grouper and merger, whereby one of the fields will be traversed sequentially in $O(n)$ \marginpar{using search trees} time and for each field, the comparison will be performed by search tree lookups in $O(log(n))$ time bringing down the complexity to $O(nlog(n))$ and is a future action item.
 
 \section{Benchmarks}\label{sec:f-benchmarks}
-In order to evaluate how well F now performs with these added improvements, the authors decided to compare it with the state-of-the-art flow-processing tools: \texttt{flow-tools} \cite{sromig:2000} and \texttt{nfdump} \cite{phaag:2006}. Since these tools do not currently support relative filtering of flow-records, a set of $3$ queries involving only absolute filters was defined as shown in listing $\ref{lst:f-benchmark-queries}$ and evaluated on a set of $500K-10M$ flow-records.  
+In order to evaluate how well F now performs with these added improvements, the authors decided to compare it with the state-of-the-art flow-processing tools: \texttt{flow-tools} \cite{sromig:2000} and \texttt{nfdump} \cite{phaag:2006}. Since these \marginpar{f vs \{flow-tools, nfdump\}} tools do not currently support relative filtering of flow-records, a set of $3$ queries involving only absolute filters was defined as shown in listing $\ref{lst:f-benchmark-queries}$ and evaluated on a set of $500K-10M$ flow-records.  
 
 \lstset{caption=Queries to Benchmark F \cite{jschauer:2012}, 
 				tabsize=2, language=C, numbers=left,stepnumber=1,
