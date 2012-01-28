@@ -1,1 +1,17 @@
-\todo[inline]{WorkPlan: Propose a Work Plan! \ldots}
+The two implementations are branched off and currently live in their own parallel universe. The first task is to glue them to create a complete package that has the full-blown functionality and exploits the best of both worlds as discussed in section $\ref{subsec:system-integration}$. 
+
+\vspace{10pt}
+
+The custom C library that replaced PyTables can only process flow-records in \texttt{flow-tools} format. It needs to be extended to support \texttt{nfdump} format as discussed in section $\ref{subsec:data-format}$. \texttt{nfdump} will bring in the ability to read NetFlow v$9$ and thus \ac{IP}v$6$ records. The possibility to further extend it to bleeding edge \ac{IPFIX} support still needs to be investigated. 
+
+\vspace{10pt}
+
+The grouper and the merger are the performance hit stages of the processing pipeline. Using quick sort and binary search, the complexity has been brought down to $O(n*k)$ for the grouper and $O(n^{m-1}*k)$ for the merger. However, having an actual search tree would bring it down to $O(nlog(n))$ as discussed in section $\ref{sec:binary-search}$ and $\ref{subsec:search-trees}$. 
+
+\vspace{10pt}
+
+The core C implementation has limited multithreading, which the merger currently cannot exploit. A \texttt{pthreads} wrapper is planned, that will create a thread pool and exploit the available cores as is discussed in section $\ref{subsec:multithreading}$. The possibility to parallelize our prototype by making it mapreduce aware still needs to be investigated. 
+
+\vspace{10pt}
+
+Several small prototype limitations and enhancements need to be looked into. For instance, the pipeline should be flexible to allow skipping of stages and the flow-query should be extended to allow more than one grouper and merger. The number of available operations also needs to be extended as discussed in section $\ref{subsec:additional-functionality}$. 
