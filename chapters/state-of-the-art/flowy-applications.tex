@@ -91,7 +91,7 @@ A formalized Flowy query to identify Skype from the flow traces for an instance 
 	\end{lstlisting}
 \end{minipage}
 \end{center}
-The filter \texttt{F\_SSDP} is used to identify the four identical \ac{UDP} multicast messages the client sends out using \ac{SSDP} \cite{mbodlaender:2005}. Similarly \texttt{F\_NAT\_PMP} filter is used to identify four \ac{NAT-PMP} \cite{draft-cheshire-nat-pmp-03} messages sent over UDP. The groupers \texttt{G\_SSDP} and \texttt{G\_NAT\_PMP} group together flow records with the same source and destination IP address and the aggregate clauses describe the meta information with unique source IP addresses for each group records along with the total bytes carried within each group. The meta information is used to further filter the group-records in \texttt{GF\_SSDP} and \texttt{GF\_NAT\_PMP} modules. 
+The filter \texttt{F\_SSDP} is used to identify the four identical \ac{UDP} multicast messages the client sends out using \ac{SSDP} \cite{mbodlaender:2005}. Similarly \texttt{F\_NAT\_PMP} filter is used to identify four \ac{NAT-PMP} \cite{draft-cheshire-nat-pmp-03} messages sent over UDP. The groupers \texttt{G\_SSDP} and \texttt{G\_NAT\_PMP} group together flow records \marginpar{skype application signature} with the same source and destination IP address and the aggregate clauses describe the meta information with unique source IP addresses for each group records along with the total bytes carried within each group. The meta information is used to further filter the group-records in \texttt{GF\_SSDP} and \texttt{GF\_NAT\_PMP} modules. 
 
 \begin{table}[h!]
 	\begin{center}
@@ -126,7 +126,7 @@ The filter \texttt{F\_SSDP} is used to identify the four identical \ac{UDP} mult
 \caption{Application Flow Signatures: Results \cite{vperelman:thesis:2010}}
 \label{tab:flow-sig-results}
 \end{table}
-The identification results obtained from the analysis of flow-traces from ten unique users are compiled together in table \ref{tab:flow-sig-results}. The results demonstrate a success rate of $96\%$ for the five applications tested.  This study reveals that it is possible to identify applications from their network flow fingerprints and is a first step towards automating the complete process whereby machine learning techniques would be used to automatically generate flow-queries and identify new applications and even more so newer versions of the same application. 
+The identification results obtained from the analysis of flow-traces from ten unique users are compiled together in table \ref{tab:flow-sig-results}. The results demonstrate a success rate of $96\%$ for the five applications tested.  This study reveals that it is possible to identify applications from their network flow fingerprints and is \marginpar{success rate} a first step towards automating the complete process whereby machine learning techniques would be used to automatically generate flow-queries and identify new applications and even more so newer versions of the same application. 
 
 \section{Cybermetrics: User Identification}\label{sec:cybermetrics}
 
