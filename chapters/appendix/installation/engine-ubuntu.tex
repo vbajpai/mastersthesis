@@ -1,0 +1,62 @@
+Tried on Ubuntu 10.04 (LTS) x86\_64 and 12.04 (LTS) x86\_64
+
+Install CMake
+
+\begin{lstlisting}
+>> sudo apt-get install cmake
+\end{lstlisting}
+
+Install Flow-tool Development Package
+
+\begin{lstlisting}
+>> sudo apt-get install flow-tools-dev  
+\end{lstlisting}
+
+Install Compression Library Development Package
+
+\begin{lstlisting}
+>> sudo apt-get install zlib1g-dev
+\end{lstlisting}
+
+Install JSON Manipulation Library Development Package
+
+\begin{lstlisting}
+>> sudo apt-get install libjson0-dev
+\end{lstlisting}
+
+Build Engine
+
+\begin{lstlisting}
+[engine] >> make
+\end{lstlisting}
+
+Run Engine
+
+\begin{lstlisting}
+[engine] >> bin/engine examples/query-http-tcp-session.json examples/trace.ft
+\end{lstlisting}
+
+Install Doxygen (optional)
+
+\begin{lstlisting}
+>> sudo apt-get install doxygen
+\end{lstlisting}
+
+Install GraphVIZ (optional)
+
+\begin{lstlisting}
+>> sudo apt-get install graphviz
+\end{lstlisting}
+
+Generate Documentation (optional)
+
+\begin{lstlisting}
+[engine] >> make doc
+\end{lstlisting}
+
+Cleanup
+
+\begin{lstlisting}
+[engine] >> make clean
+\end{lstlisting}
+

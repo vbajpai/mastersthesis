@@ -1,0 +1,58 @@
+Install External Dependencies
+
+\begin{lstlisting}
+$ sudo apt-get install libhdf5-serial-dev
+$ sudo apt-get install liblzo2-dev
+\end{lstlisting}
+
+Setup the Python Packaging Virtual Environment
+
+\begin{lstlisting}
+$ sudo apt-get install python-pip
+$ sudo pip install pip --upgrade
+$ sudo pip install virtualenv
+$ sudo pip install virtualenvwrapper
+\end{lstlisting}
+
+Create a Virtual Environment
+
+\begin{lstlisting}
+[parser] $ mkvirtualenv parser
+\end{lstlisting}
+
+Install Python Dependencies
+
+\begin{lstlisting}
+(parser)
+[parser] $ make
+\end{lstlisting}
+
+List the Installed Dependencies
+
+\begin{lstlisting}
+(parser)
+[parser] $ pip freeze
+\end{lstlisting}
+
+Cleanup:
+
+Remove the build files
+
+\begin{lstlisting}
+(parser)
+[parser] $ make clean
+\end{lstlisting}
+
+Deactivate the Virtual Environment
+
+\begin{lstlisting}
+(parser)
+[parser] $ deactivate
+\end{lstlisting}
+
+Destroy the Virtual Environment
+
+\begin{lstlisting}
+[parser] $ rmvirtualenv parser  
+\end{lstlisting}
+

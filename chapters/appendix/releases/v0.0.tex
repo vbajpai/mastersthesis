@@ -1,0 +1,29 @@
+The evolution of the core of the former Python implementation
+\href{https://svn.eecs.jacobs-university.de/svn/eecs/archive/msc-2009/kkanev.pdf}{{[}kkanev:2009{]}}
+in C
+\href{http://dl.dropbox.com/u/500389/mthesis/jschauer-thesis.pdf}{{[}jschauer:2011{]}}
+
+\begin{lstlisting}
+>> git show v0.0                                                                                                                                                                                   
+
+tag v0.0
+Tagger: Vaibhav Bajpai <contact@vaibhavbajpai.com>
+Date:   Thu May 17 10:48:02 2012 +0200
+Commit 8cb309c8a956c99e6b1494eddb601c8f6a520696
+
+* read flow-records into memory
+* rewrite of the execution pipeline in C (non functional)
+* efficient rule processing with dedicated function pointers
+* reduced grouper complexity using qsort(...) and bsearch(...)
+* concerns
+        - flow query is currently hardcoded in pipeline structs
+        - functions assume specific uintX_t offsets
+        - numerous grouper segfaults
+        - no group filter
+        - commented out merger (segfaults when uncommented)
+        - no ungrouper
+        - code dependent on GNU99 extensions
+        - some headers are missing include guards
+        - unused extraneous source files and headers
+\end{lstlisting}
+

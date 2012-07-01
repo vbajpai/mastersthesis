@@ -1,0 +1,67 @@
+Tried on Mac OS X 10.7.
+
+Install \href{http://mxcl.github.com/homebrew/}{Homebrew →}
+
+\begin{lstlisting}
+>> /usr/bin/ruby -e "$(/usr/bin/curl -fsSL https://raw.github.com/mxcl/homebrew/master/Library/Contributions/install_homebrew.rb)"
+\end{lstlisting}
+
+Install CMake
+
+\begin{lstlisting}
+>> brew install cmake
+\end{lstlisting}
+
+Install Flow-Tools from source
+
+\begin{lstlisting}
+>> wget http://dl.dropbox.com/u/500389/flow-tools-0.68.4.tar.bz2
+>> tar -xvf flow-tools-0.68.4.tar.bz2
+
+[flow-tools-0.68.4] >> ./configure
+[flow-tools-0.68.4] >> make 
+[flow-tools-0.68.4] >> make install 
+\end{lstlisting}
+
+Install JSON Manipulation Library Package
+
+\begin{lstlisting}
+>> brew install json-c
+\end{lstlisting}
+
+Build Engine
+
+\begin{lstlisting}
+[engine] >> make CMAKE_PREFIX_PATH=/usr/local/flow-tools/
+\end{lstlisting}
+
+Run Engine
+
+\begin{lstlisting}
+[engine] >> bin/engine examples/query-http-tcp-session.json examples/trace.ft
+\end{lstlisting}
+
+Install Doxygen (optional)
+
+\begin{lstlisting}
+>> brew install doxygen
+\end{lstlisting}
+
+Install GraphVIZ (optional)
+
+\begin{lstlisting}
+>> brew install graphviz
+\end{lstlisting}
+
+Generate Documentation (optional)
+
+\begin{lstlisting}
+[engine] >> make doc    
+\end{lstlisting}
+
+Cleanup
+
+\begin{lstlisting}
+[engine] >> make clean
+\end{lstlisting}
+

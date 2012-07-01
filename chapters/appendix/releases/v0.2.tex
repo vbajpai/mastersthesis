@@ -1,0 +1,24 @@
+Summary: (since after \lstinline!v0.1!)
+
+\begin{lstlisting}
+$ git show v0.2
+
+tag v0.2
+Tagger: Vaibhav Bajpai <contact@vaibhavbajpai.com>
+Date:   Wed Apr 18 13:24:16 2012 +0200    
+Commit 2c571f80cd076172cbd00ef7f9976b88cb44b425
+
+* complete engine refactor.
+* complete engine profiling (no memory leaks).
+* issues closed:
+    - greedily deallocating non-filtered records in `O(n)` before `merger(…)`.
+    - resolved a grouper segfault when NO records got filtered.
+    - all records are grouped into 1 group when no grouping rule specified.
+    - aggregation on common fields touched by filter/grouper rules is ignored.
+    - no `uintX_t` assumptions for field offsets.
+    - rules are clubbed together and assigned using a loop.
+    - function parameters are as minimum as required.
+    - function parameters are safe using `[const]` ptr and ptr to `[const]`.
+    - lazy `rule->func(…)` assignment when the stage is entered.    
+\end{lstlisting}
+

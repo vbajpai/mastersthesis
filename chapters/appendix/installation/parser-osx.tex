@@ -1,0 +1,77 @@
+Install \href{http://mxcl.github.com/homebrew/}{Homebrew →}
+
+\begin{lstlisting}
+$ /usr/bin/ruby -e "$(/usr/bin/curl -fsSL https://raw.github.com/mxcl/homebrew/master/Library/Contributions/install_homebrew.rb)"
+\end{lstlisting}
+
+Install Python
+
+\begin{lstlisting}
+$ brew install python --framework
+\end{lstlisting}
+
+Put \lstinline!easy_install! in PATH
+
+\begin{lstlisting}
+$ export PATH=/usr/local/share/python:$PATH
+\end{lstlisting}
+
+Setup the Python Packaging Virtual Environment
+
+\begin{lstlisting}
+$ easy_install pip
+$ pip install pip --upgrade
+$ pip install virtualenv
+$ pip install virtualenvwrapper
+$ source /usr/local/bin/virtualenvwrapper.sh
+\end{lstlisting}
+
+Install External Dependencies
+
+\begin{lstlisting}
+$ brew install hdf5
+$ brew install lzo   
+\end{lstlisting}
+
+Create a Virtual Environment
+
+\begin{lstlisting}
+[parser] $ mkvirtualenv parser
+\end{lstlisting}
+
+Install Python Dependencies
+
+\begin{lstlisting}
+(parser)
+[parser] $ make
+\end{lstlisting}
+
+List the Installed Dependencies
+
+\begin{lstlisting}
+(parser)
+[parser] $ pip freeze   
+\end{lstlisting}
+
+Cleanup:
+
+Remove the build files
+
+\begin{lstlisting}
+(parser)
+[parser] $ make clean
+\end{lstlisting}
+
+Deactivate the Virtual Environment
+
+\begin{lstlisting}
+(parser)
+[parser] $ deactivate
+\end{lstlisting}
+
+Destroy the Virtual Environment
+
+\begin{lstlisting}
+[parser] $ rmvirtualenv parser
+\end{lstlisting}
+

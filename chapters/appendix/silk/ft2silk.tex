@@ -1,0 +1,73 @@
+\subsection{Flow-tools to SiLK}
+
+\begin{center}\rule{3in}{0.4pt}\end{center}
+
+Install \lstinline!nfdump! and \lstinline!ft2nfdump!
+
+\begin{lstlisting}
+>> sudo apt-get install nfdump
+>> sudo apt-get install nfdump-flow-tools
+\end{lstlisting}
+
+Convert flow-tools traces to nfdump
+
+\begin{lstlisting}
+>> flow-cat $INPUT | ft2nfdump | nfdump -w $OUTPUT
+>> nfdump -r $OUTPUT
+\end{lstlisting}
+
+Replay the nfdump traces\\(The trace is replayed to
+\lstinline!127.0.0.1! at port \lstinline!9995!)
+
+\begin{lstlisting}
+>> nfreplay -r $TRACE
+\end{lstlisting}
+
+Configure a sensor to collect replayed data
+
+\begin{lstlisting}
+>> cat sensors.conf
+
+probe S1 netflow-v5
+  listen-on-port 9995
+  protocol udp
+  accept-from-host 127.0.0.1
+end probe
+
+sensor S1
+  netflow-v5-probes S1
+  internal-ipblocks 10.0.0.0/8
+  external-ipblocks remainder
+end sensor
+\end{lstlisting}
+
+Collect flow data and save in binary SiLK files
+
+\begin{lstlisting}
+>> rwflowpack \
+    --site-config-file=/usr/local/share/silk/generic-silk.conf \
+    --sensor-configuration=sensors.conf \
+    --root-directory=/var/log/silk/ \
+    --log-destination=both
+
+rwflowpack[14830]: Forked child 14831.  Parent exiting
+rwflowpack[14831]: Using packing logic from …                       rwflowpack[14831]: Creating stream cache
+rwflowpack[14831]: Starting flow processor #1 for PDU Reader
+rwflowpack[14831]: Creating PDU Reader Source Pool
+rwflowpack[14831]: Creating PDU Reader for probe 'S1' on 0.0.0.0:9995
+rwflowpack[14831]: Starting flush timer
+rwflowpack[14831]: Started manager thread for PDU Reader
+\end{lstlisting}
+
+Flatten the SiLK root directory
+
+\begin{lstlisting}
+>> find /var/log/silk -type f -exec cp {} /var/log/silkflat/ \;
+\end{lstlisting}
+
+Combine all SiLK files into a single archive
+
+\begin{lstlisting}
+>> ls | rwcat --xargs --output-path=/var/log/silk.gz
+\end{lstlisting}
+
