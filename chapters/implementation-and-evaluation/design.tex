@@ -2,7 +2,153 @@
 \chapter{Design}\label{ch:design}
 %************************************************
 
+The effort to provide a clean usable implementation of the language was from
+the initial outset backed up by three goals. The first goal was to allow the
+implementation to flawlessly work through all stages of the pipeline without
+incurring major performance overhead. The second goal was to abstract out the
+engine functionality in such a way so as to allow runtime evaluation of the
+flow query. The third goal was to provide a clean layout of the working code
+to allow future developers to quickly get started on top of the current
+snapshot. This chapter introduces and reasons out the design patterns and
+the user functionality envisaged from the finished product.
+
+
 \section{Flowy Parser and F$(v1)$ Engine Analysis}\label{sec:adt-workflow}
+With a software that has underwent such significant iterative lifecycles over
+the past few years, it is imperative to understand and analyze the inner
+working of the application before diving in to add more functionality. In this
+pursuit, the first challenge was to get F$(v1)$ engine to compile smoothely.
+Since, the engine was using linux-specific integer types to read the flow
+record \marginpar{compilation and runtime issues} offsets, its compilation was
+an issue on other Unix flavors. As such moving to C$99$ \cite{c99:1999}
+fixed-width integer types increased portability. In addition a number of
+extraneous files that were not part of the build plagued the source directory
+and were removed after thorough inspection. Boolean enums were replaced by
+C$99$ \texttt{bool} types and include guards were added in the headers to
+remove circular dependencies. These changes led to succesful compilation of
+the engine and an initial run iteration is shown in listing
+\ref{lst:fv1-run-example}. It appears that the execution engine can read the
+flow records in memory and successfully filter records in each thread.
+However, it segfaults at the grouper stage, thereby ending the execution.
+
+\lstset{caption=F$(v1)$: Segmentation Fault,
+				tabsize=2, language=bash, numbers=left,stepnumber=1,
+				numberstyle=\ttfamily\color{gray}, keywordstyle=\color{blue},
+				frame=shadowbox, rulesepcolor=\color{black},
+			  label=lst:fv1-run-example, aboveskip=20pt, captionpos=b}
+\begin{lstlisting}
+$ ./flowy2 < trace.ft
+number of filtered records: 556
+number of filtered records: 166
+segmentation fault  ./flowy2 < trace.ft
+
+(gdb) backtrace
+...
+#1  0x00000001000134fa in build_record_trees
+#2  0x00000001000138a0 in grouper
+#3  0x0000000100011eb9 in branch_start
+...
+\end{lstlisting}
+
+In addition, the implementations for group filter, merger and ungrouper are
+missing. A major issue is that the complete flow query is hardcoded in
+pipeline \marginpar{missing pipeline stages, hardcoded rules, assumptions}
+structs as shown in listing \ref{lst:fv1-hardcoded-pipeline}. Similar rules
+are hardcoded for each branch. In addition the functions that evaluate the
+filter and the grouper rule also assume offsets of a specific integer type and
+result in undefined behavior once the parameters in the flow query are
+altered.
+
+\lstset{caption=F$(v1)$: Flow Query Hardcoded in Pipeline Structs,
+				tabsize=2, language=C, numbers=left,stepnumber=1,
+				numberstyle=\ttfamily\color{gray}, keywordstyle=\color{blue},
+				frame=shadowbox, rulesepcolor=\color{black},
+			  label=lst:fv1-hardcoded-pipeline, aboveskip=20pt, captionpos=b}
+\begin{lstlisting}
+struct filter_rule filter_rules_branch1[1] = {
+  { data->offsets.dstport, 80, filter_eq_uint16_t },
+};
+
+struct grouper_rule group_module_branch1[2] = {
+  { data->offsets.srcaddr, data->offsets.srcaddr, grouper_eq_uint32_t_uint32_t_rel },
+  { data->offsets.dstaddr, data->offsets.dstaddr, grouper_eq_uint32_t_uint32_t_rel }
+};
+
+struct grouper_aggr group_aggr_branch1[2] = {
+  { data->offsets.srcaddr, aggr_static_uint32_t },
+  { data->offsets.dstaddr, aggr_static_uint32_t },
+};
+
+binfos[0].branch_id = 0;
+binfos[0].filter_rules = filter_rules_branch1;
+binfos[0].num_filter_rules = 0;
+binfos[0].group_modules = group_module_branch1;
+binfos[0].num_group_modules = 2;
+binfos[0].aggr = group_aggr_branch1;
+binfos[0].num_aggr = 2;
+\end{lstlisting}
+
+To analyze the call flow and data structure collaboration and dependency, the
+execution engine was reverse engineered to generate \ac{UML} using
+\texttt{doxygen}.  \marginpar{reverse-engineering} A similar technique was
+used to generate \ac{UML} for the parser using \texttt{pylint} and
+\texttt{pyreverse}. Makefile targets were added to ease documentation
+generation for future developers as shown in listing \ref{lst:hld}
+
+\lstset{caption=High Level Documentation,
+				tabsize=2, language=bash, numbers=left,stepnumber=1,
+				numberstyle=\ttfamily\color{gray}, keywordstyle=\color{blue},
+				frame=shadowbox, rulesepcolor=\color{black},
+			  label=lst:hld, aboveskip=20pt, captionpos=b}
+\begin{lstlisting}
+[engine] $ make doc
+[parser] $ make doc
+\end{lstlisting}
+
+Flowy parser tools assumed correct number and format of command line arguments
+and poorly \marginpar{arguments parsing in parser} exited out of execution
+with \texttt{IndexError} exceptions.  The python \texttt{argparse} module is
+now used to exit gracefully with usage instructions on bad input as shown in
+listings \ref{lst:flowy-interfaces}.
+
+\lstset{caption=Flowy Interfaces,
+				tabsize=2, language=bash, numbers=left,stepnumber=1,
+				numberstyle=\ttfamily\color{gray}, keywordstyle=\color{blue},
+				frame=shadowbox, rulesepcolor=\color{black},
+			  label=lst:flowy-interfaces, aboveskip=20pt, captionpos=b}
+\begin{lstlisting}
+[parser] $ python src/flowy.py
+usage: flowy.py [options] query.flw
+
+[parser] $ python src/ft2hdf.py
+usage: ft2hdf.py [options] input_path1 [input_path2 [\cdots]] output_file.h5
+
+[parser] $ python src/printhdf.py
+usage: printhdf.py trace.h5
+
+[parser] $ python print_hdf_in_step.py
+usage: print_hdf_in_step [options] input_files
+\end{lstlisting}
+
+It was clear from the generated \ac{UML}s that the current snapshot required
+multiple stages of refactoring before it can be deemed maintainable. As such
+forward declarations were removed and thus arising circular dependencies were
+resolved by reorganizing the code in multiple files. For  \marginpar{minor
+refactor} instance, a \texttt{base} header was added to include common library
+headers as shown in figure \ref{fig:base-header}.  \texttt{error\_functions}
+module was added to avoid plaguing error handlers everywhere. Each stage of
+the pipeline was moved into its separate module, while utility functions were
+moved to \texttt{utils} module. All the pipeline structs were also moved to a
+specific \texttt{pipeline} header to increase readability.
+
+\begin{figure}[h!]
+\begin{center}
+  \includegraphics* [width=1.0\linewidth]{figures/base-header}	
+  \caption{F$(v2)$: Base Header}
+  \label{fig:base-header}
+\end{center}
+\end{figure}
+
 \section{Abstract Objects and Execution Workflow}\label{sec:adt-workflow}
 \section{User Interface Design}\label{sec:engine-interface}
 \section{Pipeline Complexity}\label{sec:engine-complexity}
