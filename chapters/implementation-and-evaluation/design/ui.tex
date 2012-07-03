@@ -1,0 +1,139 @@
+It is essential to allow the interface to be intuitive to any new user who is
+interested in using the tool for network analysis. In essence, this is
+achieved \marginpar{pretty usage help, tracking invalid options} using the
+standard \texttt{getopt\_long} call to allow both short and long option
+arguments. The execution engine appropriately displays the usage help when
+insufficient number of arguments are provided as shown in listing
+\ref{lst:fv2-ui}.  The engine is also interactive to help one choose the right
+switches with required options.
+
+\lstset{caption=F$(v2)$: User Interface,
+				tabsize=2, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:fv2-ui,
+        aboveskip=20pt, captionpos=b}
+\begin{lstlisting}
+$ bin/engine
+usage: bin/engine [OPTIONS] queryfile tracefile      query the specified trace
+   or: bin/engine [OPTIONS] queryfile -              read the trace from stdin
+
+OPTIONS:
+-d, --debug              enable debugging mode
+-v, --verbose            increase the verbosity level
+-h, --help               display this help and exit
+-V, --version            output version information and enablexit
+
+$ bin/engine queryfile tracefile --foo
+bin/engine: invalid option --foo
+
+$ bin/engine queryfile tracefile --verbose
+bin/engine: option --verbose requires an argument
+
+$ bin/engine queryfile tracefile --verbose=5
+ERROR: valid verbosity levels: (1-3)
+\end{lstlisting}
+
+Since the execution engine largely depends on the sanity of the query and
+trace files passed to it as arguments, it is essential to let the input files
+pass \marginpar{consistency checks} through a level of consistency check
+before going forward with the processing pipeline to avoid any undefined
+behavior as shown in listing \ref{lst:fv2-consistency-checks}.
+
+\lstset{caption=F$(v2)$: Consistency Checks,
+				tabsize=2, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:fv2-consistency-checks,
+        aboveskip=20pt, captionpos=b}
+\begin{lstlisting}
+$ bin/engine README.md tracefile
+ERROR: json_tokener_parse_ex(...)
+
+$ bin/engine queryfile README.md
+ERROR: ftio_init(...)
+\end{lstlisting}
+
+With a software undergoing such a rapid pace of development, it's helpful to
+be \marginpar{backtrace on graceful exits} able to see  the inner workings of
+each stage of pipeline during a debugging lifecycle. As such, the engine
+echoes a backtrace whenever it fails gracefully as shown in listing
+\ref{lst:fv2-backtrace}.
+
+\lstset{caption=F$(v2)$: Backtraces,
+				tabsize=2, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:fv2-backtrace,
+        aboveskip=20pt, captionpos=b}
+\begin{lstlisting}
+$ bin/engine foo bar
+ERROR: open(...)
+BACKTRACE:
+0   engine             0x000000010bc891c2 print_trace + 34
+1   engine             0x000000010bc893cb errExit + 395
+2   engine             0x000000010bc898de read_param_data + 174
+3   engine             0x000000010bc8c600 main + 80
+4   engine             0x000000010bc6e054 start + 52
+\end{lstlisting}
+
+\begin{figure}[h!]
+  \begin{center}
+    \includegraphics* [width=0.6\linewidth]{figures/engine-verbosity}
+    \caption{F$(v2)$: Verbosity Levels Workflow}
+    \label{fig:engine-verbosity}
+  \end{center}
+\end{figure}
+
+The engine also allows to increase the amount of echo using a number of
+verbosity levels. A specific function is designed to handle the echo of each
+stage of the pipeline as shown in figure \ref{fig:engine-verbosity}.  In its
+default state, the engine only echoes the resultant streams \marginpar{debug
+and verbosity levels} of flow records.  A debug (or \texttt{--verbose=3})
+level engine execution is shown in listing \ref{lst:fv2-debug}. In addition to
+echoing the flow (or group) records resulting from each stage, it also echoes
+the results of each intermediate stage alongwith the original trace that was
+passed to it. With \texttt{--verbose=2}, the echo of the original trace is
+pruned, while intermediate results get pruned with \texttt{--verbose=1}.
+
+\lstset{caption=F$(v2)$: Debugging, tabsize=2, numbers=left,stepnumber=1,
+  basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+  keywordstyle=\color{blue}, frame=shadowbox, rulesepcolor=\color{black},
+  label=lst:fv2-debug, aboveskip=20pt, captionpos=b}
+
+\begin{lstlisting}
+$ bin/engine tracefile queryfile --debug
+
+# mode:                 normal
+# capture hostname:     ihp.jacobs.jacobs-university.de
+...
+
+No. of Filtered Records: ...
+No. of Sorted Records: ...
+No. of Unique Records: ...
+No. of Groups: (Verbose Output): ...
+
+... 0     216.137.61.203  80    0     192.168.0.135 ...
+... 0     216.137.61.203  80    0     192.168.0.135 ...
+
+... 0     8.12.214.126    80    0     192.168.0.135 ...
+... 0     8.12.214.126    80    0     192.168.0.135 ...
+
+No. of Groups: 32 (Aggregations): ...
+
+... 0     216.137.61.203  80    0     192.168.0.135 ...
+... 0     8.12.214.126    80    0     192.168.0.135 ...
+
+No. of Filtered Groups: (Aggregations): ...
+No. of (to be) Matched Groups: ...
+
+... 0     192.168.0.135   0     0     204.160.123.126 80    ...
+... 0     87.238.86.121   80    0     192.168.0.135   0     ...
+
+No. of Merged Groups: 3 (Tuples): ...
+
+... 0     192.168.0.135   0     0     216.46.94.66    80    ...
+... 0     216.46.94.66    80    0     192.168.0.135   0     ...
+
+No. of Streams: ...
+\end{lstlisting}

@@ -14,7 +14,7 @@ independent module blackboxed into one public interface function. Each stage
 is also wrapped around conditional compilation macros to allow them to be
 easily enabled/disabled during development if desired so.
 
-\lstset{caption=Flow Query Struct,
+\lstset{caption=F$(v2)$: Flow Query Struct,
 				tabsize=2, language=C, numbers=left,stepnumber=1,
         basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
         keywordstyle=\color{blue}, frame=shadowbox,
@@ -43,7 +43,7 @@ these \texttt{branch} structs are referenced in the parent \texttt{flowquery}
 struct. All the query rules are clubbed into \texttt{X\_ruleset}, where
 \texttt{X} can be any stage as shown in listing \ref{lst:fv2-branch-struct}.
 
-\lstset{caption=Branch Struct,
+\lstset{caption=F$(v2)$: Branch Struct,
 				tabsize=2, language=C, numbers=left,stepnumber=1,
         basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
         keywordstyle=\color{blue}, frame=shadowbox,
@@ -73,7 +73,7 @@ interfaces} of the stage into one single entity as shown in listing
 \ref{lst:fv2-interfaces} to easily allow them to be passed around and for easy
 maintainbility of in-memory object stores.
 
-\lstset{caption=Public Interfaces,
+\lstset{caption=F$(v2)$: Public Interfaces,
 				tabsize=2, language=C, numbers=left,stepnumber=1,
         basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
         keywordstyle=\color{blue}, frame=shadowbox,
@@ -105,7 +105,7 @@ important to realize that the flow records themselves are never carried
 forward from each stage to its subsequents, but only offset pointers to the
 original flow trace are.
 
-\lstset{caption=Result Structs,
+\lstset{caption=F$(v2)$: Result Structs,
 				tabsize=2, language=C, numbers=left,stepnumber=1,
         basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
         keywordstyle=\color{blue}, frame=shadowbox,
@@ -151,7 +151,7 @@ helps the grouper aggregation stage make decisions on whether a linear pass
 through the flow trace is required to aggregate a column that may have been
 already a criteron for the filter stage.
 
-\lstset{caption=Greedy Deallocation,
+\lstset{caption=F$(v2)$: Greedy Deallocation,
 				tabsize=2, language=C, numbers=left,stepnumber=1,
         basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
         keywordstyle=\color{blue}, frame=shadowbox,
