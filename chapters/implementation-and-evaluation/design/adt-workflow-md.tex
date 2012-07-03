@@ -1,0 +1,244 @@
+\begin{itemize}
+\item
+  The complete project flow is reorganized to increase readability {[}1,
+  2{]}
+
+  \includegraphics{http://i.imgur.com/bwNbS.png}\\\includegraphics{http://i.imgur.com/fGEHp.png}\\\includegraphics{http://i.imgur.com/o0aNo.png}\\\includegraphics{http://i.imgur.com/bNZyn.png}\\\includegraphics{http://i.imgur.com/boMWR.png}\\\includegraphics{http://i.imgur.com/0ajML.png}\\\includegraphics{http://i.imgur.com/l9wcn.png}\\\includegraphics{http://i.imgur.com/nI5EY.png}\\\includegraphics{http://i.imgur.com/jR86d.png}\\\includegraphics{http://i.imgur.com/5CTgc.png}
+\item
+  All the query rules are clubbed in \lstinline!X_ruleset!, where
+  \lstinline!X! can be \lstinline!filter!, \lstinline!grouper!,
+  \lstinline!gfilter!, \lstinline!merger! {[}3{]}
+
+  \begin{itemize}
+  \item
+    \lstinline!flowquery {...}!
+
+\begin{lstlisting}
+struct flowquery {  
+  size_t                          num_branches;  
+  struct branch**                 branchset;  
+
+  size_t                          num_merger_rules;  
+  struct merger_rule**            mruleset;
+
+  struct merger_result*           merger_result; 
+  struct ungrouper_result*        ungrouper_result;
+};  
+\end{lstlisting}
+  \item
+    \lstinline!branch {...}!
+
+\begin{lstlisting}
+struct branch {
+
+  /* -----------------------------------------------------------------------*/  
+  /*                              inputs                                    */
+  /* -----------------------------------------------------------------------*/  
+
+  …     
+
+  size_t                          num_filter_rules;
+  size_t                          num_grouper_rules;
+  size_t                          num_aggr_rules;
+  size_t                          num_gfilter_rules;
+
+  struct filter_rule**            filter_ruleset;  
+  struct grouper_rule**           grouper_ruleset;
+  struct aggr_rule**              aggr_ruleset;  
+  struct gfilter_rule**           gfilter_ruleset;  
+
+  /* -----------------------------------------------------------------------*/  
+
+
+
+  /* -----------------------------------------------------------------------*/  
+  /*                               output                                   */
+  /* -----------------------------------------------------------------------*/  
+
+  struct filter_result*           filter_result;
+  struct grouper_result*          grouper_result;
+  struct groupfilter_result*      gfilter_result;
+
+  /* -----------------------------------------------------------------------*/  
+
+};
+\end{lstlisting}
+  \end{itemize}
+\item
+  Each pipeline stage returns \lstinline!X_result! where \lstinline!X!
+  can be \lstinline!filter!, \lstinline!grouper!, \lstinline!gfilter!,
+  \lstinline!merger!, \lstinline!ungrouper! {[}3{]}
+
+  \begin{itemize}
+  \item
+    \lstinline!filter(…)! returns \lstinline!filter_result!
+
+\begin{lstlisting}
+struct filter_result* filter(…) {…}
+\end{lstlisting}
+
+    where
+
+\begin{lstlisting}
+struct filter_result {          
+  size_t                          num_filtered_records;
+  char**                          filtered_recordset;  
+};
+\end{lstlisting}
+  \item
+    \lstinline!grouper(…)! returns \lstinline!grouper_result!
+
+\begin{lstlisting}
+struct grouper_result* grouper(…) {…}
+\end{lstlisting}
+
+    where
+
+\begin{lstlisting}
+struct grouper_result {
+  size_t                          num_unique_records;  
+  char**                          sorted_recordset;
+  char**                          unique_recordset;
+
+  size_t                          num_groups;  
+  struct group**                  groupset;
+};      
+\end{lstlisting}
+  \item
+    \lstinline!groupfilter(…)! returns \lstinline!groupfilter_result!
+
+\begin{lstlisting}
+struct groupfilter_result* groupfilter(…) {…}
+\end{lstlisting}
+
+    where
+
+\begin{lstlisting}
+struct groupfilter_result {
+  size_t                          num_filtered_groups;  
+  struct group**                  filtered_groupset;
+};
+\end{lstlisting}
+  \item
+    \lstinline!merger(…)! returns \lstinline!merger_result!
+
+\begin{lstlisting}
+struct merger_result* merger(…) {…}
+\end{lstlisting}
+
+    where
+
+\begin{lstlisting}
+struct merger_result {
+  size_t                          num_group_tuples;  
+  size_t                          total_num_group_tuples;
+  struct group***                 group_tuples;
+};
+\end{lstlisting}
+  \item
+    \lstinline!ungrouper(…)! returns \lstinline!ungrouper_result!
+
+\begin{lstlisting}
+struct ungrouper_result* ungrouper(…) {…}
+\end{lstlisting}
+
+    where
+
+\begin{lstlisting}
+struct ungrouper_result {
+  size_t                          num_streams;    
+  struct stream**                 streamset;
+};
+\end{lstlisting}
+  \end{itemize}
+\item
+  Added \lstinline!echo.{h,c}! for verbose and debug modes {[}4{]}
+
+  \begin{itemize}
+  \item
+    with atleast \lstinline!--verbose=1!:
+
+    \begin{figure}[htbp]
+    \centering
+    \includegraphics{http://i.imgur.com/1AGfj.png}
+    \caption{echo\_filter}
+    \end{figure}
+
+    \begin{itemize}
+    \item
+      with atleast \lstinline!--verbose=2!:
+
+      \begin{figure}[htbp]
+      \centering
+      \includegraphics{http://i.imgur.com/sGZff.png}
+      \caption{echo\_grouper}
+      \end{figure}
+    \end{itemize}
+
+    \includegraphics{http://i.imgur.com/IjdHh.png}\\\includegraphics{http://i.imgur.com/4JqOp.png}\\\includegraphics{http://i.imgur.com/aKQs0.png}
+  \item
+    always:\\ \includegraphics{http://i.imgur.com/guxpg.png}
+  \end{itemize}
+\item
+  \lstinline!X_ruleset! are deallocated as soon as \lstinline!X! stage
+  returns.
+
+  \begin{itemize}
+  \item
+    \lstinline!grouper(…)!
+
+\begin{lstlisting}
+ branch->grouper_result = grouper(…); 
+ if (branch->grouper_result == NULL)
+   errExit("grouper(...) returned NULL");
+ else {
+
+   /* free filter rules */
+   …        
+   /* free grouper rules */
+   …                        
+   /* free grouper aggregation rules */
+   …            
+ }  
+\end{lstlisting}
+  \item
+    \lstinline!groupfilter(…)!
+
+\begin{lstlisting}
+branch->gfilter_result = groupfilter(…);
+if (branch->gfilter_result == NULL)
+  errExit("groupfilter(...) returned NULL");
+else {
+
+  /* free group filter rules */
+  …
+}
+\end{lstlisting}
+  \item
+    \lstinline!merger(…)!
+
+\begin{lstlisting}
+fquery->merger_result = merger(…); 
+
+if (fquery->merger_result == NULL)
+  errExit("merger(...) returned NULL");
+else {
+
+    /* free merger rules */ 
+    … 
+}    
+\end{lstlisting}
+  \end{itemize}
+\end{itemize}
+
+References:
+
+{[}1{]}
+\href{http://dl.dropbox.com/u/500389/mthesis/docs-engine/html/flowy\_8c.html}{\lstinline!flowy!
+reference →}\\{[}2{]}
+\href{http://dl.dropbox.com/u/500389/mthesis/docs-engine/html/branch\_8c.html}{\lstinline!branch!
+reference →}\\{[}3{]}
+\href{http://dl.dropbox.com/u/500389/mthesis/docs-engine/html/structflowquery.html}{\lstinline!flowquery!
+reference →}\\{[}4{]}
+\href{http://dl.dropbox.com/u/500389/mthesis/docs-engine/html/echo\_8h\_source.html}{\lstinline!echo!
+reference →}

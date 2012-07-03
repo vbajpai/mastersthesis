@@ -1,0 +1,180 @@
+\begin{figure}[h!]
+  \begin{center}
+    \includegraphics* [width=1.0\linewidth]{figures/engine-workflow}
+    \caption{F$(v2)$: Execution Engine Workflow}
+    \label{fig:engine-workflow}
+  \end{center}
+\end{figure}
+
+In order to keep the codebase maintainable, it was essential to design the
+execution engine workflow in such a way so as to naturally map it to the
+original pipeline model specification \cite{vmarinov:2009} as shown in figure
+\ref{fig:engine-workflow}. Each stage of the pipeline is a separate
+independent module blackboxed into one public interface function. Each stage
+is also wrapped around conditional compilation macros to allow them to be
+easily enabled/disabled during development if desired so.
+
+\lstset{caption=Flow Query Struct,
+				tabsize=2, language=C, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:fv2-flowquery-struct,
+        aboveskip=20pt, captionpos=b}
+\begin{lstlisting}
+struct flowquery {
+  size_t                           num_branches;
+  struct branch**                  branchset;
+
+  size_t                           num_merger_rules;
+  struct merger_rule**             mruleset;
+
+  struct merger_result*            merger_result;
+  struct ungrouper_result*         ungrouper_result;
+};
+\end{lstlisting}
+
+The abstract objects that store the JSON query and the results that incubate
+from each stage are designed to be self-descriptive and hierarchically
+chainable. The complete JSON query information for instance, is held within
+the \texttt{flowquery} \marginpar{flowquery and branch struct} struct as shown
+in listing \ref{lst:fv2-flowquery-struct}. Each individual branch of the
+flowquery itself is described in a \texttt{branch} struct. A collection of
+these \texttt{branch} structs are referenced in the parent \texttt{flowquery}
+struct. All the query rules are clubbed into \texttt{X\_ruleset}, where
+\texttt{X} can be any stage as shown in listing \ref{lst:fv2-branch-struct}.
+
+\lstset{caption=Branch Struct,
+				tabsize=2, language=C, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:fv2-branch-struct,
+        aboveskip=20pt, captionpos=b}
+\begin{lstlisting}
+struct branch {
+  size_t                          num_grouper_rules;
+  size_t                          num_aggr_rules;
+  size_t                          num_gfilter_rules;
+
+  struct filter_rule**            filter_ruleset;
+  struct grouper_rule**           grouper_ruleset;
+  struct aggr_rule**              aggr_ruleset;
+  struct gfilter_rule**           gfilter_ruleset;
+
+  struct filter_result*           filter_result;
+  struct grouper_result*          grouper_result;
+  struct groupfilter_result*      gfilter_result;
+};
+\end{lstlisting}
+
+A call to the public interface function of each stage returns a
+\texttt{X\_result} struct object as shown in listing \ref{lst:fv2-interfaces}.
+The \texttt{X\_result} objects encapsulate all elements \marginpar{public
+interfaces} of the stage into one single entity as shown in listing
+\ref{lst:fv2-interfaces} to easily allow them to be passed around and for easy
+maintainbility of in-memory object stores.
+
+\lstset{caption=Public Interfaces,
+				tabsize=2, language=C, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:fv2-interfaces,
+        aboveskip=20pt, captionpos=b}
+\begin{lstlisting}
+struct filter_result*
+filter(...) {...}
+
+struct grouper_result*
+grouper(...) {...}
+
+struct groupfilter_result*
+groupfilter(...) {...}
+
+struct merger_result*
+merger(...) {...}
+
+struct ungrouper_result*
+ungrouper(...) {...}
+\end{lstlisting}
+
+Each result struct holds information about the number of flow records that
+passed the stage and pointers to each such flow records. Since the group
+filter and merger stages do not work on the individual flows but on a
+collection; they take \marginpar{result structs} the \texttt{group} struct
+that encapsulates a collection of similar flows as input arguments. It is
+important to realize that the flow records themselves are never carried
+forward from each stage to its subsequents, but only offset pointers to the
+original flow trace are.
+
+\lstset{caption=Result Structs,
+				tabsize=2, language=C, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:fv2-result-structs,
+        aboveskip=20pt, captionpos=b}
+\begin{lstlisting}
+struct filter_result {
+  size_t                          num_filtered_records;
+  char**                          filtered_recordset;
+};
+
+struct grouper_result {
+  size_t                          num_unique_records;
+  char**                          sorted_recordset;
+  char**                          unique_recordset;
+  size_t                          num_groups;
+  struct group**                  groupset;
+};
+
+struct groupfilter_result {
+  size_t                          num_filtered_groups;
+  struct group**                  filtered_groupset;
+};
+
+struct merger_result {
+  size_t                          num_group_tuples;
+  size_t                          total_num_group_tuples;
+  struct group***                 group_tuples;
+};
+
+struct ungrouper_result {
+  size_t                          num_streams;
+  struct stream**                 streamset;
+};
+\end{lstlisting}
+
+
+The query fragment structs} (\texttt{X\_ruleset}) used to get the result is
+greedily deallocated soon after the stage returns to keep the in-memory usage
+to the minimum. The \texttt{filter\_ruleset} \marginpar{greedy ruleset
+deallocation} although are kept until the end of the grouper stage since it
+helps the grouper aggregation stage make decisions on whether a linear pass
+through the flow trace is required to aggregate a column that may have been
+already a criteron for the filter stage.
+
+\lstset{caption=Greedy Deallocation,
+				tabsize=2, language=C, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:fv2-greedy-dealloc,
+        aboveskip=20pt, captionpos=b}
+\begin{lstlisting}
+branch->grouper_result = grouper(...);
+if (branch->grouper_result == NULL)  ...
+else {
+  /* free filter rules */
+  /* free grouper rules */
+  /* free grouper aggregation rules */
+}
+
+branch->gfilter_result = groupfilter(...);
+if (branch->gfilter_result == NULL) ...
+else {
+  /* free group filter rules */
+}
+
+fquery->merger_result = merger(...);
+if (fquery->merger_result == NULL) ...
+else {
+    /* free merger rules */
+}
+\end{lstlisting}

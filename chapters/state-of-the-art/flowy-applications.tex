@@ -2,20 +2,20 @@
 \chapter{F: Applications}\label{ch:flowy-applications}
 %***********************************************************
 
-The developed stream-based flow-querier helped to underpin a number of recent research efforts to solve real-world application problems that were deemed difficult before. This was possible due to the power and flexibility of the flow-query language to suit itself from generic to specific needs thereby opening doors of innovation. This section documents such efforts that use the in-house flow query language as well as a few others that exploit the flow level characteristics of the traffic patterns in general. 
+The developed stream-based flow-querier helped to underpin a number of recent research efforts to solve real-world application problems that were deemed difficult before. This was possible due to the power and flexibility of the flow-query language to suit itself from generic to specific needs thereby opening doors of innovation. This section documents such efforts that use the in-house flow query language as well as a few others that exploit the flow level characteristics of the traffic patterns in general.
 
-\section{Application Identification using Flow 
+\section{Application Identification using Flow
 Signatures}\label{sec:application-signatures}
-The idea behind this study was to identify applications using flow traces on a network by analyzing potential left-behind signatures that describe them \cite{vperelman:2011, vperelman:thesis:2010}. This was based on the hypothesis that each application type generates unique flow signatures that might work as a fingerprint feature. To achieve this, a collection of network traces were recorded from several users and subsequently analyzed. The identified signatures were formalized by writing flow queries that were executed on Flowy \cite{kkanev:2010}. Several separate instances of the network traces were queried to evaluate the approach and come to a conclusion. 
+The idea behind this study was to identify applications using flow traces on a network by analyzing potential left-behind signatures that describe them \cite{vperelman:2011, vperelman:thesis:2010}. This was based on the hypothesis that each application type generates unique flow signatures that might work as a fingerprint feature. To achieve this, a collection of network traces were recorded from several users and subsequently analyzed. The identified signatures were formalized by writing flow queries that were executed on Flowy \cite{kkanev:2010}. Several separate instances of the network traces were queried to evaluate the approach and come to a conclusion.
 
-\lstset{caption=Skype Application Signature \cite{vperelman:thesis:2010}, 
+\lstset{caption=Skype Application Signature \cite{vperelman:thesis:2010},
 				tabsize=2, language=C, numbers=left,stepnumber=1,
 				basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
-				keywordstyle=\color{blue}, frame=shadowbox, rulesepcolor=\color{black}, 	
+				keywordstyle=\color{blue}, frame=shadowbox, rulesepcolor=\color{black},
 			  label=lst:skypequery, aboveskip=20pt, captionpos=b}
 \begin{lstlisting}
 splitter S {}
-	
+
 ...
 
 merger M {
@@ -28,7 +28,7 @@ merger M {
 }
 
 ungrouper U {}
-		
+
 "input" -> S
 S branch A -> F_SSDP -> G_SSDP -> GF_SSDP -> M
 S branch B -> F_NAT_PMP -> G_NAT_PMP -> GF_NAT_PMP -> M
@@ -38,15 +38,15 @@ A formalized Flowy query to identify Skype from the flow traces for an instance 
 
 \begin{center}
 \begin{minipage}{.44\textwidth}
-	\lstset{caption=Branch A \cite{vperelman:thesis:2010}, 
+	\lstset{caption=Branch A \cite{vperelman:thesis:2010},
 					tabsize=2, language=C, numbers=left,stepnumber=1,
 					basicstyle=\tiny\ttfamily,numberstyle=\ttfamily\color{gray},
-					keywordstyle=\color{blue},frame=shadowbox, rulesepcolor=\color{black}, 	
+					keywordstyle=\color{blue},frame=shadowbox, rulesepcolor=\color{black},
 				  label=lst:skypebranchB, aboveskip=20pt, captionpos=b}
 	\begin{lstlisting}
 	filter F_SSDP {
 		dstport = 1900
-		port = protocol("UDP")	
+		port = protocol("UDP")
 		dstip = 239.255.255.250
 	}
 
@@ -66,15 +66,15 @@ A formalized Flowy query to identify Skype from the flow traces for an instance 
 \end{minipage}
 \hfill
 \begin{minipage}{.44\textwidth}
-	\lstset{caption=Branch B \cite{vperelman:thesis:2010}, 
+	\lstset{caption=Branch B \cite{vperelman:thesis:2010},
 					tabsize=2, language=C, numbers=left,stepnumber=1,
 					basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
-					keywordstyle=\color{blue},frame=shadowbox, rulesepcolor=\color{black}, 	
+					keywordstyle=\color{blue},frame=shadowbox, rulesepcolor=\color{black},
 				  label=lst:skypebranchA, aboveskip=20pt, captionpos=b}
 	\begin{lstlisting}
 	filter F_NAT_PMP {
 		dstport = 5351
-		port = protocol("UDP")	
+		port = protocol("UDP")
 	}
 
 	grouper G_NAT_PMP {
@@ -91,28 +91,28 @@ A formalized Flowy query to identify Skype from the flow traces for an instance 
 	\end{lstlisting}
 \end{minipage}
 \end{center}
-The filter \texttt{F\_SSDP} is used to identify the four identical \ac{UDP} multicast messages the client sends out using \ac{SSDP} \cite{mbodlaender:2005}. Similarly \texttt{F\_NAT\_PMP} filter is used to identify four \ac{NAT-PMP} \cite{draft-cheshire-nat-pmp-03} messages sent over UDP. The groupers \texttt{G\_SSDP} and \texttt{G\_NAT\_PMP} group together flow records \marginpar{skype application signature} with the same source and destination IP address and the aggregate clauses describe the meta information with unique source IP addresses for each group records along with the total bytes carried within each group. The meta information is used to further filter the group-records in \texttt{GF\_SSDP} and \texttt{GF\_NAT\_PMP} modules. 
+The filter \texttt{F\_SSDP} is used to identify the four identical \ac{UDP} multicast messages the client sends out using \ac{SSDP} \cite{mbodlaender:2005}. Similarly \texttt{F\_NAT\_PMP} filter is used to identify four \ac{NAT-PMP} \cite{draft-cheshire-nat-pmp-03} messages sent over UDP. The groupers \texttt{G\_SSDP} and \texttt{G\_NAT\_PMP} group together flow records \marginpar{skype application signature} with the same source and destination IP address and the aggregate clauses describe the meta information with unique source IP addresses for each group records along with the total bytes carried within each group. The meta information is used to further filter the group-records in \texttt{GF\_SSDP} and \texttt{GF\_NAT\_PMP} modules.
 
 \begin{table}[h!]
 	\begin{center}
 		\tiny
 		\begin{tabular}{|c|c|c|c|c|c|}
-		\hline	
+		\hline
 		UserID & Skype & Opera & Amarok & Chrome & Live \\
 		\hline
-		\hline 
+		\hline
 		u$0$ & \ding{52} & \ding{109} & \ding{54} & \ding{109} & \ding{109} \\
-		\hline             
+		\hline
 		u$1$ & \ding{52} & \ding{109} & \ding{109} & \ding{109} & \ding{109} \\
-		\hline             
+		\hline
 		u$2$ & \ding{109} & \ding{109} & \ding{109} & \ding{109} & \ding{109} \\
-		\hline             
+		\hline
 		u$3$ & \ding{52} & \ding{109} & \ding{54} & \ding{109} & \ding{109} \\
-		\hline             
+		\hline
 		u$4$ & \ding{109} & \ding{109} & \ding{109} & \ding{109} & \ding{109} \\
-		\hline             
+		\hline
 		u$5$ & \ding{52} & \ding{109} & \ding{52} & \ding{52} & \ding{109} \\
-		\hline             
+		\hline
 		u$6$ & \ding{109} & \ding{109} & \ding{109} & \ding{109} & \ding{109} \\
 		\hline
 		u$7$ & \ding{109} & \ding{52} & \ding{52} & \ding{109} & \ding{109} \\
@@ -126,42 +126,42 @@ The filter \texttt{F\_SSDP} is used to identify the four identical \ac{UDP} mult
 \caption{Application Flow Signatures: Results \cite{vperelman:thesis:2010}}
 \label{tab:flow-sig-results}
 \end{table}
-The identification results obtained from the analysis of flow-traces from ten unique users are compiled together in table \ref{tab:flow-sig-results}. The results demonstrate a success rate of $96\%$ for the five applications tested.  This study reveals that it is possible to identify applications from their network flow fingerprints and is \marginpar{success rate} a first step towards automating the complete process whereby machine learning techniques would be used to automatically generate flow-queries and identify new applications and even more so newer versions of the same application. 
+The identification results obtained from the analysis of flow-traces from ten unique users are compiled together in table \ref{tab:flow-sig-results}. The results demonstrate a success rate of $96\%$ for the five applications tested.  This study reveals that it is possible to identify applications from their network flow fingerprints and is \marginpar{success rate} a first step towards automating the complete process whereby machine learning techniques would be used to automatically generate flow-queries and identify new applications and even more so newer versions of the same application.
 
 \section{Cybermetrics: User Identification}\label{sec:cybermetrics}
 
-The idea of identification of users based on biometric patterns such as keystroke dynamics \cite{fbergadano:2002}, mouse interactions \cite{aahmed:2007} or activity cycles in online games \cite{kchen:2007} has been long known. This study takes the idea even further by using flow-record patterns as a characteristic (cybermetrics) to identify a user on a network \cite{nmelnikov:thesis:2010, nmelnikov:2010}. Such a cybermetric user identification can be used for the purpose of providing secure access, system administration and network management. The feature extraction module of the analyzer as shown in figure \ref{fig:cybermetrics-overview} uses three distinct feature sets that could possibly be used to identify a user from a flow-record trace. 
+The idea of identification of users based on biometric patterns such as keystroke dynamics \cite{fbergadano:2002}, mouse interactions \cite{aahmed:2007} or activity cycles in online games \cite{kchen:2007} has been long known. This study takes the idea even further by using flow-record patterns as a characteristic (cybermetrics) to identify a user on a network \cite{nmelnikov:thesis:2010, nmelnikov:2010}. Such a cybermetric user identification can be used for the purpose of providing secure access, system administration and network management. The feature extraction module of the analyzer as shown in figure \ref{fig:cybermetrics-overview} uses three distinct feature sets that could possibly be used to identify a user from a flow-record trace.
 \begin{figure}[h!]
 \begin{center}
-  \includegraphics* [width=0.7\linewidth]{figures/cybermetrics-overview}	
+  \includegraphics* [width=0.7\linewidth]{figures/cybermetrics-overview}
   \caption{Cybermetrics: Overview \cite{nmelnikov:thesis:2010}}
   \label{fig:cybermetrics-overview}
 \end{center}
 \end{figure}
 
-Initial research efforts started with identifying application signatures in flow-records in \cite{vperelman:2011, vperelman:thesis:2010} and became relevant because different people have different preferences in the applications they use \marginpar{application signatures} and as such a set of applications in flow-records is a characteristic feature of a user. Flowy queries were formalized for four different set of applications and tested against a known set of users. The evaluation results of the derived queries as shown in table \ref{tab:flow-sig-results} demonstrated a strong evidence of presence (or absence) of applications and thereby provided an eventual marker for user identification. 
+Initial research efforts started with identifying application signatures in flow-records in \cite{vperelman:2011, vperelman:thesis:2010} and became relevant because different people have different preferences in the applications they use \marginpar{application signatures} and as such a set of applications in flow-records is a characteristic feature of a user. Flowy queries were formalized for four different set of applications and tested against a known set of users. The evaluation results of the derived queries as shown in table \ref{tab:flow-sig-results} demonstrated a strong evidence of presence (or absence) of applications and thereby provided an eventual marker for user identification.
 
 \begin{figure}[h!]
 \begin{center}
-  \includegraphics* [width=0.60\linewidth]{figures/cybermetrics-geography}	
+  \includegraphics* [width=0.60\linewidth]{figures/cybermetrics-geography}
   \caption{Geographical Preferences \cite{nmelnikov:thesis:2010}}
   \label{fig:cybermetrics-geography}
 \end{center}
 \end{figure}
 The authors also looked into the geographical affiliations of different users by analyzing the \ac{ccTLD} of the browsed websites. They proposed a hypothesis that a user's origins strongly \marginpar{geographical preferences} influences their browsing activity. The analysis of the results established that the top five visited \ac{ccTLD}s constituted more than $85\%$ of the overall number of a user's visits as shown in figure \ref{fig:cybermetrics-geography}.
- 
+
 \begin{figure}[h!]
 \begin{center}
-  \includegraphics* [width=0.6\linewidth]{figures/cybermetrics-daily-distrib}	
+  \includegraphics* [width=0.6\linewidth]{figures/cybermetrics-daily-distrib}
   \caption{Daily Distributions for HTTP Traffic \cite{nmelnikov:thesis:2010}}
   \label{fig:cybermetrics-daily-distrib}
 \end{center}
 \end{figure}
-In the end, the authors introduced a proof-of-concept method of user differentiation based on statistical features. These features considered daily distributions of parameters that were based on different port numbers. \marginpar{flow-record statistics}For instance, figure \ref{fig:cybermetrics-daily-distrib} shows the daily distribution of different users based on their \ac{HTTP} traffic usage. It was also witnessed that the time duration also played a key role in the process of feature formation, whereby the number of longer flows increased with the duration and consequently resulted in higher cross-correlations as shown in figure \ref{fig:cybermetrics-cross-correlate}  
+In the end, the authors introduced a proof-of-concept method of user differentiation based on statistical features. These features considered daily distributions of parameters that were based on different port numbers. \marginpar{flow-record statistics}For instance, figure \ref{fig:cybermetrics-daily-distrib} shows the daily distribution of different users based on their \ac{HTTP} traffic usage. It was also witnessed that the time duration also played a key role in the process of feature formation, whereby the number of longer flows increased with the duration and consequently resulted in higher cross-correlations as shown in figure \ref{fig:cybermetrics-cross-correlate}
 \begin{figure}[h!]
 \begin{center}
-  \includegraphics* [width=0.6\linewidth]{figures/cybermetrics-cross-correlate}	
-  \caption{Cross Correlation of Traces with Varying Times 
+  \includegraphics* [width=0.6\linewidth]{figures/cybermetrics-cross-correlate}
+  \caption{Cross Correlation of Traces with Varying Times
 					 \cite{nmelnikov:thesis:2010}}
   \label{fig:cybermetrics-cross-correlate}
 \end{center}
@@ -174,18 +174,18 @@ The IPv$4$ address space depletion is upon us and has become more imminent in th
 
 \begin{figure}[h!]
 \begin{center}
-  \includegraphics* [width=0.8\linewidth]{figures/ipv6transeval-nat64-setup}	
+  \includegraphics* [width=0.8\linewidth]{figures/ipv6transeval-nat64-setup}
   \caption{NAT$64$ Setup \cite{vbajpai:2012}}
   \label{fig:ipv6transeval-nat64-setup}
 \end{center}
 \end{figure}
-In the NAT$64$ deployment testbed as shown in figure \ref{fig:ipv6transeval-nat64-setup}, the authors witnessed failure in $3$ applications: Skype, OpenVPN and Transmission. Flowy queries were defined to \marginpar{application operation under NAT$64$} establish failure signatures for each application. A formalized Flowy query to identify Skype failure signature for an instance is described in listing \ref{lst:skypefailure}. The filter sections of each branch are shown separately in listings \ref{lst:skypefailurebranchA} and \ref{lst:skypefailurebranchB}. 
+In the NAT$64$ deployment testbed as shown in figure \ref{fig:ipv6transeval-nat64-setup}, the authors witnessed failure in $3$ applications: Skype, OpenVPN and Transmission. Flowy queries were defined to \marginpar{application operation under NAT$64$} establish failure signatures for each application. A formalized Flowy query to identify Skype failure signature for an instance is described in listing \ref{lst:skypefailure}. The filter sections of each branch are shown separately in listings \ref{lst:skypefailurebranchA} and \ref{lst:skypefailurebranchB}.
 \begin{center}
 \begin{minipage}{.44\textwidth}
-	\lstset{caption=Branch A \cite{vbajpai:2012}, 
+	\lstset{caption=Branch A \cite{vbajpai:2012},
 					tabsize=2, language=C, numbers=left,stepnumber=1,
 					basicstyle=\tiny\ttfamily,numberstyle=\ttfamily\color{gray},
-					keywordstyle=\color{blue},frame=shadowbox, rulesepcolor=\color{black}, 	
+					keywordstyle=\color{blue},frame=shadowbox, rulesepcolor=\color{black},
 				  label=lst:skypefailurebranchA, aboveskip=20pt, captionpos=b}
 	\begin{lstlisting}
 	filter f-mDNS {
@@ -199,10 +199,10 @@ In the NAT$64$ deployment testbed as shown in figure \ref{fig:ipv6transeval-nat6
 \end{minipage}
 \hfill
 \begin{minipage}{.44\textwidth}
-	\lstset{caption=Branch B-C-D \cite{vbajpai:2012}, 
+	\lstset{caption=Branch B-C-D \cite{vbajpai:2012},
 					tabsize=2, language=C, numbers=left,stepnumber=1,
 					basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
-					keywordstyle=\color{blue},frame=shadowbox, rulesepcolor=\color{black}, 	
+					keywordstyle=\color{blue},frame=shadowbox, rulesepcolor=\color{black},
 				  label=lst:skypefailurebranchB, aboveskip=20pt, captionpos=b}
 	\begin{lstlisting}
 	filter f-login1 {
@@ -214,15 +214,15 @@ In the NAT$64$ deployment testbed as shown in figure \ref{fig:ipv6transeval-nat6
 \end{minipage}
 \end{center}
 
-Filter \texttt{f-mDNS} is used to filter multicast messages used by Skype to discover clients in the link-local network sent to the destination IP address-port combination $(224.0.0.251:5353)$. Filter \texttt{f-login1} is used to filter $3$ unsuccessful attempts to contact the login server each in a separate branch. The \marginpar{skype failure signature} source port and the duration increases with decreasing number of packets for each subsequent flow. 
-\lstset{caption=Skype Failure Signature \cite{vbajpai:2012}, 
+Filter \texttt{f-mDNS} is used to filter multicast messages used by Skype to discover clients in the link-local network sent to the destination IP address-port combination $(224.0.0.251:5353)$. Filter \texttt{f-login1} is used to filter $3$ unsuccessful attempts to contact the login server each in a separate branch. The \marginpar{skype failure signature} source port and the duration increases with decreasing number of packets for each subsequent flow.
+\lstset{caption=Skype Failure Signature \cite{vbajpai:2012},
 				tabsize=2, language=C, numbers=left,stepnumber=1,
 				basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
-				keywordstyle=\color{blue}, frame=shadowbox, rulesepcolor=\color{black}, 	
+				keywordstyle=\color{blue}, frame=shadowbox, rulesepcolor=\color{black},
 			  label=lst:skypefailure, aboveskip=20pt, captionpos=b}
 \begin{lstlisting}
 splitter S {}
-	
+
 ...
 
 grouper g-login1 {
@@ -230,29 +230,29 @@ grouper g-login1 {
     srcport = srcport
     dstip = dstip
     dstport = dstport
-  }     
+  }
   aggregate srcip, dstip, srcport, td,
   sum(packets) as pckt-sum, count(rec_id) as n
 }
 
 merger M {
   branches mDNS, LOGIN1, LOGIN2, LOGIN3
-		      
+
   LOGIN1.srcip = LOGIN2.srcip
   LOGIN2.srcip = LOGIN3.srcip
   LOGIN1.dstip = LOGIN2.dstip
   LOGIN2.dstip = LOGIN3.dstip
-	
+
   LOGIN1.srcport = LOGIN2.srcport rdelta 1
   LOGIN2.srcport = LOGIN3.srcport rdelta 1
 
   LOGIN1.pckt-sum > LOGIN2.pckt-sum
   LOGIN2.pckt-sum > LOGIN3.pckt-sum
-	
+
   mDNS.td < LOGIN1.td
   mDNS.td < LOGIN2.td
   mDNS.td < LOGIN3.td
-	
+
   mDNS < LOGIN1
   mDNS < LOGIN2
   mDNS < LOGIN3
@@ -273,10 +273,10 @@ The NAT$64$ translation works when the applications running on the IPv$6$-only h
 This study sets across a baseline to automate the failure detection by formalizing queries against flow-records. While a more exhaustive study encompassing wider set of applications still needs to be carried out, it is imperative that this unique approach is not just limited to IPv$6$ transition technologies, but can be utilized to identify failures in more generic cases.
 
 \section{OpenFlow}\label{sec:openflow}
-OpenFlow \cite{nmckeown:2008} is an open standards protocol that runs between an Ethernet switch and an OpenFlow controller (a software designed to run on a x$86$ server) to securely manage the forwarding plane of the switch over the network as shown in figure \ref{fig:openflow-architecture}. This enables the controller to push out policies that dictate how to process flow-records crossing the networking infrastructure to eventually improve bandwidth, reduce latency and save power. 
+OpenFlow \cite{nmckeown:2008} is an open standards protocol that runs between an Ethernet switch and an OpenFlow controller (a software designed to run on a x$86$ server) to securely manage the forwarding plane of the switch over the network as shown in figure \ref{fig:openflow-architecture}. This enables the controller to push out policies that dictate how to process flow-records crossing the networking infrastructure to eventually improve bandwidth, reduce latency and save power.
 \begin{figure}[h!]
 \begin{center}
-  \includegraphics* [width=0.5\linewidth]{figures/openflow}	
+  \includegraphics* [width=0.5\linewidth]{figures/openflow}
   \caption{OpenFlow Architecture \cite{newscientist:2009}}
   \label{fig:openflow-architecture}
 \end{center}
@@ -288,7 +288,7 @@ An OpenFlow switch manages a flow table to keep record of the flows crossing it.
 
 The OpenFlow protocol in itself is like an x$86$ instruction-set by itself. However, there is a lot of innovation possible at the software stack layer that can be built on top the controller that exposes the API and pushes this low-level instruction-set to the networking gear. For instance, the stack can deploy \marginpar{software stack} network-wide policies and administer \ac{ACLs} for each incoming flow or  allow seamless handover of mobile hosts by rerouting requests making the networking gear location-aware in itself. As such, it is conspicuous that the possibilities are endless and is the beginning of a kick-start of a new internet evolution.
 
-It is not difficult to anticipate that Flowy could be of much use for OpenFlow. It could be envisaged that the controller would define Flowy queries to get to a specific flow-entry in the flow table before sending action level instructions to the networking gear. \marginpar{flowy and openflow} In addition, Flowy could be extended to allow flow manipulation constructs to define the action instructions themselves which can be sent out by the controller. In a future outlook, Flowy can even be envisioned to allow procedural constructs (variables, functions, loops, conditions) around the declarative query to add power to what can be retrieved or sent back to the switches. 
+It is not difficult to anticipate that Flowy could be of much use for OpenFlow. It could be envisaged that the controller would define Flowy queries to get to a specific flow-entry in the flow table before sending action level instructions to the networking gear. \marginpar{flowy and openflow} In addition, Flowy could be extended to allow flow manipulation constructs to define the action instructions themselves which can be sent out by the controller. In a future outlook, Flowy can even be envisioned to allow procedural constructs (variables, functions, loops, conditions) around the declarative query to add power to what can be retrieved or sent back to the switches.
 
 \section{Flow Level Spam Detection}\label{sec:spam-detection}
 
@@ -296,10 +296,10 @@ It is not difficult to anticipate that Flowy could be of much use for OpenFlow. 
 	\begin{center}
 		\tiny
 		\begin{tabular}{|c|c|}
-		\hline	
+		\hline
 		Feature & Description  \\
 		\hline
-		\hline 
+		\hline
 		Pkts & Packets  \\
 		\hline
 		Rxmits & Retransmissions  \\
@@ -323,17 +323,17 @@ It is not difficult to anticipate that Flowy could be of much use for OpenFlow. 
 \caption{Features in Spam Flow \cite{rbeverly:2008}}
 \label{tab:email-flow-features}
 \end{table}
-Classical methods to mitigate spam such as content filtering and reputation analysis utilize the the weakness of spam messages and the places from where they originate from. Though currently effective, it's only a matter of time when spammers find a way to subvert around these vantage points. In this study \cite{rbeverly:2008, rbeverly:2011}, the authors analyze the transport level characteristics of the email flows to differentiate between spam and legitimate email. These characteristics exploit the fundamental weakness of each spam: the requirements to send large amounts of the same email on resource constrained links owned by compromised botnets which is unlikely to change in the near future. They reason that a spammer's traffic is more likely to experience \ac{TCP} \marginpar{spamflow features} timeouts, retransmissions, resets and variable \ac{RTT} estimates. Based on this hypothesis they extract $13$ learning features as shown in table \ref{tab:email-flow-features} to formalize a machine learning problem. 
+Classical methods to mitigate spam such as content filtering and reputation analysis utilize the the weakness of spam messages and the places from where they originate from. Though currently effective, it's only a matter of time when spammers find a way to subvert around these vantage points. In this study \cite{rbeverly:2008, rbeverly:2011}, the authors analyze the transport level characteristics of the email flows to differentiate between spam and legitimate email. These characteristics exploit the fundamental weakness of each spam: the requirements to send large amounts of the same email on resource constrained links owned by compromised botnets which is unlikely to change in the near future. They reason that a spammer's traffic is more likely to experience \ac{TCP} \marginpar{spamflow features} timeouts, retransmissions, resets and variable \ac{RTT} estimates. Based on this hypothesis they extract $13$ learning features as shown in table \ref{tab:email-flow-features} to formalize a machine learning problem.
 
 \begin{figure}[h!]
 \begin{center}
-  \includegraphics* [width=0.7\linewidth]{figures/email-flow}	
+  \includegraphics* [width=0.7\linewidth]{figures/email-flow}
   \caption{Spam Flow Classifier \cite{rbeverly:2008}}
   \label{fig:email-flow}
 \end{center}
 \end{figure}
-The data collection methodology is depicted in figure \ref{fig:email-flow} where \ac{TCP} packets corresponding to email messages are extracted and examined on a per-email flow basis. The packets in an email flow are coalesced together by using \ac{TCP} port numbers in the email headers. Using machine learning feature selection, \marginpar{a spam classifier} a spam classifier is built that matches each flow to a binary spam/ham ground-truth label. \ac{SVMs} \cite{vvapnik:1995} are used for classification and \ac{FF} \cite{yyang:1997} is used for feature selection to find a set of features that provide the least training error. It turns out the classifier achieves $90\%$ accuracy with $78\%$ detectability of false-negatives from a particular content filter. 
+The data collection methodology is depicted in figure \ref{fig:email-flow} where \ac{TCP} packets corresponding to email messages are extracted and examined on a per-email flow basis. The packets in an email flow are coalesced together by using \ac{TCP} port numbers in the email headers. Using machine learning feature selection, \marginpar{a spam classifier} a spam classifier is built that matches each flow to a binary spam/ham ground-truth label. \ac{SVMs} \cite{vvapnik:1995} are used for classification and \ac{FF} \cite{yyang:1997} is used for feature selection to find a set of features that provide the least training error. It turns out the classifier achieves $90\%$ accuracy with $78\%$ detectability of false-negatives from a particular content filter.
 
 One possible limitation of this approach is the inability to distinguish between botnets sending large quantities of spam and innocent busy hosts that happen to be on a congested network. This is most probably because of the  \marginpar{flowy and spamflow} n\"aive \ac{SMTP} flow aggregation and filtering. We believe, that Flowy can help overcome this  shortcoming by automated flow-queries generated by another trained classifier that filters out these innocent hosts before passing them to the spam classifier thereby reducing the number of false negatives.
 
-This study presented a content and \ac{IP} reputation agnostic scheme based on \ac{SMTP} flow-level analysis of traffic stream. It is imperative, augmented with Flowy capabilities, this approach can be extended to identify any botnet generated traffic. \marginpar{extending spamflow} Such a novel approach could then be used to also identify phishing attacks, scam infrastructure hosting, \ac{DDoS}, dictionary attacks and \ac{CAPTCHA} solvers.    
+This study presented a content and \ac{IP} reputation agnostic scheme based on \ac{SMTP} flow-level analysis of traffic stream. It is imperative, augmented with Flowy capabilities, this approach can be extended to identify any botnet generated traffic. \marginpar{extending spamflow} Such a novel approach could then be used to also identify phishing attacks, scam infrastructure hosting, \ac{DDoS}, dictionary attacks and \ac{CAPTCHA} solvers.
