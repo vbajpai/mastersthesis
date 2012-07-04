@@ -1,19 +1,19 @@
-With a software that has underwent such significant iterative lifecycles over
-the past few years, it is imperative to understand and analyze the inner
-working of the application before diving in to add more functionality. In this
-pursuit, the first challenge was to get F$(v1)$ engine to compile smoothely.
-Since, the engine was using linux-specific integer types to read the flow
-record \marginpar{compilation and runtime issues} offsets, its compilation was
-an issue on other Unix flavors. As such moving to C$99$ \cite{c99:1999}
-fixed-width integer types increased portability. In addition a number of
-extraneous files that were not part of the build plagued the source directory
-and were removed after thorough inspection. Boolean enums were replaced by
-C$99$ \texttt{bool} types and include guards were added in the headers to
-remove circular dependencies. These changes led to succesful compilation of
-the engine and an initial run iteration is shown in listing
-\ref{lst:fv1-run-example}. It appears that the execution engine can read the
-flow records in memory and successfully filter records in each thread.
-However, it segfaults at the grouper stage, thereby ending the execution.
+Since both the parser and the engine were developed in an isolated sandboxed
+environments, an extensive validation of how their functionality (or errors)
+would regress was always needed. In this pursuit, the first challenge was to
+get F$(v1)$ engine to compile smoothely.  Since, the engine was using
+linux-specific integer types to read the flow record \marginpar{compilation
+and runtime issues} offsets, its compilation was an issue on other Unix
+flavors. As such moving to C$99$ \cite{c99:1999} fixed-width integer types
+increased portability. In addition a number of extraneous files that were not
+part of the build plagued the source directory and were removed after thorough
+inspection. Boolean enums were replaced by C$99$ \texttt{bool} types and
+include guards were added in the headers to remove circular dependencies.
+These changes led to succesful compilation of the engine and an initial run
+iteration is shown in listing \ref{lst:fv1-run-example}. It appears that the
+execution engine can read the flow records in memory and successfully filter
+records in each thread.  However, it segfaults at the grouper stage, thereby
+ending the execution.
 
 \lstset{caption=F$(v1)$: Segmentation Fault,
 				tabsize=2, language=bash, numbers=left,stepnumber=1,

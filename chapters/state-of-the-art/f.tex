@@ -138,14 +138,6 @@ switch (group_modules[k].op) {
 \end{lstlisting}
 In the other method, the logic is executed by comparing the field length and the operation \marginpar{using switch statement} by falling through a huge switch statement. Such a huge switch statement is again generated using the same Python script and is defined in \texttt{auto\_switch.c} as shown in listing $\ref{lst:autoswitch}$.  
 
-\subsection{Divide and Conquer for
-Fast Relative Comparisons}\label{sec:binary-search}
-The grouper and the merger have always been the performance hit stages of the processing pipeline. In the previous implementation, the grouper had a complexity of $O(n^2)$ whereas the merger had a complexity of $O(n^m)$ where $n$ is the number of groups and $m$ is the number of branches. 
-
-In order to reduce the number of comparisons in these stages, using a binary search after a quick sort on the flow (or group) records was thought out. To achieve this, the array of pointers to flow (or group) records were sorted according to the first grouping (or merging) rule. Such a sorted array of pointers was then \marginpar{using quick sort and binary search} traversed linearly to find unique values and point to them using another array of pointers to records. This helped the grouper (and the merger) perform binary searches to find records that would group together, by using the knowledge of records that satisfied the first rule. This eventually reduced the complexity to $O(n*k)$ for the grouper, and $O(n^{m-1} *k)$ for the merger, where $k << n$. 
-
-However, it still looks like having an actual search tree would benefit the grouper and merger, whereby one of the fields will be traversed sequentially in $O(n)$ \marginpar{using search trees} time and for each field, the comparison will be performed by search tree lookups in $O(log(n))$ time bringing down the complexity to $O(nlog(n))$ and is a future action item.
-
 \section{Benchmarks}\label{sec:f-benchmarks}
 In order to evaluate how well F now performs with these added improvements, the authors decided to compare it with the state-of-the-art flow-processing tools: \texttt{flow-tools} \cite{sromig:2000} and \texttt{nfdump} \cite{phaag:2006}. Since these \marginpar{f vs \{flow-tools, nfdump\}} tools do not currently support relative filtering of flow-records, a set of $3$ queries involving only absolute filters was defined as shown in listing $\ref{lst:f-benchmark-queries}$ and evaluated on a set of $500K-10M$ flow-records.  
 

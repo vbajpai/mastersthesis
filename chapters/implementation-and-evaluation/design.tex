@@ -2,14 +2,15 @@
 \chapter{Design}\label{ch:design}
 %************************************************
 
-The effort to provide a clean usable implementation of the language was from
-the initial outset backed up by three goals. The first goal was to allow the
-implementation to flawlessly work through all stages of the pipeline without
-incurring major performance overhead. The second goal was to abstract out the
-engine functionality in such a way so as to allow runtime evaluation of the
-flow query. The third goal was to provide a clean layout of the working code
-to allow future developers to quickly get started on top of the current
-snapshot. This chapter introduces and reasons out the design patterns and
+With a software that has underwent such significant iterative lifecycles over
+the past few years, it is imperative to understand and analyze the inner
+working of the application before diving in to add more functionality. Reverse
+engineering the current snapshot not only helped identify glitches to give a
+head start with preliminary improvements, but also enabled understanding the
+design of the eventual execution workflow. It is also helped in early
+visualization of a complete engine refactor to introduce abstract objects that
+made it possible to evaluate the flowquery at runtime. This chapter starts off
+with the analysis to set a platform for reasoning out the design patterns and
 the user functionality envisaged from the finished product.
 
 \section{Flowy Parser and F$(v1)$ Engine Analysis}\label{sec:adt-workflow}

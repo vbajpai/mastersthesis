@@ -2,10 +2,29 @@
 \chapter{Implementation}\label{ch:implementation}
 %************************************************
 
+The effort to provide a clean usable implementation of the language was from
+the initial outset backed up by three goals. The first goal was to allow the
+implementation to flawlessly walk through all stages of the pipeline without
+incurring major performance overhead. The second goal was to abstract out the
+engine functionality in such a way so as to allow runtime evaluation of the
+flow query. The third goal was to provide a clean layout of the working code
+with a seamless build process to allow future developers to quickly get
+started on top of the current snapshot. This was supplemented by a thorough
+regression and benchmarking suite to make the code verifiable. This chapter
+introduces the inner workings of the code to explains how these goals were set
+into practise and brought to life.
+
 \section{Grouper Internals}\label{sec:grouper-internals}
+\input{chapters/implementation-and-evaluation/implementation/grouper-internals}
 \section{Merger Internals}\label{sec:merger-internals}
-\section{Complete Pipeline Execution and Runtime Complexity}\label{sec:robust-pipeline}
+\input{chapters/implementation-and-evaluation/implementation/merger-internals}
+\section{Robust Pipeline Execution and Runtime Complexity}\label{sec:pipeline}
+\input{chapters/implementation-and-evaluation/implementation/pipeline}
 \section{Runtime Query Evaluation}\label{sec:runtime-query}
-\section{Automated Builds}\label{sec:cmake}
-\section{Regression Test Suite}\label{sec:cmake}
-\section{Benchmarking Suite}\label{sec:cmake}
+\input{chapters/implementation-and-evaluation/implementation/runtime-query}
+\section{Automated Builds}\label{sec:automated-builds}
+\input{chapters/implementation-and-evaluation/implementation/automated-builds}
+\section{Regression Test Suite}\label{sec:regression-suite}
+\input{chapters/implementation-and-evaluation/implementation/regression-suite}
+\section{Benchmarking Suite}\label{sec:benchmarking-suite}
+\input{chapters/implementation-and-evaluation/implementation/benchmarking-suite}

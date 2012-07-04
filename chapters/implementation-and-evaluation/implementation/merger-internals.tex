@@ -1,0 +1,80 @@
+\lstset{caption=Merger Pseudocode \cite{vmarinov:2009},
+				tabsize=2, language=C, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:merger-pseudocode,
+        aboveskip=20pt, captionpos=b}
+\begin{lstlisting}
+get_module_output_stream(module m) {
+  (branch_1, branch_2, ..., branch_n) = get_input_branches(m);
+  for each g_1 in group_records(branch_1)
+    for each g_2 in group_records(branch_2)
+      ...
+        ...
+           for each g_n in group_records(branch_n)
+              if match(g_1, g_2, ..., g_n, rules(m))
+                 output.add(g_1, g_2,..., g_n);
+  return output;
+}
+\end{lstlisting}
+
+The merger pseudocode as defined in the \ac{NFQL} specification
+\cite{vmarinov:2009} is shown in listing \ref{lst:merger-pseudocode}.
+Implementing this pseudocode in C is not straightforward. The level of nesting
+depends on the number of branches, and is therefore not known at compile time.
+The information on the number of branches comes from the query which is passed
+to the execution engine at runtime.
+
+\lstset{caption=F$(v2)$: Merger Iterator Utility,
+				tabsize=2, language=C, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:fv2-iter-codeblock,
+        aboveskip=20pt, captionpos=b}
+\begin{lstlisting}
+/* initialize the iterator */
+struct permut_iter *iter = iter_init(binfo_set, num_branches);
+
+/* iterate over all permutations */
+unsigned int index = 0;
+while(iter_next(iter)) {
+  index++
+  for (int j = 0; j < num_branches; j++) {
+    /* first item */
+    if(j == 0)
+      printf("\n%d: (%zu ", index, iter->filtered_group_tuple[j]);
+    /* last item */
+    else if(j == num_branches -1)
+      printf("%zu)", iter->filtered_group_tuple[j]);
+    else
+      printf("%zu ", iter->filtered_group_tuple[j]);
+  }
+}
+
+/* free the iterator */
+iter_destroy(iter);
+\end{lstlisting}
+
+As a result, an iterator that can provide all possible permutations of
+$N-$tuple (where $N$ is the number of branches) group record $ID$s was needed.
+The result of the iterator can then be used to make a match. The merger stage,
+therefore begins by initializing this iterator passing \marginpar{merger
+iterator utility} it the number of branches, and information about each
+branch. Then, it loops over to get a new $N-$tuple group record $ID$s on each
+iteration until the iterator returns \texttt{false}. A sample to print all
+possible group $ID$ permutation is shown in listing
+\ref{lst:fv2-iter-codeblock}, with the output in listing
+\ref{lst:fv2-iter-out}
+
+\lstset{caption=F$(v2)$: Merger Iterator Utility Output,
+				tabsize=2, language=C, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:fv2-iter-out,
+        aboveskip=20pt, captionpos=b}
+\begin{lstlisting}
+  1: (1 1 1)
+  2: (1 1 2)
+  ...
+  12: (3 2 2)
+\end{lstlisting}

@@ -1,0 +1,75 @@
+The engine can now merge the groups from different branches according to
+a merging criteria.\\For example, a simple query to merge groups looks
+like:
+
+\begin{lstlisting}
+merger m {
+  module m1 {
+    branches A, B
+    A.srcip = B.dstip
+    A.dstip = B.srcip
+  }
+}
+\end{lstlisting}
+
+such a merging rule reflects in the engine as {[}1{]}:
+
+\begin{lstlisting}
+struct merger_rule mfilter[2] = {
+  {&binfos[0], trace_data->offsets.srcaddr, 
+   &binfos[1], trace_data->offsets.dstaddr, 
+   RULE_EQ | RULE_S1_32 | RULE_S2_32, 0, NULL},
+
+  {&binfos[0], trace_data->offsets.dstaddr, 
+   &binfos[1], trace_data->offsets.srcaddr,
+   RULE_EQ | RULE_S1_32 | RULE_S2_32, 0, NULL},
+};
+\end{lstlisting}
+
+where the rule maps to a specific merger function using a
+\lstinline!switch! case {[}2{]}:
+
+\begin{lstlisting}
+/* for loop for the merger */
+for (int j = 0; j < fquery->num_merger_rules; j++) {
+  switch (fquery->mrules[j].op) {
+    ...
+    case RULE_EQ | RULE_S1_32 | RULE_S2_32:
+      fquery->mrules[j].func = merger_eq_uint32_t_uint32_t;
+      break;
+    ...
+  }
+}    
+\end{lstlisting}
+
+The merger functions are auto-generated using a python script
+\lstinline!fun-gen.py! {[}3{]}.
+
+This is how the result looks:
+
+\begin{lstlisting}
+[engine]$ ./flowy-engine traces-long.ft query.json --verbose=1
+
+No. of Merged Groups: 2 (Tuples)
+
+... Sif   SrcIPaddress    SrcP  DIf   DstIPaddress    DstP  ... 
+
+... 0     192.168.0.135   0     0     216.46.94.66    80    ... 
+... 0     216.46.94.66    80    0     192.168.0.135   0     ... 
+
+... 0     192.168.0.135   0     0     209.84.12.126   80    ... 
+... 0     209.84.12.126   80    0     192.168.0.135   0     ... 
+\end{lstlisting}
+
+All the permutation of group tuples checked for a match can be seen by
+increasing the verbosity level.
+
+Resources:
+
+{[}1{]}
+\href{http://dl.dropbox.com/u/500389/mthesis/docs-engine/html/flowy\_8c.html}{\lstinline!flowy!
+reference →}\\{[}2{]}
+\href{http://dl.dropbox.com/u/500389/mthesis/docs-engine/html/auto\_\_assign\_8c.html}{\lstinline!auto_assign!
+reference →}\\{[}3{]}
+\href{http://dl.dropbox.com/u/500389/mthesis/docs-engine/html/namespacefun\_\_gen.html}{\lstinline!fun_gen!
+reference →}

@@ -1,0 +1,185 @@
+A typical grouper module is shown listing \ref{lst:fv2-grouper-module}. In
+order to be able to make comparisons on field offsets, the grouper initially
+creates a copy of the pointers in the filtered recordset. A n\"aive approach
+is to linearly walk through \marginpar{possible grouping approaches} all the
+pointers against each pointer in the copy leading to a complexity of $O(n^2)$.
+A smarter approach is to put the copy in a hash table and then try to map each
+pointer while walking down the recordset once, leading to a complexity of
+$O(n)$. The hash table approach, although will work on this specific example,
+will fail badly on other relative comparisons.
+
+\lstset{caption=F$(v2)$: Grouper Module,
+				tabsize=2, language=bash, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:fv2-grouper-module,
+        aboveskip=20pt, captionpos=b}
+\begin{lstlisting}
+grouper g1 {
+  srcIP = srcIP
+  dstIP = dstIP
+}
+\end{lstlisting}
+
+It is clear that a middle ground compromise was needed. As a result, using a
+binary search after a quick sort on the filtered recordset was thought out. To
+achieve this, the array of pointers to the copy were sorted according to the
+offset \marginpar{using quick sort and binary search} on the right side of the
+comparsion of the first grouping rule. Such a sorted array of pointers was
+then traversed linearly to find unique values.  This helped the grouper
+perform binary searches to find records that would group together. The
+preprocessing step takes $O(n*lg(n)) + O(n)$ in the worst case, with a
+$O(n*lg(k))$ for binary search on the entire recordset.
+
+However, it appears having an actual search tree would benefit more, whereby
+one of the recordset will be traversed sequentially in $O(n)$ time and for
+each record, the comparison will be performed by tree \marginpar{using search
+trees and hash tables} lookups in $O(log(n))$ time bringing down the
+complexity to $O(nlog(n))$ and is a future action item. In addition, it would
+be best if the engine can figure out the type of the relative comparison to
+trigger a hash table lookup for equality comparisons to bring down the
+complexity to $O(n)$ for this specific case.
+
+\lstset{caption=F$(v2)$: qsort\_r Invocation,
+				tabsize=2, language=C, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:fv2-qsortr,
+        aboveskip=20pt, captionpos=b}
+\begin{lstlisting}
+struct grouper_type {
+#if defined (__APPLE__) || defined (__FreeBSD__)
+  int (*qsort_comp)(
+                     void*            thunk,
+                     const void*      e1,
+                     const void*      e2
+                   );
+#elif defined (__linux)
+  int (*qsort_comp)(
+                     const void*      e1,
+                     const void*      e2,
+                     void*            thunk
+                   );
+#endif
+...
+
+#if defined(__APPLE__) || defined(__FreeBSD__)
+  qsort_r(
+           sorted_recordset_ref,
+           num_filtered_records,
+           get_grouper_intermediates(
+           (void*)&grouper_ruleset[0]->field_offset2,
+           gtype->qsort_comp
+         );
+#elif defined(__linux)
+  qsort_r(
+           sorted_recordset_ref,
+           num_filtered_records,
+           sizeof(char **),
+           gtype->qsort_comp,
+           (void*)&grouper_ruleset[0]->field_offset2
+         );
+#endif
+\end{lstlisting}
+
+The reetrant \texttt{qsort\_r} was used, since it can pass an additional
+argument \texttt{thunk} to the comparator, which in our case is the field
+offset used for comparing two flow records. Since the order of arguments of
+\texttt{qsort\_r} are \marginpar{cross platform qsort\_r and bsearch\_r}
+different for \texttt{glibc} and \texttt{BSD}, the function invocation had to
+be wrapped around platform specific macros as shown in listing
+\ref{lst:fv2-qsortr}. More Surprisingly, there is currently no equivalent
+\texttt{bsearch\_r} to complement \texttt{qsort\_r}. As such, the contemporary
+\texttt{bsearch} function from the \texttt{glibc} library was adapted to
+accommodate the void and is defined in \texttt{utils} module.
+
+\lstset{caption=F$(v2)$: Group Struct,
+				tabsize=2, language=C, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:fv2-group-struct,
+        aboveskip=20pt, captionpos=b}
+\begin{lstlisting}
+struct group {
+  size_t                              num_members;
+  char**                              members;
+  struct aggr_result*                 aggr_result;
+};
+
+struct aggr_result {
+  char*                               aggr_record;
+  struct aggr**                       aggrset;
+};
+
+\end{lstlisting}
+
+Group records are a conglomeration of several flow records with some common
+characteristics defined by the flow query. Some of the non-common
+characteristics can also be aggregated into a single value using group
+\marginpar{groups as netflow v5 records} aggregations as shown in listing
+\ref{lst:fv2-aggr-example}. Since, the execution engine supports multiple
+verbosity levels, it is useful if a single group record can be again mapped
+into a NetFlow $v5$ record template, so that it can be echoed as the
+representative of all its members. This was achieved using a struct
+\texttt{group} as shown in listing \ref{lst:fv2-group-struct}.
+
+\lstset{caption=F$(v2)$: Aggregations Example,
+				tabsize=2, language=C, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:fv2-aggr-example,
+        aboveskip=20pt, captionpos=b}
+\begin{lstlisting}
+grouper g_www_res {
+   module g1 {
+      srcip = srcip
+      dstip = dstip
+   }
+   aggregate srcip, dstip, sum(bytes) as bytes, bitOR(tcp_flags) as flags,
+}
+
+$ bin/engine queryfile tracefile --verbose=1
+...
+No. of Groups: ...
+
+...    SrcIPaddress    ...      DstIPaddress      OR(Fl)    Sum(Octets)
+...    4.23.48.126     ...      192.168.0.135     3         81034
+...    8.12.214.126    ...      192.168.1.138     2         5065
+\end{lstlisting}
+
+There can be a situtation where the query designer might incorrectly ask
+for aggregation on a field already specified in a grouper (or filter)
+module. If \marginpar{ignoring redundant aggregation requests} the
+relative operator is an equality comparison, the aggregation on such a
+field becomes less useful, since the members of the grouped record will
+always have the same value for that field. The engine is now smart to
+realize this redundant request and ignores such aggregations as shown in
+listing \ref{lst:fv2-aggr-example}.
+
+\lstset{caption=F$(v2)$: Clubbing Records with No Grouper Rules,
+				tabsize=2, language=C, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:fv2-club-example,
+        aboveskip=20pt, captionpos=b}
+\begin{lstlisting}
+grouper g_www_res {
+   module g1 {}
+   aggregate sum(bytes) as bytes
+}
+
+$ bin/engine queryfile tracefile --verbose=1
+...
+No. of Groups: 1 (Aggregations)
+
+...    Sum(Octets)
+...    2356654
+\end{lstlisting}
+
+Records are clubbed together into one group if no group modules are
+defined. Previously such a query used to form groups for each individual
+filtered record. \marginpar{clubbing records with no grouper rules} That
+was less useful since then it was not possible meaningful aggregations
+on all the records that passed the filter stage. Now, when the group
+modules are empty, all the filtered records are clubbed into one group
+to allow aggregations as shown in listing \ref{lst:fv2-club-example}.
