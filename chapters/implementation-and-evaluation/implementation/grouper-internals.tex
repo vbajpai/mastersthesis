@@ -116,10 +116,10 @@ struct aggr_result {
 Group records are a conglomeration of several flow records with some common
 characteristics defined by the flow query. Some of the non-common
 characteristics can also be aggregated into a single value using group
-\marginpar{groups as netflow v5 records} aggregations as shown in listing
-\ref{lst:fv2-aggr-example}. Since, the execution engine supports multiple
-verbosity levels, it is useful if a single group record can be again mapped
-into a NetFlow $v5$ record template, so that it can be echoed as the
+\marginpar{groups as cooked netflow v5 records} aggregations as shown in
+listing \ref{lst:fv2-aggr-example}. Since, the execution engine supports
+multiple verbosity levels, it is useful if a single group record can be again
+mapped into a NetFlow $v5$ record template, so that it can be echoed as the
 representative of all its members. This was achieved using a struct
 \texttt{group} as shown in listing \ref{lst:fv2-group-struct}.
 
