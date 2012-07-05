@@ -1,0 +1,222 @@
+The complete query is now read in at \emph{runtime}. The query is supplied as
+a \texttt{JSON} file. The branchsets and each ruleset of the pipeline is a
+\texttt{JSON array}.  A sample \texttt{JSON} query is shown in listing
+\ref{lst:fv2-fquery-json}.
+
+\lstset{caption=F$(v2)$: Flow Query in \texttt{JSON},
+				tabsize=2, language=JSON, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:fv2-fquery-json,
+        aboveskip=20pt, captionpos=b, upquote=true}
+\begin{lstlisting}
+{
+  branchset: [
+    {
+      filter: { ruleset: [...] },
+      grouper: { ruleset: [...] },
+      aggregation: { ruleset: [...] },
+      groupfilter: { ruleset: [...] },
+    },
+    {
+      ...
+    }
+  ],
+  merger: { ruleset: [...] },
+}
+\end{lstlisting}
+
+\texttt{json-c} is used to parse such a query file read into memory by calling
+\texttt{parse\_json\_query(\ldots)}. The \texttt{json\_query} is then used to
+prepare the \marginpar{parsing using json-c} \texttt{struct flowquery} used by
+the pipeline stages as shown in listing \ref{lst:fv2-json-c}.  The
+\texttt{json\_query} struct is just an intermediate and shouldn't be needed.
+Ideally, \texttt{parse\_json\_query(\ldots)} can directly fill in and create
+the \texttt{flowquery struct} and is a future refactor item.
+
+\lstset{caption=F$(v2)$: Parsing \texttt{JSON} query using \texttt{json-c},
+				tabsize=2, language=C, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:fv2-json-c,
+        aboveskip=20pt, captionpos=b, upquote=true}
+\begin{lstlisting}
+struct json {
+  size_t                          num_branches;
+  size_t                          num_mrules;
+
+  struct json_branch_rules**      branchset;
+  struct json_merger_rule**       mruleset;
+};
+
+struct json_branch_rules {
+  size_t                          num_frules;
+  size_t                          num_grules;
+  size_t                          num_arules;
+  size_t                          num_gfrules;
+
+  struct json_filter_rule**       fruleset;
+  struct json_grouper_rule**      gruleset;
+  struct json_aggr_rule**         aruleset;
+  struct json_gfilter_rule**      gfruleset;
+};
+
+struct json*
+json_query = parse_json_query(param_data->query_mmap);
+
+struct flowquery*
+fquery = prepare_flowquery(param_data->trace, json_query);
+\end{lstlisting}
+
+
+
+
+The \texttt{JSON} query is verbose and cumbersome to write manually. The
+python parser will eventually emit this intermediate format, so the next
+logical \marginpar{generating json queries using python} step is to generate
+the query from python. A python module (\texttt{scripts/queries/pipeline.py})
+that encapsulates each pipeline stage as a separate class is shown in listing
+\ref{lst:fv2-pipeline-module}.  Scripts that generate \texttt{JSON} queries
+can \texttt{import} this module to reduce code redundancy.
+
+\lstset{caption=F$(v2)$: Python Pipeline Module,
+				tabsize=2, language=Python, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:fv2-pipeline-module,
+        aboveskip=20pt, captionpos=b, upquote=true}
+\begin{lstlisting}
+def protocol(name):
+  return socket.getprotobyname(name)
+
+class FilterRule: ...
+class GrouperRule: ...
+class AggregationRule: ...
+class GroupFilterRule: ...
+class MergerRule: ...
+\end{lstlisting}
+
+A sample script to generate such a query is shown in listing
+\ref{lst:fv2-python-scripts-json-queries}. Each \texttt{ruleset} is a list of
+python objects of a specific class of the \texttt{pipeline} module. At this
+point, \marginpar{sample scripts} the python parser just needs to create
+each stage rule objects and the script will take care to emit the
+\texttt{JSON}. Example scripts to generate different queries are provided in
+\texttt{scripts/queries/}.
+
+
+\lstset{caption=F$(v2)$: Python Scripts to Generate \texttt{JSON} queries,
+				tabsize=2, language=Python, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:fv2-python-scripts-json-queries,
+        aboveskip=20pt, captionpos=b, upquote=true}
+\begin{lstlisting}
+import json
+from pipeline import FilterRule, GrouperRule, AggregationRule
+from pipeline import GroupFilterRule, MergerRule
+from pipeline import protocol
+
+if __name__ == '__main__':
+
+  fruleset = []
+  fruleset.append(vars(FilterRule(...))) ...
+  filter = {'ruleset': fruleset}
+
+  gruleset = []
+  gruleset.append(vars(GrouperRule(...))) ...
+  grouper = {'ruleset': gruleset}
+
+  aruleset = []
+  aruleset.append(vars(AggregationRule(...))) ...
+  a = {'ruleset' : aruleset}
+
+  gfruleset = []
+  gfruleset.append(vars(GroupFilterRule(...))) ...
+  gfilter = {'ruleset' : gfruleset}
+
+  branchset = []
+  branchset.append({'filter': filter,
+                    'grouper': grouper,
+                    'aggregation': a,
+                    'gfilter': gfilter,
+                   })
+
+  mruleset = []
+  mruleset.append(vars(MergerRule(...))) ...
+  merger = {'ruleset' : mruleset}
+  query = {'branchset': branchset, 'merger': merger}
+  fjson = json.dumps(query, indent=2)
+\end{lstlisting}
+
+
+
+
+
+
+The mapping of the JSON query to the structs defined in the execution engine
+is trickier than it looks. When reading the \texttt{JSON} query at runtime,
+the field offsets of the NetFlow $v5$ record struct are read in as
+\texttt{char} pointers. A utility function \texttt{get\_offset(\ldots)} was
+thus \marginpar{runtime query internals} introduced that maps the read names
+to struct offsets. In addition, the type of each offset and the operations are
+also read in as \texttt{char} pointers. This information is saved and thus
+used by the engine using an \texttt{enum} defined in \texttt{pipeline.h}.
+Therefore, another utility function \texttt{get\_enum(\ldots)} was defined to
+map this information to the unique \texttt{enum} members.
+
+
+\lstset{caption=F$(v2)$: \texttt{JSON} Parsing Utilities,
+				tabsize=2, language=C, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:fv2-json-c,
+        aboveskip=20pt, captionpos=b, upquote=true}
+\begin{lstlisting}
+size_t
+get_offset(
+           const char * const name,
+           const struct fts3rec_offsets* const offsets
+          ) {
+
+  #define CASEOFF(memb)                       \
+  if (strcmp(name, #memb) == 0)               \
+    return offsets->memb
+
+    CASEOFF(unix_secs);
+    CASEOFF(unix_nsecs);
+    ...
+
+  return -1;
+}
+
+uint64_t
+get_enum(const char * const name) {
+
+  #define CASEENUM(memb)                      \
+  if (strcmp(name, #memb) == 0)               \
+    return memb
+
+  CASEENUM(RULE_S1_8);
+  CASEENUM(RULE_S1_16);
+  ...
+  CASEENUM(RULE_S2_8);
+  CASEENUM(RULE_S2_16);
+  ...
+  CASEENUM(RULE_ABS);
+  CASEENUM(RULE_REL);
+  CASEENUM(RULE_NO);
+  ...
+  CASEENUM(RULE_EQ);
+  CASEENUM(RULE_NE);
+  ...
+  CASEENUM(RULE_STATIC);
+  CASEENUM(RULE_COUNT);
+  ...
+  CASEENUM(RULE_ALLEN_BF);
+  CASEENUM(RULE_ALLEN_AF);
+  ...
+  return -1;
+}
+\end{lstlisting}
+

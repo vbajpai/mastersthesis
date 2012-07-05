@@ -466,3 +466,36 @@ merger(...) {
   ...
 }
 \end{lstlisting}
+
+
+
+
+A rundown of the runtime complexity of each stage of the processing pipeline
+is shown in table \ref{tab:fv2-pipeline-complexity}. In the table, $n$ is the
+total number of flow records  \marginpar{runtime complexity} in the trace,
+while $k$ is the number of unique flow records. The number of branches (or
+threads) spawned by the execution engine is $m$. It is clear that the merger
+is currently the bottleneck of the pipeline and needs further optimizations.
+
+\begin{table}[h!]
+	\begin{center}
+		\begin{tabular}{|c|c|}
+		\hline
+		Pipeline Stage & Runtime Complexity \\
+		\hline
+		\hline
+		Filter (worst case) & $O(n)$ \\
+		\hline
+		Grouper (average case) & $O(n*lg(n)) + O(n) + O(n*lg(k))$ \\
+		\hline
+		Group Aggregation (worst case) & $O(n)$ \\
+		\hline
+		Merger (worst case) & $O(n^m)$ \\
+		\hline
+		Ungrouper (worst case) & $O(n) \\
+		\hline
+		\end{tabular}
+\caption{F$(v2)$: Pipeline Runtime Complexity}
+\label{tab:fv2-pipeline-complexity}
+	\end{center}
+\end{table}
