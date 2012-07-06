@@ -1,0 +1,31 @@
+A regression test-suite has been added in \texttt{tests/}. The suite
+\texttt{asserts} the numbers of results in each stage for a query-trace
+combination. It also looks for any segmentation faults if they may have
+occured. Tests can be run either individually or as a complete
+suite as shown in listing \ref{lst:fv2-regression-suite}. The suite can also
+run in a verbose mode to see the expected and achieved result combination for
+run each test case.
+
+\lstset{caption=F$(v2)$: Regression Test Suite,
+				tabsize=2, language=base, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:fv2-regression-suite,
+        aboveskip=20pt, captionpos=b, upquote=true}
+\begin{lstlisting}
+[engine] $ make
+[engine] $ tests/regression.py [-v]
+............................................................
+----------------------------------------------------------------------
+Ran 60 tests in 32.533s
+
+OK
+
+[engine] $ tests/test-query-http-tcp-session.py [-v]
+..........
+----------------------------------------------------------------------
+Ran 10 tests in 8.672s
+
+OK
+\end{lstlisting}
+

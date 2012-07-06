@@ -119,9 +119,10 @@ in one go. However, it requires that all the (to be) installed dependencies do
 not import external packages in their \texttt{egg} files. This turned to be
 the case for \texttt{numexpr} which is required by the parser, thereby
 resulting in failed installation.  To circumvent the issue, a custom
-\texttt{Makefile} was created that virtually adds a preprocessing pass to
-install \texttt{numexpr} dependencies before going forward with installation
-from \texttt{requirements.txt} as shown in listing
+\texttt{Makefile}\footnote{detailed parser installation instructions are
+available in the appendix} was created that virtually adds a preprocessing
+pass to install \texttt{numexpr} dependencies before going forward with
+installation from \texttt{requirements.txt} as shown in listing
 \ref{lst:fv2-automate-parser-installation}.
 
 \lstset{caption=F$(v2)$: Automating Parser Installation,
