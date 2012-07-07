@@ -1,0 +1,19 @@
+\lstset{caption=SiLK,
+				tabsize=2, language=bash, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:silk,
+        aboveskip=20pt, captionpos=b, upquote=true}
+\begin{lstlisting}
+rm -f /tmp/A.raw /tmp/B.raw /tmp/result.raw; \
+rwfilter --sport=80 --proto=6 --pass=stdout %s | \
+rwsort --fields=sIP,dIP | \
+rwgroup --id-fields=sIP,dIP --summarize | \
+rwfilter --input-pipe=stdin --pass=/tmp/A.raw --packets=200-; \
+rwfilter --dport=80 --proto=6 --pass=stdout %s | \
+rwsort --fields=sIP,dIP | \
+rwgroup --id-fields=sIP,dIP --summarize | \
+rwfilter --input-pipe=stdin --pass=/tmp/B.raw --packets=200-; \
+rwmatch --relate=1,2 --relate=2,1 \
+/tmp/A.raw /tmp/B.raw /tmp/result.raw;
+\end{lstlisting}

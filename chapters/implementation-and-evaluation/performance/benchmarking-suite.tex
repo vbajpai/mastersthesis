@@ -1,0 +1,40 @@
+To be able to run and reproduce the benchmarking results as and when required
+it was essential to automate the whole process. The target design was to be
+able to use one script to run all sets of query-trace combination in one go
+for each network analysis application as shown in listing
+\ref{lst:fv2-automated-benchmarking}. The directories containing the traces
+and the queries required by the script can be supplied as command line
+arguments. Few examples are provided in \texttt{examples/}. The benchmarking
+suite only runs on python $2.7$ and above. Each query-trace combination is run
+$10$ times and the timings are averaged and echoed on the screen. The results
+are saved in \texttt{benchmarks/results/}. SiLK query files are simply bash
+commands separated by a delimiter and are further discussed in the next
+section.
+
+\lstset{caption=F$(v2)$: Automated Benchmarking,
+				tabsize=2, language=bash, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:fv2-automated-benchmarking,
+        aboveskip=20pt, captionpos=b, upquote=true}
+\begin{lstlisting}
+[engine] $ make; sudo benchmarks/nfql.py bin/engine trace[s]/ querie[s]/
+benchmarking nfql ...
+executing: [engine https-tcp-session trace-2012]:  1 2 3 4 5 6 7 8 9 10 (0.874602 secs)
+executing: [engine https-tcp-session trace-2009]:  1 2 3 4 5 6 7 8 9 10 (0.028223 secs)
+executing: [engine tcp-session trace-2012]:  1 2 3 4 5 6 7 8 9 10 (3.315148 secs)
+executing: [engine tcp-session trace-2009]:  1 2 3 4 5 6 7 8 9 10 (0.034624 secs)
+executing: [engine mdns-udp trace-2012]:  1 2 3 4 5 6 7 8 9 10 (0.668385 secs)
+executing: [engine mdns-udp trace-2009]:  1 2 3 4 5 6 7 8 9 10 (0.028298 secs)
+...
+
+[engine] $ sudo benchmarks/silk.py trace[s]/ querie[s]/
+benchmarking silk ...
+executing: [silk http-octets trace-2009]:  1 2 3 4 5 6 7 8 9 10 (0.135265 secs)
+executing: [silk http-octets trace-2012]:  1 2 3 4 5 6 7 8 9 10 (0.175890 secs)
+executing: [silk http-tcp-session trace-2009]:  1 2 3 4 5 6 7 8 9 10 (0.102465 secs)
+executing: [silk http-tcp-session trace-2012]:  1 2 3 4 5 6 7 8 9 10 (0.279106 secs)
+executing: [silk dns-udp trace-2009]:  1 2 3 4 5 6 7 8 9 10 (0.078578 secs)
+executing: [silk dns-udp trace-2012]:  1 2 3 4 5 6 7 8 9 10 (0.166246 secs)
+...
+\end{lstlisting}
