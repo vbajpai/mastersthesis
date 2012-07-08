@@ -1,13 +1,16 @@
 Install External Dependencies
+Setup the Python Packaging Virtual Environment
 
+\lstset{caption=NFQL Parser on Debian/Ubuntu,
+				tabsize=2, language=bash, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:nfql-parser-ubuntu,
+        aboveskip=20pt, captionpos=b, upquote=true}
 \begin{lstlisting}
 $ sudo apt-get install libhdf5-serial-dev
 $ sudo apt-get install liblzo2-dev
-\end{lstlisting}
 
-Setup the Python Packaging Virtual Environment
-
-\begin{lstlisting}
 $ sudo apt-get install python-pip
 $ sudo pip install pip --upgrade
 $ sudo pip install virtualenv

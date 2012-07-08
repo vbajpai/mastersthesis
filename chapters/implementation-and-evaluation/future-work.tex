@@ -2,8 +2,186 @@
 \chapter{Future Work and Conclusion}\label{ch:future-work}
 %************************************************
 
-\section{IPFIX Support}\label{sec:ipfix-support}
-\section{Flowy Parser and NFQL Engine Convergence}\label{sec:ipfix-support}
-\section{Multithreaded Merger}\label{sec:multithreaded-merger}
-\section{Additional Feature Support}\label{sec:multithreaded-merger}
+The C execution engine is a major leap forward to a fast and robust
+implementation of \ac{NFQL}. It is the first time when a \ac{NFQL}
+implementation can actually be used on practically sized flow traces. However
+it is far from being deemed complete. The fast-paced development is clear from
+the fact that engine's issue tracker
+\footnote{\url{https://github.com/vbajpai/mthesis-src/issues}} has a $1:1$
+ratio of closed to open issues. As a resut, the future outlook of the engine
+is divided into major goals and minor issues that still need to be addressed.
+
+\section{Major Goals}\label{sec:major-goals}
+
+The execution engine uses the \texttt{flow-tools} \ac{API} to read and parse
+the flow-records. The \texttt{flow-tools} \ac{API} can only parse NetFlow $v5$
+records, thereby sandboxing the engine's functionality. It restricts the
+engine's understanding of a flow to a fixed NetFlow $v5$ format and inhibits
+the capability to parse \aci{IP}$v6$ flows. Since NetFlow $v9$ and now with
+\ac{IPFIX}, the flow format \marginpar{ipfix support} is dynamically parsed
+using its accompanied template. It relaxes the definition of a flow and gives
+more power to the sender on how the data should be conglomerated together.
+There are three well-known implementations of \ac{IPFIX}: CERT'
+\texttt{libfixbuf} \footnote{\url{http://tools.netsa.cert.org/fixbuf/}},
+Fraunhofer FOKUS' \texttt{libipfix}
+\footnote{\href{http://libipfix.git.sourceforge.net/git/gitweb.cgi?p=libipfix/libipfix;a=summary}{\texttt{http://libipfix.git.sourceforge.net/}}}
+and WAND' \texttt{Maji}
+\footnote{\url{http://research.wand.net.nz/software/maji.php}}. The former two
+\ac{API}s appear to be under heavy development and one of them is foreseen to
+be used by the engine to provide \ac{IPFIX} capability in the future.
+
+
+
+
+The python parser is currently unused. The idea at this stage is to allow the
+parser to parse and validate the flow query and generate an equivalent
+intermediate \texttt{JSON} format. This is supposed to be a preprocessing step
+performed offline. The \texttt{JSON} flowquery file can then later be supplied
+to the execution engine at runtime.  It can also be foreseen to push parts of
+the \texttt{JSON} flowquery using a RESTful interface to \marginpar{parser and
+engine convergence} multiple map/reduce jobs running the execution engine to
+completely distribute the workflow for faster processing. The first step to
+achieve such a convergence will be by pruning the processing pipeline out of
+the python implementation. The reverse engineered package and class diagrams
+generated using \texttt{pyreverse} are available in \texttt{parser/docs/} and
+will help one get started with this task. The installation and usage
+instructions available in the appendix will make the convergence head start a
+breeze.
+
+
+
+
+The runtime complexity is deemed to increase exponentially as the number of
+records, and the modules in the grouper and merger increase.  The current
+grouper implementation runs in $O(n*lg(n)) + O(n) + O(n*lg(k))$, while the
+merger runs in $O(n^m)$ time, where $n$ is the number of flow records, $m$ is
+the number of branches, and $k$ is the number of unique flow records that
+passed the filter stage. Therefore, a search tree lookup would help bring the
+runtime costs down, whereby \marginpar{search tree and hash table lookups} one
+of the fields will be traversed sequentially in $O(n)$ time and for each
+field, a comparison will be performed by search tree lookups in $O(log(n))$
+time bringing down the overall complexity to $O(nlog(n))$. In addition,
+letting the execution engine override the search tree lookups by hash table
+lookups for equality operators will further bring down the runtime to $O(n)$
+for this specific case.
+
+
+
+
+
+The execution engine currently has limited multithreading. Each branch in the
+pipeline runs on a separate thread. However, this implies that the merger and
+ungrouper stages still remain single-threaded. The merger stage in the
+processing pipeline is currently the most computationlly intensive operation
+with an exponential runtime complexity \marginpar{efficient multithreading} of
+$O(n^m)$ for $n$ flow records and $m$ branches. It is possible to handle the
+merger' outermost branch loop using multiple threads in a non-blocking fashion
+to improve performance. The situation can further be improved by writing a
+\texttt{pthreads} wrapper that auto detects the number of available cores,
+creates a appropriate size thread pool and equally divides the tasks among the
+threads. This would also lead to an increased complexity of managing mutual
+-exclusion of shared memory, but the performance gains will go a long way.
+
+
+
+
+
+\section{Minor Issues}\label{sec:minor-issues}
+
+\lstset{caption=\ac{NFQL}: Multiple Modules,
+				tabsize=2, language=C, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:nfql-multiple-modules,
+        aboveskip=20pt, captionpos=b}
+\begin{lstlisting}
+merger M {
+  module m1 {
+    branches a, b
+    a.srcIP = b.dstIP
+    a.dstIP = b.srcIP
+  }
+  mobule m2 {
+    branches a, b
+    a.srcIP = b.srcIP
+    a.dstIP = b.dstIP
+  }
+}
+\end{lstlisting}
+
+Each module of the pipeline in an \ac{NFQL} query is a \ac{CNF} expression.
+All the rules of a submodule are \texttt{AND}'d together while all the submodules
+themselves are \texttt{OR}'d. The execution engine currently reads all the
+rules of a stage and applies an \texttt{AND} \marginpar{multiple modules and
+or expressions} operation. The engine cannot handle submodules in a module
+that can be \texttt{OR'd} together as shown in listing
+\ref{lst:nfql-multiple-modules}. An atomic rule in a query, for instance in a
+filter module also cannot have an \texttt{OR} expression as shown in listing
+\ref{lst:nfql-or-expr}
+
+\lstset{caption=\ac{NFQL}: \texttt{OR} Expressions in Atomic Rules,
+				tabsize=2, language=C, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:nfql-or-expr,
+        aboveskip=20pt, captionpos=b}
+\begin{lstlisting}
+filter http {
+  srcPort = 80 OR dstPort = 80
+}
+\end{lstlisting}
+
+The \texttt{START} and \texttt{END} timestamps of the cooked NetFlow $v5$
+group records are currently unset. These timestamps should be superset of
+their member \marginpar{superset intervals in group records} flow-records.
+This will allow the group filter to skip checking the timestamps of each
+member of the group and only focus on the superset interval of the group
+record itself when performing allen interval operations.
+
+\lstset{caption=F$(v2)$: Redundant Structs,
+				tabsize=2, language=C, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:fv2-redundant-structs,
+        aboveskip=20pt, captionpos=b}
+\begin{lstlisting}
+struct json*
+json_query = parse_json_query(param_data->query_mmap);
+
+struct flowquery*
+fquery = prepare_flowquery(param_data->trace, json_query);
+\end{lstlisting}
+
+The execution engine currently uses an additional data structure
+(\texttt{struct json}) to hold the parsed \texttt{JSON} query. This data
+structure is then read by \texttt{prepare\_flowquery(\ldots)} to generate
+\texttt{struct flowquery} which is eventually \marginpar{eliminating redundant
+structs} used by the pipeline stages as shown in listing
+\ref{lst:fv2-redundant-structs}. In essence, the intermediate \texttt{struct}
+is not needed, and is a redundant datastructure. There is no reason why
+\texttt{parse\_json\_query(...)} cannot directly read the query elements into
+\texttt{struct flowquery} and is a future refactor item.
+
+The ungrouper reads the tuples of merged group records and unfolds each one of
+them to create a stream. Each such stream is a collection of flow-records that
+went \marginpar{eliminating redundant flows from a stream} pass the whole
+pipeline. However, it is possible that a flow record is part of multiple
+groups in a single group tuple, and is therefore outputted multiple times. The
+engine currently does not eliminate such flow records repetitions. It is also
+does not order the flow records according to their timestamps as defined in
+the \ac{NFQL} specification.
+
+
+
+
 \section{Conclusion}\label{sec:conclusion}
+
+The \ac{NFQL} execution engine has come a long way in a short time. It now
+consists of a robust implementation of the processing pipeline that adapts
+itself to the kind of query provided at runtime to dynamically decide the type
+of data and the type of operation to be performed. It is flexible to be able
+to read and parse an entire flowquery at runtime. It is fast to be able to
+process millions of flow traces in matter of seconds. It is portable and can
+seamlessly build on multiple Unix flavors and is verifiable using a regression
+test-suite that will allow future developers to work further to improve the
+engine with confidence.
