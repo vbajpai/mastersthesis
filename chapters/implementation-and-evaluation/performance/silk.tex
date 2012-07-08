@@ -3,19 +3,22 @@ of flow traces. The smallest trace was $500K$ flow records, going upto $10M$
 flow records with a step size of $500K$. This accounts for a week worth of
 flow data in a university environment. The suite was run on a high-end machine
 with $24$ cores of $2.5$ GHz clock speed and $18$GiB of memory. The results
-for NFQL and SiLK are available on the \texttt{benchmarks} branch of the
-\texttt{git} repository.
+for NFQL and SiLK \footnote{detailed silk installation and usage instructions
+are available in the appendix.} are available on the \texttt{benchmarks}
+branch of the \texttt{git} repository.
 
 The first query attempts to find all the DNS (over UDP) traffic of the
 supplied trace. One of the branch, filters and groups the flow records that
 contain DNS requests, while the other holds the DNS responses. The
 request-response pairs are then merged according to the endpoints and unfolded
 to \marginpar{dns and mdns request-response over udp} display the flow-record
-streams in each such pair. Such a query in SiLK can be represented by piping
-multiple tools together as shown in listing \ref{lst:silk-mdns-dns-udp}. The
-subsequent NFQL query is available at \texttt{examples/} and is omitted here
-for brevity reasons. The query is similar for mDNS whereby the port $53$ is
-replaced by $5353$. The results are shown in figure \ref{fig:dns-mdns-udp}.
+streams in each such pair. Such a query in SiLK \footnote{detailed
+instructions to convert flow-tools traces to silk are available in the
+appendix} can be represented by piping multiple tools together as shown in
+listing \ref{lst:silk-mdns-dns-udp}. The subsequent NFQL query is available at
+\texttt{examples/} and is omitted here for brevity reasons. The query is
+similar for mDNS whereby the port $53$ is replaced by $5353$. The results are
+shown in figure \ref{fig:dns-mdns-udp}.
 
 \lstset{caption=SiLK Query: DNS and mDNS over UDP,
 				tabsize=2, language=bash, numbers=left,stepnumber=1,
