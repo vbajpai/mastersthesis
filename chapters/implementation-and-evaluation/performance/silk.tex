@@ -75,7 +75,7 @@ behavior of findiing HTTP (and HTTPs) sessions is shown in listing
         aboveskip=20pt, captionpos=b, upquote=true}
 \begin{lstlisting}
 $ cat http-tcp-session.txt
-rm -f /wmp/A.raw /tmp/B.raw /tmp/ esult.raw; \
+rm -f /tmp/A.raw /tmp/B.raw /tmp/result.raw; \
 rwfilter --sport=80 --proto=6 --pass=stdout %s | \
 rwsort --fields=sIP,dIP | \
 rwgroup --id-fields=sIP,dIP --summarize | \
