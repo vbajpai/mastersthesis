@@ -1,131 +1,107 @@
-\href{http://tools.netsa.cert.org/silk/}{SiLK →}
+SiLK \footnote{\url{http://tools.netsa.cert.org/silk/}} is a network traffic
+collection and analysis tool developed and maintained by the CERT Network
+Situational Awareness Team (CERT NetSA) at Carnegie Mellon University.  Since
+SiLK is the only tool that comes even remotely closer to the functionality
+offered by the \ac{NFQL}, it was used as a reference point to compare the
+performance of the \ac{NFQL} execution engine. This section illustrates the
+instructions on how to install and use SiLK. The installation was tried on
+Debian Squeeze and is pretty straight forward as shown in listing
+\ref{lst:silk-debian}.
 
-\begin{quote}
-SiLK is a suite of network traffic collection and analysis tools
-developed and maintained by the CERT Network Situational Awareness Team
-(CERT NetSA) at Carnegie Mellon University to facilitate security
-analysis of large networks. The SiLK tool suite supports the efficient
-collection, storage, and analysis of network flow data, enabling network
-security analysts to rapidly query large historical traffic data sets.
-\end{quote}
-
-Since SiLK is the only tool that comes even remotely closer to the
-functionality offered by the NFQL, we used it as a reference to compare
-the performance of the execution engine.
-
-\subsection{Download and Install SiLK}
-
-\begin{center}\rule{3in}{0.4pt}\end{center}
-
-Download \href{http://tools.netsa.cert.org/silk/}{SiLK →}
-
+\lstset{caption=SiLK Installation on Debian,
+				tabsize=2, language=bash, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:silk-debian,
+        aboveskip=20pt, captionpos=b, upquote=true}
 \begin{lstlisting}
->> wget http://tools.netsa.cert.org/releases/silk-2.4.7.tar.gz
->> sha1sum silk-2.4.7.tar.gz | grep 2ff0cd1d00de70f667728830aa3e920292e99aec
+$ wget http://tools.netsa.cert.org/releases/silk-2.4.7.tar.gz
+$ sha1sum silk-2.4.7.tar.gz | grep 2ff0cd1d00de70f667728830aa3e920292e99aec
+
+$ ./configure
+$ make
+$ sudo make install
+$ sudo ldconfig
 \end{lstlisting}
 
-Install SiLK
+SiLK design and implementation differs a lot from \ac{NFQL}. SiLK believes in
+the philosophy of a tool performing a single task well. For instance, in SiLK
+there are separate tools to perform the task of each stage of the \ac{NFQL}
+processing pipeline. The stage functionality is not full-fledged though. The
+grouping \marginpar{nfql equivalent silk tools} and merging operations can
+only be performed using an equality operator. This is assumed in the tool,
+thereby allowing it to perform optimization such as using hash tables to
+perform lookups. The usage instruction of tools that can perform (if not) an
+equivalent \ac{NFQL} stage operation is given in listing
+\ref{lst:silk-nfql-usage}.
 
+\lstset{caption=NFQL Equivalent SiLK Tools,
+				tabsize=2, language=bash, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:silk-nfql-usage,
+        aboveskip=20pt, captionpos=b, upquote=true}
 \begin{lstlisting}
->> ./configure
->> make
->> sudo make install
->> sudo ldconfig
+# absolute filtering (dst port 80 or (src port 80 and dst port 25)
+$ rwfilter --dport=80 --pass=out1.rwf.gz in.rwf.gz
+$ rwfilter --sport=80 --dport=25 --pass=out2.rwf.gz in.rwf.gz
+
+# concatenating flow records
+$ rwcat --output=out.rwf.gz out1.rwf.gz out2.rwf.gz
+$ rwcat out1.rwf.gz out2.rwf.gz >> out.rwf.gz
+$ rwappend [--create] out.rwf.gz out1.rwf.gz out2.rwf.gz
+
+# grouping flow records and setting thresholds
+$ rwuniq --field=1 out.raw --bytes --packets=1000 --flows=200
+$ rwgroup --id-field=1,2,3,4 --delta-field=9 --delta-value=3600 in.rwf.gz > out.rwf.gz
+
+# merging flow records
+$ rwmatch --relate=1,2 --relate=2,1 \
+           --relate=3,4 --relate=4,3 \
+           query.rwf.gz response.rwf.gz stdout
 \end{lstlisting}
 
-\subsection{SiLK Analysis Tools:}
+There are also stringent requirements to how a flow-data needs to be organized
+before it can be piped into a tool. The grouping tool, for instance assumes
+that the to-be supplied input flow data is already sorted on the field column.
+These requirements made it a little cumbersome \marginpar{additional silk
+analysis and capture tools} to design a full-fledged \ac{NFQL} query. The
+final query had over a dozen of SiLK tools piped together and saved as a bash
+script. These bash scripts were then called by the benchmarking suite for
+performance evaluation.  Few additional tools available in the SiLK's
+repertoire are shown in listing \ref{lst:silk-usage}.
 
-\begin{center}\rule{3in}{0.4pt}\end{center}
-
-Absolute Filtering
-\lstinline!(dst port 80 or (src port 80 and dst port 25))!
-
+\lstset{caption=Additional SiLK Analysis and Capture Tools,
+				tabsize=2, language=bash, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:silk-usage,
+        aboveskip=20pt, captionpos=b, upquote=true}
 \begin{lstlisting}
->> rwfilter --dport=80 --pass=out1.rwf.gz in.rwf.gz
->> rwfilter --sport=80 --dport=25 --pass=out2.rwf.gz in.rwf.gz
+# reading flow records
+$ rwcut out.rwf.gz
+
+# generating statistical summary
+$ rwstats --overall-stats out.rwf.gz
+
+# creating time series (10 minute interval)
+$ rwcount --bin-size=600 out.rwf.gz
+
+# sorting flow records (on srcIP)
+$ rwsort --fields=1 --output=out-sort.rwf.gz out.rwf.gz
+
+# remove duplicate flow fecords
+$ rwdedupe --stime-delta=100 out1.rwf.gz out2.rwf.gz > out.rwf.gz
+
+# splitting flow records
+$ rwsplit out.rwf.gz --basename=splits --flow-limit=1000
+
+# show silk file characteristics
+$ rwfileinfo out.rwf.gz
+
+# generate flows from text files
+$ rwtuc --fields=1-9 out.txt > out.rwf.gz
+
+# generate flows from tcpdump traces
+$ rwptoflow out.pcap > out.rwf.gz
 \end{lstlisting}
-
-Concatenating Flow Records
-
-\begin{lstlisting}
->> rwcat --output=out.rwf.gz out1.rwf.gz out2.rwf.gz
->> rwcat out1.rwf.gz out2.rwf.gz >> out.rwf.gz
->> rwappend [--create] out.rwf.gz out1.rwf.gz out2.rwf.gz
-\end{lstlisting}
-
-Reading Flow Records
-
-\begin{lstlisting}
->> rwcut out.rwf.gz
-\end{lstlisting}
-
-Generating Statistical Summary
-
-\begin{lstlisting}
->> rwstats --overall-stats out.rwf.gz
-\end{lstlisting}
-
-Creating Time Series (10 minute interval)
-
-\begin{lstlisting}
->> rwcount --bin-size=600 out.rwf.gz
-\end{lstlisting}
-
-Sorting Flow Records (on \lstinline!srcIP!)
-
-\begin{lstlisting}
->> rwsort --fields=1 --output=out-sort.rwf.gz out.rwf.gz
-\end{lstlisting}
-
-Grouping Flow Records and Setting Thresholds
-
-\begin{lstlisting}
->> rwuniq --field=1 out.raw --bytes --packets=1000 --flows=200
->> rwgroup --id-field=1,2,3,4 --delta-field=9 --delta-value=3600 in.rwf.gz > out.rwf.gz
-\end{lstlisting}
-
-Remove Duplicate Flow Records
-
-\begin{lstlisting}
->> rwdedupe --stime-delta=100 out1.rwf.gz out2.rwf.gz > out.rwf.gz
-\end{lstlisting}
-
-Splitting Flow Records
-
-\begin{lstlisting}
->> rwsplit out.rwf.gz --basename=splits --flow-limit=1000
-\end{lstlisting}
-
-Show SiLK File Characteristics
-
-\begin{lstlisting}
->> rwfileinfo out.rwf.gz
-\end{lstlisting}
-
-Merging Flow Records
-
-\begin{lstlisting}
-srcIP = dstIP
-dstIP = srcIP
-srcPort = dstPort
-dstPort = srcPort
-
->> rwmatch --relate=1,2 --relate=2,1 --relate=3,4 --relate=4,3 query.rwf.gz response.rwf.gz stdout
-\end{lstlisting}
-
-\subsection{Generate SiLK Flow Records:}
-
-\begin{center}\rule{3in}{0.4pt}\end{center}
-
-Generate Flow Records from Text Files
-
-\begin{lstlisting}
->> rwtuc --fields=1-9 out.txt > out.rwf.gz
-\end{lstlisting}
-
-Generate Flow Record for each Dumped Packet from \lstinline!tcpdump!
-
-\begin{lstlisting}
->> rwptoflow out.pcap > out.rwf.gz
-\end{lstlisting}
-

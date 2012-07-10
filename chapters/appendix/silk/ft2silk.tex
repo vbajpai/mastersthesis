@@ -1,73 +1,87 @@
-\subsection{Flow-tools to SiLK}
+SiLK uses its own proprietory format for reading flow traces. In order to be
+able to perform the evaluation on the same flow traces, it was essential to
+convert the \texttt{flow-tools}
+\footnote{\url{http://www.splintered.net/sw/flow-tools/}} format trace files
+to SiLK proprietory format. The best way is to replay the original trace files
+on a \marginpar{flow-tools to nfdump} host-port combination, and let SiLK flow
+capturing daemon pick it up to save it in its proprietory format.
+Unfortunately, \texttt{flow-tools} does not have any such replay tool.
+Although, one is provided by the \texttt{nfdump}
+\footnote{\url{http://nfdump.sourceforge.net/}} package. Listing
+\ref{lst:ft2nfdump} shows how \texttt{flow-tools} traces were converted to
+\texttt{nfdump} format to allow them to be replayed later.
 
-\begin{center}\rule{3in}{0.4pt}\end{center}
-
-Install \lstinline!nfdump! and \lstinline!ft2nfdump!
-
+\lstset{caption=\texttt{flow-tools} to \texttt{nfdump},
+				tabsize=2, language=bash, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:ft2nfdump,
+        aboveskip=20pt, captionpos=b, upquote=true}
 \begin{lstlisting}
->> sudo apt-get install nfdump
->> sudo apt-get install nfdump-flow-tools
+# install nfdump and ft2nfdump
+$ sudo apt-get install nfdump
+$ sudo apt-get install nfdump-flow-tools
+
+# convert flow-tools traces to nfdump
+$ flow-cat $INPUT | ft2nfdump | nfdump -w $OUTPUT
+$ nfdump -r $OUTPUT
 \end{lstlisting}
 
-Convert flow-tools traces to nfdump
+The converted \texttt{nfdump} traces were then replayed using
+\texttt{nfreplay}. By default, the tools replays the traces to $127.0.0.1$ at
+port $9995$. A sensor configuration file was created on the other end for SiLK
+to collect the replayed data. The configuration file defines the NetFlow
+protocol used in the replay, host-port combination and defintion of internal
+and external \ac{IP} blocks to separate \marginpar{nfdump to silk} the
+flow-traces accordingly. SiLK' \texttt{rwflowpack} was then used to regenerate
+the traces in the proprietory format. The tool segregates the flows into
+multiple hierarchically arranged directories. Since, only the runtime analysis
+of SilK on the original query was of interest, a combination of \texttt{find}
+and \texttt{xargs} was used to flattern the directory and combine the flows
+into one file as shown in listing \ref{lst:nfdump2silk}.
 
+\lstset{caption=\texttt{nfdump} to SiLK,
+				tabsize=2, language=bash, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:nfdump2silk,
+        aboveskip=20pt, captionpos=b, upquote=true}
 \begin{lstlisting}
->> flow-cat $INPUT | ft2nfdump | nfdump -w $OUTPUT
->> nfdump -r $OUTPUT
-\end{lstlisting}
+# replay the nfdump trace
+$ nfreplay -r $TRACE
 
-Replay the nfdump traces\\(The trace is replayed to
-\lstinline!127.0.0.1! at port \lstinline!9995!)
-
-\begin{lstlisting}
->> nfreplay -r $TRACE
-\end{lstlisting}
-
-Configure a sensor to collect replayed data
-
-\begin{lstlisting}
->> cat sensors.conf
-
+# configure a sensor to collect replayed data
+$ cat sensors.conf
 probe S1 netflow-v5
   listen-on-port 9995
   protocol udp
   accept-from-host 127.0.0.1
 end probe
-
 sensor S1
   netflow-v5-probes S1
   internal-ipblocks 10.0.0.0/8
   external-ipblocks remainder
 end sensor
-\end{lstlisting}
 
-Collect flow data and save in binary SiLK files
-
-\begin{lstlisting}
->> rwflowpack \
-    --site-config-file=/usr/local/share/silk/generic-silk.conf \
-    --sensor-configuration=sensors.conf \
-    --root-directory=/var/log/silk/ \
-    --log-destination=both
+# collect flow data and save in binary silk files
+$ rwflowpack \
+  --site-config-file=/usr/local/share/silk/generic-silk.conf \
+  --sensor-configuration=sensors.conf \
+  --root-directory=/var/log/silk/ \
+  --log-destination=both
 
 rwflowpack[14830]: Forked child 14831.  Parent exiting
-rwflowpack[14831]: Using packing logic from …                       rwflowpack[14831]: Creating stream cache
+rwflowpack[14831]: Using packing logic from ...
+rwflowpack[14831]: Creating stream cache
 rwflowpack[14831]: Starting flow processor #1 for PDU Reader
 rwflowpack[14831]: Creating PDU Reader Source Pool
 rwflowpack[14831]: Creating PDU Reader for probe 'S1' on 0.0.0.0:9995
 rwflowpack[14831]: Starting flush timer
 rwflowpack[14831]: Started manager thread for PDU Reader
+
+# flatten the silk root directory
+$ find /var/log/silk -type f -exec cp {} /var/log/silkflat/ \;
+
+# combine all silk files into a single archive
+$ ls | rwcat --xargs --output-path=/var/log/silk.gz
 \end{lstlisting}
-
-Flatten the SiLK root directory
-
-\begin{lstlisting}
->> find /var/log/silk -type f -exec cp {} /var/log/silkflat/ \;
-\end{lstlisting}
-
-Combine all SiLK files into a single archive
-
-\begin{lstlisting}
->> ls | rwcat --xargs --output-path=/var/log/silk.gz
-\end{lstlisting}
-
