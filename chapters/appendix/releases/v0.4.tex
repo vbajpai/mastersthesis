@@ -1,15 +1,28 @@
-Summary: (since after \lstinline!v0.3!)
+The execution engine is now portable to be able to seamlessly build on
+multiple Unix flavors, tagged as $v0.4$. CMake is used to orchestrate the buid
+process. It uses custom commands to invoke scripts that can prepare the
+auto-generated \marginpar{it's portable} sources and sample \texttt{JSON}
+queries. A Makefile is used to automate the CMake invocations. Feature-test
+and platform-specific macros allow the code to become portable. The snapshot
+contains installation instructions for both Debian/Ubuntu and OS X. A workset
+of the release is shown in listing \ref{lst:v0.4}.
 
+\lstset{caption=Release Notes: $v0.4$,
+				tabsize=2, language=bash, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:v0.4,
+        aboveskip=20pt, captionpos=b, upquote=true}
 \begin{lstlisting}
->> git show v0.4
+$ git show v0.4
 
 tag v0.4
 Tagger: Vaibhav Bajpai <contact@vaibhavbajpai.com>
 Date:   Fri May 18 15:07:42 2012 +0200
-Commit 00c17385e37dd944c9139205a5eb3660c707858a 
+Commit 00c17385e37dd944c9139205a5eb3660c707858a
 
 *  _GNU_SOURCE feature test MACRO and -std=c99
-*  (__FreeBSD, __APPLE__) and __linux MACROS around qsort_r(…)
+*  (__FreeBSD, __APPLE__) and __linux MACROS around qsort_r(...)
 *  reverted to a flat source structure for the CMake build process.
 *  CMake custom command to call a script to create auto-generated sources and headers.
 *  CMake custom command to call a scripts in queries/ to save sample JSON queries in examples/

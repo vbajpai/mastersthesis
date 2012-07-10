@@ -1,21 +1,34 @@
-The complete pipeline now works for the first time, tagged as
-\lstinline!v0.1!
+This tag starts off the F$(v2)$ branch.  The complete pipeline now works for
+the first time, tagged as $v0.1$. The grouper segfaults have been resolved.
+The resulting group records are cooked as NetFlow $v5$ records with their
+field offsets representing group aggregations. \marginpar{it's functional}
+This snapshot contains the first-ever group filter, merger and ungrouper
+implementation in C. The stages do not assume type of the field offsets that
+are not known until \emph{runtime}. The engine now works with multiple
+verbosity levels increasing the amount of echo on each level. A workset of
+the release is shown in listing \ref{lst:v0.1}.
 
+\lstset{caption=Release Notes: $v0.1$,
+				tabsize=2, language=bash, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:v0.1,
+        aboveskip=20pt, captionpos=b, upquote=true}
 \begin{lstlisting}
-$ git show v0.1                                                                                                              
+$ git show v0.1
 
-tag v0.1        
+tag v0.1
 Tagger: Vaibhav Bajpai <contact@vaibhavbajpai.com>
-Date:   Fri Apr 6 19:07:49 2012 +0200   
+Date:   Fri Apr 6 19:07:49 2012 +0200
 Commit a8a67a13aa07f671d21d062537a2ef17e58dcc07
-…
+...
 
 * reverse engineered parser to generate UML.
 * froze requirements to allow single step installation of the python parser.
 * doxygen documentation of the engine.
 * prelim JSON parsing framework for the parser and engine to spit and parse the JSON queries.
 * replaced GNU99 extensions dependent code with c99.
-* resolved numerous segfaults in grouper and merger.
+* resolved numerous segfaults in the grouper.
 * generated group aggregations as a separate (cooked) NetFlow v5 record.
 * flexible group aggregations with no uintX_t assumptions on field offsets.
 * first-ever group filter implementation.

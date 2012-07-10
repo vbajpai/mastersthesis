@@ -1,24 +1,40 @@
-Summary: (since after \lstinline!v0.1!)
+The execution engine is robust to work well with variety of queries, tagged as
+$v0.2$. The complete engine has been refactored with a maintainable design to
+allow better execution workflow and abstract objects. Each stage of the
+pipeline has one public interface function that takes a ruleset as input and
+returns a result abstract object. The engine has \marginpar{it's robust} been
+profiled to eliminate any memory leaks and allow early deallocation of objects
+as soon as they are not required. The engine is now smart enough to realize
+and ignore redundant aggregation requests. All the hardcoded rules of the
+flowquery are clubbed together in one header file for easy maintainability.
+The dedicated rule function pointer assignments are lazy. A workset of the
+release state is shown in listing \ref{lst:v0.2}.
 
+\lstset{caption=Release Notes: $v0.2$,
+				tabsize=2, language=bash, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:v0.2,
+        aboveskip=20pt, captionpos=b, upquote=true}
 \begin{lstlisting}
 $ git show v0.2
 
 tag v0.2
 Tagger: Vaibhav Bajpai <contact@vaibhavbajpai.com>
-Date:   Wed Apr 18 13:24:16 2012 +0200    
+Date:   Wed Apr 18 13:24:16 2012 +0200
 Commit 2c571f80cd076172cbd00ef7f9976b88cb44b425
 
 * complete engine refactor.
 * complete engine profiling (no memory leaks).
 * issues closed:
-    - greedily deallocating non-filtered records in `O(n)` before `merger(…)`.
+    - greedily deallocating non-filtered records in O(n) before merger(...).
     - resolved a grouper segfault when NO records got filtered.
     - all records are grouped into 1 group when no grouping rule specified.
     - aggregation on common fields touched by filter/grouper rules is ignored.
-    - no `uintX_t` assumptions for field offsets.
+    - no uintX_t assumptions for field offsets.
     - rules are clubbed together and assigned using a loop.
     - function parameters are as minimum as required.
-    - function parameters are safe using `[const]` ptr and ptr to `[const]`.
-    - lazy `rule->func(…)` assignment when the stage is entered.    
+    - function parameters are safe using [const] ptr and ptr to [const].
+    - lazy rule->func(...) assignment when the stage is entered.
 \end{lstlisting}
 

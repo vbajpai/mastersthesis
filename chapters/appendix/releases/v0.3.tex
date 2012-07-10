@@ -1,7 +1,22 @@
-Summary: (since after \lstinline!v0.2!)
+The execution engine is now flexible to read and parse the entire flowquery at
+\emph{runtime}, tagged as $v0.3$. The flowquery is written in an intermediate
+\texttt{JSON} format and read using \texttt{json-c}. The \texttt{JSON} queries
+are themselves generated using python scripts. The engine is fail-safe using
+\marginpar{it's flexible} consistency checks that allow it to fail gracefully
+when either the trace or the flowquery cannot be read. Each branch thread can
+now exit early on failure and each stage of the pipeline only proceeds when
+the previous stage returned results. A workset of the release is shown in
+listing \ref{lst:v0.3}.
 
+
+\lstset{caption=Release Notes: $v0.3$,
+				tabsize=2, language=bash, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:v0.3,
+        aboveskip=20pt, captionpos=b, upquote=true}
 \begin{lstlisting}
->> git show v0.3                                                                                                                                                                                   
+$ git show v0.3
 
 tag v0.3
 Tagger: Vaibhav Bajpai <contact@vaibhavbajpai.com>
@@ -16,6 +31,6 @@ Commit 1c323fa66b9aaaad56ad7c4127b8d187eaf4ec0c
 * branch thread returns EXIT_FAILURE if either stage returns NULL
 * branch thread returns EXIT_SUCCESS on normal exit
 * each stage proceeds only when previous returned results
-* flow-cat ... | flowy-engine $QUERY -  
+* flow-cat ... | flowy-engine $QUERY -
 \end{lstlisting}
 

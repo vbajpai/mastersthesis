@@ -1,10 +1,20 @@
-The evolution of the core of the former Python implementation
-\href{https://svn.eecs.jacobs-university.de/svn/eecs/archive/msc-2009/kkanev.pdf}{{[}kkanev:2009{]}}
-in C
-\href{http://dl.dropbox.com/u/500389/mthesis/jschauer-thesis.pdf}{{[}jschauer:2011{]}}
+This tag represents an evolution of the core of the former Python
+implementation (Flowy) in C. It is also referred as F$(v1)$. It can
+efficiently read flow records into memory and filter them. Each branch of the
+pipeline runs in a \marginpar{it's a start} separate thread. Each rule type
+has its own dedicated function pointer generated using a python script. The
+idea of using \texttt{qsort/bsearch} for efficient grouper processing is in
+place, but the implementation is broken with numerous segfaults. The engine
+has concerns as shown in listing \ref{lst:v0.0}.
 
+\lstset{caption=Release Notes: $v0.0$,
+				tabsize=2, language=bash, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:v0.0,
+        aboveskip=20pt, captionpos=b, upquote=true}
 \begin{lstlisting}
->> git show v0.0                                                                                                                                                                                   
+$ git show v0.0
 
 tag v0.0
 Tagger: Vaibhav Bajpai <contact@vaibhavbajpai.com>
@@ -19,9 +29,8 @@ Commit 8cb309c8a956c99e6b1494eddb601c8f6a520696
         - flow query is currently hardcoded in pipeline structs
         - functions assume specific uintX_t offsets
         - numerous grouper segfaults
-        - no group filter
+        - no group filter, no ungrouper
         - commented out merger (segfaults when uncommented)
-        - no ungrouper
         - code dependent on GNU99 extensions
         - some headers are missing include guards
         - unused extraneous source files and headers
