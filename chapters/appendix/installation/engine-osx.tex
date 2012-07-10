@@ -1,67 +1,46 @@
-Tried on Mac OS X 10.7.
+The \ac{NFQL} engine installation on OS X is quite similar. The external
+dependecies can either be installed from source or using a package manager.
+It is recommended to use Homebrew
+\footnote{\url{http://mxcl.github.com/homebrew/}} to install the external
+dependencies \marginpar{nfql engine on osx} since it does not require and
+plague the install with \texttt{sudo} privileges and installs the packages at
+\texttt{/usr/local/}. The external dependencies are shown in listing
+\ref{lst:nfql-engine-osx}.The build and usage instructions are also listed.
+The build environment was tested on OS X Lion $10.7$.
 
-Install \href{http://mxcl.github.com/homebrew/}{Homebrew →}
-
+\lstset{caption=NFQL Engine on OS X,
+				tabsize=2, language=bash, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:nfql-engine-osx,
+        aboveskip=20pt, captionpos=b, upquote=true}
 \begin{lstlisting}
->> /usr/bin/ruby -e "$(/usr/bin/curl -fsSL https://raw.github.com/mxcl/homebrew/master/Library/Contributions/install_homebrew.rb)"
+$ brew install cmake
+$ brew install json-c
+$ brew install doxygen
+$ brew install graphviz
+
+$ wget http://dl.dropbox.com/u/500389/flow-tools-0.68.4.tar.bz2
+$ tar -xvf flow-tools-0.68.4.tar.bz2
+
+[flow-tools-0.68.4] $ ./configure
+[flow-tools-0.68.4] $ make
+[flow-tools-0.68.4] $ make install
+
+[engine] $ make CMAKE_PREFIX_PATH=/usr/local/flow-tools/
+[engine] $ make doc
+
+[engine] $ bin/engine queryfile tracefile
+[engine] $ make clean
 \end{lstlisting}
 
-Install CMake
-
-\begin{lstlisting}
->> brew install cmake
-\end{lstlisting}
-
-Install Flow-Tools from source
-
-\begin{lstlisting}
->> wget http://dl.dropbox.com/u/500389/flow-tools-0.68.4.tar.bz2
->> tar -xvf flow-tools-0.68.4.tar.bz2
-
-[flow-tools-0.68.4] >> ./configure
-[flow-tools-0.68.4] >> make 
-[flow-tools-0.68.4] >> make install 
-\end{lstlisting}
-
-Install JSON Manipulation Library Package
-
-\begin{lstlisting}
->> brew install json-c
-\end{lstlisting}
-
-Build Engine
-
-\begin{lstlisting}
-[engine] >> make CMAKE_PREFIX_PATH=/usr/local/flow-tools/
-\end{lstlisting}
-
-Run Engine
-
-\begin{lstlisting}
-[engine] >> bin/engine examples/query-http-tcp-session.json examples/trace.ft
-\end{lstlisting}
-
-Install Doxygen (optional)
-
-\begin{lstlisting}
->> brew install doxygen
-\end{lstlisting}
-
-Install GraphVIZ (optional)
-
-\begin{lstlisting}
->> brew install graphviz
-\end{lstlisting}
-
-Generate Documentation (optional)
-
-\begin{lstlisting}
-[engine] >> make doc    
-\end{lstlisting}
-
-Cleanup
-
-\begin{lstlisting}
-[engine] >> make clean
-\end{lstlisting}
-
+There is a ruby \texttt{gem} for \texttt{flow-tools} in the Homebrew package
+repository, however currently it fails to build. The $v0.68$ stable build at
+splintered.net \footnote{\url{http://www.splintered.net/sw/flow-tools/}} has a
+bug \footnote{\url{http://ensight.eos.nasa.gov/FlowViewer/faq.html#14}} that
+inhibits it from correctly parsing the trace timestamps \marginpar{flow-tools
+issues on osx} on $64$-bit machines. A forked flow-tools branch
+\footnote{\url{https://code.google.com/p/flow-tools/}} resolves the $64$-bit
+issues but then the latest stable release $v0.68.5.1$ does not build
+successfully. The previous release of the forked branch $v0.68.4$ works well
+and is used by the execution engine on OS X.

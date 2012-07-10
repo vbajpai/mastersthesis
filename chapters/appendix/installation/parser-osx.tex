@@ -1,24 +1,16 @@
-Install \href{http://mxcl.github.com/homebrew/}{Homebrew →}
-
+\lstset{caption=NFQL Parser Dependencies on OS X,
+				tabsize=2, language=bash, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:nfql-parser-osx-dependencies,
+        aboveskip=20pt, captionpos=b, upquote=true}
 \begin{lstlisting}
-$ /usr/bin/ruby -e "$(/usr/bin/curl -fsSL https://raw.github.com/mxcl/homebrew/master/Library/Contributions/install_homebrew.rb)"
-\end{lstlisting}
+$ brew install hdf5
+$ brew install lzo
 
-Install Python
-
-\begin{lstlisting}
 $ brew install python --framework
-\end{lstlisting}
-
-Put \lstinline!easy_install! in PATH
-
-\begin{lstlisting}
 $ export PATH=/usr/local/share/python:$PATH
-\end{lstlisting}
 
-Setup the Python Packaging Virtual Environment
-
-\begin{lstlisting}
 $ easy_install pip
 $ pip install pip --upgrade
 $ pip install virtualenv
@@ -26,52 +18,14 @@ $ pip install virtualenvwrapper
 $ source /usr/local/bin/virtualenvwrapper.sh
 \end{lstlisting}
 
-Install External Dependencies
-
-\begin{lstlisting}
-$ brew install hdf5
-$ brew install lzo   
-\end{lstlisting}
-
-Create a Virtual Environment
-
-\begin{lstlisting}
-[parser] $ mkvirtualenv parser
-\end{lstlisting}
-
-Install Python Dependencies
-
-\begin{lstlisting}
-(parser)
-[parser] $ make
-\end{lstlisting}
-
-List the Installed Dependencies
-
-\begin{lstlisting}
-(parser)
-[parser] $ pip freeze   
-\end{lstlisting}
-
-Cleanup:
-
-Remove the build files
-
-\begin{lstlisting}
-(parser)
-[parser] $ make clean
-\end{lstlisting}
-
-Deactivate the Virtual Environment
-
-\begin{lstlisting}
-(parser)
-[parser] $ deactivate
-\end{lstlisting}
-
-Destroy the Virtual Environment
-
-\begin{lstlisting}
-[parser] $ rmvirtualenv parser
-\end{lstlisting}
-
+The \ac{NFQL} parser installation on OS X only differs in the \emph{way} how
+external libraries are installed. Homebrew is used to install the external
+packages.  The default python framework on OS X is fairly old, it is in the
+best interest to also upgrade it using Homebrew. The older python packaging
+\marginpar{nfql parser on osx} environment \texttt{easy\_install} is used to
+install \texttt{pip}, and then \texttt{pip} is used to upgrade itself to the
+latest revision. The packaging from there is on handled by the \texttt{pip}
+environment. The external dependencies and \texttt{pip} environment
+installation is shown in listing \ref{lst:nfql-parser-osx-dependencies}, while
+the virtual environment setup and parser build process is exactly the same as
+shown in listing \ref{lst:nfql-parser-build}.

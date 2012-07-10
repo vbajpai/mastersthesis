@@ -1,11 +1,18 @@
-Install External Dependencies
-Setup the Python Packaging Virtual Environment
+The \ac{NFQL} parser uses the \texttt{pip} packaging and installation
+environment to set itself up. Besides some of the external dependencies
+required by the parser, it is highly recommended to use \texttt{virtualenv}
+and \texttt{virtualenvwrapper} \marginpar{nfql parser on debian/ubuntu} to
+create a virtual environment where all the python libraries will be installed.
+This helps isolate the user's system-level python libraries and avoids any
+conflicts that may occur otherwise. The external dependencies and \texttt{pip}
+environment installation is shown in listing
+\ref{lst:nfql-parser-ubuntu-dependencies}.
 
-\lstset{caption=NFQL Parser on Debian/Ubuntu,
+\lstset{caption=NFQL Parser Dependencies on Debian/Ubuntu,
 				tabsize=2, language=bash, numbers=left,stepnumber=1,
         basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
         keywordstyle=\color{blue}, frame=shadowbox,
-        rulesepcolor=\color{black}, label=lst:nfql-parser-ubuntu,
+        rulesepcolor=\color{black}, label=lst:nfql-parser-ubuntu-dependencies,
         aboveskip=20pt, captionpos=b, upquote=true}
 \begin{lstlisting}
 $ sudo apt-get install libhdf5-serial-dev
@@ -17,45 +24,44 @@ $ sudo pip install virtualenv
 $ sudo pip install virtualenvwrapper
 \end{lstlisting}
 
-Create a Virtual Environment
+A python virtual environment is setup from the parent directory of the parser
+by running \texttt{mkvirtualenv}. Once within the virtual environment,
+\texttt{make} takes care of installing all the python libraries required by
+the parser in one go. It installs \texttt{cython}, \texttt{numpy},
+\texttt{numexpr} in a preprocessing step, and then lets \texttt{pip} handle
+the rest of the installation using a \texttt{requirements} file. The list of
+python libraries installed can be checked by running \texttt{pip freeze}. The
+parser usage instructions are provided in the next section. The virtual
+environment can be deactivated using \texttt{deactivate} and brought back
+again using \texttt{workon \$NAME}. It can be destroyed using
+\texttt{rmvirtualenv} as shown in listing \ref{lst:nfql-parser-build}
 
+\lstset{caption=Platform-Agnostic NFQL Parser Build,
+				tabsize=2, language=bash, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:nfql-parser-build,
+        aboveskip=20pt, captionpos=b, upquote=true}
 \begin{lstlisting}
 [parser] $ mkvirtualenv parser
-\end{lstlisting}
-
-Install Python Dependencies
-
-\begin{lstlisting}
 (parser)
 [parser] $ make
-\end{lstlisting}
-
-List the Installed Dependencies
-
-\begin{lstlisting}
 (parser)
 [parser] $ pip freeze
-\end{lstlisting}
 
-Cleanup:
+(parser)
+[parser] $ python ft2hdf.py traces/ output.h5
+(parser)
+[parser] $ python printhdf.py output.h5
+(parser)
+[parser] $ python print_hdf_in_step.py output.h5
+(parser)
+[parser] $ python flowy.py queryfile
 
-Remove the build files
-
-\begin{lstlisting}
 (parser)
 [parser] $ make clean
-\end{lstlisting}
-
-Deactivate the Virtual Environment
-
-\begin{lstlisting}
 (parser)
 [parser] $ deactivate
+
+[parser] $ rmvirtualenv parser
 \end{lstlisting}
-
-Destroy the Virtual Environment
-
-\begin{lstlisting}
-[parser] $ rmvirtualenv parser  
-\end{lstlisting}
-
