@@ -1,11 +1,30 @@
-The semantics and implementation of our in-house flow-record querier has underwent significant changes in the last few years. This section is dedicated to perform an inside-out study of the querier, examining all its major (and minor) changes to allow us to better make a pragmatic stand towards its overall packaging and improvement. The organization of the section is described below.
+The semantics and implementation of our in-house flow-record querier has
+underwent significant changes in the last few years. This section is dedicated
+to perform an inside-out study of the querier, examining all its major (and
+minor) changes to allow us to better make a pragmatic stand towards its
+overall packaging and improvement. The organization of the section is
+described below.
 
 \vspace{50pt}
 
-In chapter $\ref{ch:flowy-design}$ we look into the structure of the flow query language by discussing each stage of the processing pipeline with their implementation details. The basic structures of the framework that underpin the implementation are also discussed. In the end, we ponder over the current prototype limitation and its suggestive improvements.
+In chapter $\ref{ch:flowy-design}$ we look into the structure of the flow
+query language by discussing each stage of the processing pipeline with their
+implementation details. The basic structures of the framework that underpin
+the implementation are also discussed. In the end, we ponder over the current
+prototype limitation and its suggestive improvements.
 
-In chapter $\ref{ch:flowy-mapreduce}$ we investigate the possibility of making Flowy Map/Reduce aware. The chapter starts off with a discussion of current Map/Reduce frameworks and looks into the ways to help parallelize Flowy.
+In chapter $\ref{ch:flowy-mapreduce}$ we investigate the possibility of making
+Flowy Map/Reduce aware. The chapter starts off with a discussion of current
+Map/Reduce frameworks and looks into the ways to help parallelize Flowy.
 
-In chapter $\ref{ch:flowy-2}$ and $\ref{ch:f}$ we look into the first attempt to make Flowy comparable with the state-of-the-art flow-analysis tools. After drilling down the performance hit sections of the code, we witness how getting away with PyTables and rewriting the complete core implementation in C helped make the tool eventually usable. We end by examining the recommended approach to glue the two implementations together to bring the best of both worlds.
+In chapter $\ref{ch:flowy-2}$ and $\ref{ch:f}$ we look into the first attempt
+to make Flowy comparable with the state-of-the-art flow-analysis tools. After
+drilling down the performance hit sections of the code, we witness how getting
+away with PyTables and rewriting the complete core implementation in C helped
+make the tool eventually usable. We end by examining the recommended approach
+to glue the two implementations together to bring the best of both worlds.
 
-We conclude this discussion in chapter $\ref{ch:flowy-applications}$ by introducing a number of real-life application scenarios where Flowy has proved useful. We also looked into a few current bleeding edge research projects where we believe Flowy could play a vital role in the near future.
+We conclude this discussion in chapter $\ref{ch:flowy-applications}$ by
+introducing a number of real-life application scenarios where Flowy has proved
+useful. We also looked into a few current bleeding edge research projects
+where we believe Flowy could play a vital role in the near future.

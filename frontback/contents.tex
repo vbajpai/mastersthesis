@@ -8,7 +8,7 @@
 \setcounter{secnumdepth}{3} % <-- 3 numbers up to subsubsections
 \manualmark
 \markboth{\spacedlowsmallcaps{\contentsname}}{\spacedlowsmallcaps{\contentsname}}
-\tableofcontents 
+\tableofcontents
 \automark[section]{chapter}
 \renewcommand{\chaptermark}[1]{\markboth{\spacedlowsmallcaps{#1}}{\spacedlowsmallcaps{#1}}}
 \renewcommand{\sectionmark}[1]{\markright{\thesection\enspace\spacedlowsmallcaps{#1}}}
@@ -16,51 +16,53 @@
 % List of Figures and of the Tables
 %*******************************************************
 % \clearpage
-\vspace{90pt}
+% \vspace{90pt}
 
-\begingroup 
+\begingroup
     \let\clearpage\relax
     \let\cleardoublepage\relax
     \let\cleardoublepage\relax
 
+    \vspace*{4ex}
+
     %*******************************************************
     % List of Figures
-    %*******************************************************    
-    %\phantomsection 
+    %*******************************************************
+    %\phantomsection
     \refstepcounter{dummy}
     %\addcontentsline{toc}{chapter}{\listfigurename}
     \pdfbookmark[1]{\listfigurename}{lof}
     \listoffigures
 
-    \vspace*{8ex}
+    \vspace*{4ex}
 
     %*******************************************************
     % List of Tables
     %*******************************************************
-    %\phantomsection 
+    %\phantomsection
     \refstepcounter{dummy}
     %\addcontentsline{toc}{chapter}{\listtablename}
     \pdfbookmark[1]{\listtablename}{lot}
     \listoftables
-        
-    \vspace*{8ex}
-%   \newpage
-    
+
+    %\vspace*{8ex}
+    %\newpage
+
     %*******************************************************
     % List of Listings
-    %*******************************************************      
-	  %\phantomsection 
-    \refstepcounter{dummy}
+    %*******************************************************
+	  %\phantomsection
+    %\refstepcounter{dummy}
     %\addcontentsline{toc}{chapter}{\lstlistlistingname}
-    \pdfbookmark[1]{\lstlistlistingname}{lol}
-    \lstlistoflistings 
+    %\pdfbookmark[1]{\lstlistlistingname}{lol}
+    %\lstlistoflistings
 
     \vspace*{8ex}
-       
+
 	  %     %*******************************************************
 	  %     % List of TODOs
-	  %     %*******************************************************      
-	  % %\phantomsection 
+	  %     %*******************************************************
+	  % %\phantomsection
 	  %     \refstepcounter{dummy}
 	  %     \listoftodos[List of TODOs]
 

@@ -1,0 +1,36 @@
+%$F(v1)$ has been a great headstart to provide fast execution of stream-based
+%flow records. However the execution engine only hits one of the several stages
+%of the processing pipeline.
+
+This section dives deep into the implementation of the next iteration $F(v2)$
+of the \ac{NFQL} execution engine. This iteration provides a functional and
+robust implementation of the complete processing pipeline. It is flexible to
+allow runtime evaluation of \ac{NFQL} flowqueries and is backed up with
+automated builds, regression and benchmarking suites. The organization of the
+section is described below.
+
+\vspace{50pt}
+
+In chapter $\ref{ch:design}$ we begin by analyzing the current implementation
+snapshot. The analysis involves reverse-engineering the parser and the
+execution engine. This is followed by a discussion on an early visualization
+of a complete engine refactor using abstract objects and reasonings on an
+envisaged high-level execution workflow.
+
+In chapter $\ref{ch:implementation}$ we introduce the inner workings of the
+code. It begins by an explanation of how each stage is brought to life to
+result in a robust pipeline exeuction. The grouper and merger internals, being
+non-trivial are explained in more details. This is followed by an explanation
+on how the engine is engineered to make runtime query evaluation a
+possibility. The chapter concludes with a discussion on automated builds using
+\texttt{cmake} and a full-fledged regression-test suite using \texttt{python}
+scripts.
+
+In chapter $\ref{ch:performance-evaluation}$ we begin by a discussion of the
+execution engine profiling results. This is followed by how \texttt{python}
+scripts are used to completely automate the process of benchmarking the engine
+against SiLK. A number of queries are run a collection of varied-sized flow
+traces. The chapter concludes with a discussion of the evaluation graphs. We
+conclude the discussion in chapter $\ref{ch:future-work}$ by documenting the
+future work by segregating it into major goals and minor issues that need to
+be resolved to carry the implementation work forward.
