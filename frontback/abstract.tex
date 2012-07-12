@@ -10,13 +10,56 @@
 
 \chapter*{Abstract}
 
-With the long dominance of Cisco's NetFlow \cite{rfc3954} protocol and now with the emergence of \ac{IETF}'s \ac{IPFIX} \cite{rfc5101} open standard, traffic measurement practitioners have finally settled down with using \ac{IP} flow export as the de-facto technique for sending traffic patterns. These patterns have the potential to be used for billing and mediation, bandwidth provisioning, detecting malicious attacks, network performance evaluation and overall improvement. \\
+With the long dominance of Cisco's NetFlow \cite{rfc3954} protocol and now
+with the emergence of \ac{IETF}'s \ac{IPFIX} \cite{rfc5101} open standard,
+traffic measurement practitioners have finally settled down with using \ac{IP}
+flow export as the de-facto technique for sending traffic patterns. These
+patterns have the potential to be used for billing and mediation, bandwidth
+provisioning, detecting malicious attacks, network performance evaluation and
+overall improvement. \\
 
-However, making sense of these patterns calls for sophisticated flow-analysis tools that can mine them for such a usage. Unfortunately current tools fail to deliver owing to their poor language design and n\"aive filtering methods. Our research group, by going clean slate has come up with a flow-query language design \cite{vmarinov:thesis:2009} that can cap the flow-exports to full potential. The flow-query language can process flow-records, aggregate them into groups, apply absolute (or relative) filters and invoke Allen interval algebra rules \cite{fallen:1983} on these records. \\
+However, making sense of these patterns calls for sophisticated flow-analysis
+tools that can mine them for such a usage. Unfortunately current tools fail to
+deliver owing to their poor language design and n\"aive filtering methods. Our
+research group, by going clean slate has come up with the \ac{NFQL}
+\cite{vmarinov:thesis:2009} that can cap flow-exports to full potential.
+The flowquery language can process flow-records, aggregate them into groups,
+apply absolute (or relative) filters and invoke Allen interval algebra rules
+\cite{fallen:1983} on them. \\
 
-F \cite{jschauer:2012} is the prototype implementation of our in-house flow query language which has underwent significant changes in the last few years. The core of the former Python implementation \cite{kkanev:thesis:2009} has now been rewritten in C \cite{jschauer:thesis:2011} to make it comparable to the contemporary flow processing tools. However, this has disconnected the flow-query parser present in the former implementation. The two implementations have now branched off so much that both currently live in their own parallel universe. This thesis takes up the challenge to glue the better parts of both of these implementations together to create a complete package that has the full-blown functionality and exploits the best of both worlds. In the process, it is also planned to bring the implementation up to speed with bleeding edge \ac{IPFIX} support, parallelize it by making it MapReduce \cite{jdean:2004} aware and recover it from limitations learnt from the wealth of experience gained after managing the two branches for the last few years. 
+Flowy \cite{kkanev:thesis:2009} is the prototype implementation of \ac{NFQL},
+which has undergone significant changes in the last few years.  The core of
+this Python implementation is now being rewritten in C to make it comparable
+to the contemporary flow processing tools. The first major release in this
+effort, $F(v1)$ \cite{jschauer:thesis:2011} can now read the flow-records in
+memory and apply absolute filters. The absolute filters, however are only one
+amongst the five stages of the complete \ac{NFQL} processing pipeline. The
+rest of the stages either have a broken implementation or are completely
+non-existent. The flowquery used by the execution engine to filter the traces
+is also hardcoded in pipeline structs. \\
 
+This thesis extends $F(v1)$ to provide a complete usable implementation of
+\ac{NFQL} with \emph{functional} pipeline stages. The execution engine has
+been completely refactored with a maintainable design and profiled to
+eliminate any memory leaks. The stages are \emph{robust} to work well with
+variety of \ac{NFQL} queries. The flowqueries are no longer hardcoded in the
+pipeline structs, but rather the engine is \emph{flexible} enough to read and
+parse them at runtime using the \texttt{JSON} intermediate format. $F(v2)$ is
+also \emph{portable} with automated builds using \texttt{cmake} and is
+\emph{verifiable} using a full-fledged regression test-suite. An automated
+benchmarking suite enables the conducted performance evaluations to be
+repeatable.
 
+%However, this has disconnected the flow-query parser present
+%in the former implementation. The two implementations have now branched off so
+%much that both currently live in their own parallel universe. This thesis
+%takes up the challenge to glue the better parts of both of these
+%implementations together to create a complete package that has the full-blown
+%functionality and exploits the best of both worlds. In the process, it is also
+%planned to bring the implementation up to speed with bleeding edge \ac{IPFIX}
+%support, parallelize it by making it MapReduce \cite{jdean:2004} aware and
+%recover it from limitations learnt from the wealth of experience gained after
+%managing the two branches for the last few years.
 
-\endgroup			
+\endgroup
 \vfill
