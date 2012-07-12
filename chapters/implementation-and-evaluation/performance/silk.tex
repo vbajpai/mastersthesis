@@ -27,7 +27,7 @@ shown in figure \ref{fig:dns-mdns-udp}.
         rulesepcolor=\color{black}, label=lst:silk-mdns-dns-udp,
         aboveskip=20pt, captionpos=b, upquote=true}
 \begin{lstlisting}
-$ cat dns-udp.txt 
+$ cat dns-udp.txt
 rm -f /tmp/A.raw /tmp/B.raw /tmp/result.raw; \
 rwfilter --sport=53 --proto=17 --pass=stdout %s | \
 rwsort --fields=sIP,dIP | \

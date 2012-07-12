@@ -1,9 +1,9 @@
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{thesis-preamble}[2011/06/05 v3.0 Your Preamble and Package Loader for Classic Thesis Style]
- 
+
 \@ifpackageloaded{thesis}%
     {\PackageWarningNoLine{thesis-preamble}{Package "thesis" should be loaded AFTER "thesis-preamble".}}%
-    {\relax}%    
+    {\relax}%
 
 % ********************************************************************
 % Re-usable information
@@ -14,7 +14,7 @@
 \newcommand{\myDegree}{Masters Thesis\xspace}
 \newcommand{\myName}{Vaibhav Bajpai\xspace}
 \newcommand{\myProf}{Prof. Dr. J\"urgen Sch\"onw\"alder \xspace}
-\newcommand{\myOtherProf}{Put name here\xspace}
+\newcommand{\myOtherProf}{Dr. Heinrich Stamerjohanns\xspace}
 \newcommand{\mySupervisor}{Put name here\xspace}
 \newcommand{\myFaculty}{Computer Networks and Distributed Systems\xspace}
 \newcommand{\myDepartment}{School of Engineering and Science\xspace}
@@ -26,24 +26,24 @@
 
 % ********************************************************************
 % Configure thesis for your needs here...
-% ******************************************************************** 
+% ********************************************************************
 \PassOptionsToPackage{eulerchapternumbers,drafting,listings,%linedheaders,%pdfspacing,%listings,
 subfig,eulermath,parts, dottedtoc}{thesis}
 %*******************************************************
 % Options for thesis.sty:
 % tocaligned eulerchapternumbers drafting linedheaders listings
-% subfig nochapters beramono eulermath parts minionpro pdfspacing 
+% subfig nochapters beramono eulermath parts minionpro pdfspacing
 % dottedtoc minionprospacing manychapters floatperchapter
-%*******************************************************											
+%*******************************************************
 
 % ********************************************************************
 % LyX option override
 % ********************************************************************
-%\PassOptionsToPackage{backref}{thesis-preamble}  
+%\PassOptionsToPackage{backref}{thesis-preamble}
 
 % ********************************************************************
 % Options
-% ******************************************************************** 
+% ********************************************************************
 \RequirePackage{ifthen}
     \newboolean{cld@backref} % enable backrefs in the bibliography
 \setboolean{cld@backref}{false}
@@ -73,31 +73,31 @@ subfig,eulermath,parts, dottedtoc}{thesis}
 \PassOptionsToPackage{square,numbers}{natbib}
  \RequirePackage{natbib}				% NB: LyX likes to set natbib too, let's avoid clashes
 
-\PassOptionsToPackage{fleqn}{amsmath}		% math environments and more by the AMS 
+\PassOptionsToPackage{fleqn}{amsmath}		% math environments and more by the AMS
  \RequirePackage{amsmath}
 
 
 % ********************************************************************
 % figures are placed only within section they were declared in
 % provides command \FloatBarrier
-% ********************************************************************          
-%\PassOptionsToPackage{section,above,below}{placeins} 
+% ********************************************************************
+%\PassOptionsToPackage{section,above,below}{placeins}
 % \RequirePackage{placeins}
 
- 
-% ******************************************************************** 
+
+% ********************************************************************
 % Packages
-% ******************************************************************** 
+% ********************************************************************
 \PassOptionsToPackage{T1}{fontenc}
-	\RequirePackage{fontenc}                
+	\RequirePackage{fontenc}
 \RequirePackage{textcomp}
-%\RequirePackage[dvipsnames]{xcolor} 
+%\RequirePackage[dvipsnames]{xcolor}
 \RequirePackage{xspace} % to get the spacing after macros right
 \RequirePackage{tabularx} % better tables
 \RequirePackage{mparhack} % get marginpar right
 \RequirePackage{fixltx2e} % fixes some LaTeX stuff
-%\RequirePackage{ellipsis} % ... ;-)                  
-\RequirePackage{relsize} % scale font up or down  
+%\RequirePackage{ellipsis} % ... ;-)
+\RequirePackage{relsize} % scale font up or down
 \PassOptionsToPackage{printonlyused,smaller}{acronym}
 	\RequirePackage{acronym} % nice macros for handling all acronyms in the thesis
 %\renewcommand*{\acsfont}[1]{\textssc{#1}}
@@ -112,14 +112,14 @@ subfig,eulermath,parts, dottedtoc}{thesis}
 
 % ********************************************************************
 % Commands
-% ********************************************************************                
+% ********************************************************************
 \newcounter{dummy} % necessary for correct hyperlinks (to index, bib, etc.)
 \newcommand{\longpage}{\enlargethispage{3\baselineskip}}
 \newcommand{\medpage}{\enlargethispage{2\baselineskip}}
 \newcommand{\shortpage}{\enlargethispage{\baselineskip}}
 \newcommand{\concskip}{\medskip}
-\newcommand{\myPrimRef}[1]{\textit{#1}} % how primary index entries will be marked 
-% ******************************************************************** 
+\newcommand{\myPrimRef}[1]{\textit{#1}} % how primary index entries will be marked
+% ********************************************************************
 \newcommand{\ie}{i.\,e.}
 \newcommand{\Ie}{I.\,e.}
 \newcommand{\eg}{e.\,g.}
@@ -127,7 +127,7 @@ subfig,eulermath,parts, dottedtoc}{thesis}
 \newcommand{\etAl}{et al.\xspace}
 \newcommand{\twod}{2\textsc{d}\xspace}
 \newcommand{\threed}{3\textsc{d}\xspace}
-% ******************************************************************** 
+% ********************************************************************
 \newcommand{\system}[1]{\emph{#1}}
 \newcommand{\person}[1]{#1}
 \newcommand{\term}[1]{\emph{#1}}
@@ -137,7 +137,7 @@ subfig,eulermath,parts, dottedtoc}{thesis}
     }{\PackageWarningNoLine{thesis-preamble}{Package "natbib" not loaded, %
         command "cauthor" will not work.}}
 \newcommand{\tableheadline}[1]{\multicolumn{1}{c}{\spacedlowsmallcaps{#1}}}
-% ******************************************************************** 
+% ********************************************************************
 \newcommand{\RA}{\ensuremath{\Rightarrow}}
 \newcommand{\ra}{\ensuremath{\rightarrow}}
 \newcommand{\lra}{\ensuremath{\leftrightarrow}}
@@ -154,21 +154,21 @@ subfig,eulermath,parts, dottedtoc}{thesis}
 %\captionsetup[table]{skip=\medskipamount}
 
 %*******************************************************
-% hack to use citations in float environments 
+% hack to use citations in float environments
 % will be fixed with caption package version 3.2
 %*******************************************************
-%\RequirePackage{makerobust} 
-%\makeatletter 
-%\MakeRobustCommand\caption@xref 
-%\makeatother 
+%\RequirePackage{makerobust}
+%\makeatletter
+%\MakeRobustCommand\caption@xref
+%\makeatother
 
 % ********************************************************************
 % fine typesetting of code listings
-\RequirePackage{listings} 
-    		
+\RequirePackage{listings}
+
 % ********************************************************************
 % enable subfigures in figures
-\RequirePackage{subfig}     
+\RequirePackage{subfig}
 
 % ********************************************************************
 % Using PDFLaTeX:
@@ -176,16 +176,16 @@ subfig,eulermath,parts, dottedtoc}{thesis}
 \PassOptionsToPackage{pdftex,hyperfootnotes=false,pdfpagelabels}{hyperref}
 	\RequirePackage{hyperref}  % backref linktocpage pagebackref
 \pdfcompresslevel=9
-\pdfadjustspacing=1 
+\pdfadjustspacing=1
 \PassOptionsToPackage{pdftex}{graphicx}
 	\RequirePackage{graphicx} % PDFTeX driver for graphicx
-%\DeclareGraphicsRule{*}{mps}{*}{} % enables use of MetaPost graphics with pdflatex 
+%\DeclareGraphicsRule{*}{mps}{*}{} % enables use of MetaPost graphics with pdflatex
 
 %*******************************************************
 % There are some issues regarding autorefnames
 % http://www.ureader.de/msg/136221647.aspx
 % http://www.tex.ac.uk/cgi-bin/texfaq2html?label=latexwords
-% you have to redefine the makros for the 
+% you have to redefine the makros for the
 % language you use, e.g., american, ngerman
 % (as chosen when loading babel/AtBeginDocument)
 \@ifpackageloaded{babel}%
@@ -197,20 +197,20 @@ subfig,eulermath,parts, dottedtoc}{thesis}
 					\renewcommand*{\chapterautorefname}{Chapter}%
 					\renewcommand*{\sectionautorefname}{Section}%
 					\renewcommand*{\subsectionautorefname}{Section}%
-					\renewcommand*{\subsubsectionautorefname}{Section}% 	
+					\renewcommand*{\subsubsectionautorefname}{Section}%
 				}%
-       \addto\extrasngerman{% 
+       \addto\extrasngerman{%
 					\renewcommand*{\paragraphautorefname}{Absatz}%
 					\renewcommand*{\subparagraphautorefname}{Unterabsatz}%
 					\renewcommand*{\footnoteautorefname}{Fu\"snote}%
 					\renewcommand*{\FancyVerbLineautorefname}{Zeile}%
 					\renewcommand*{\theoremautorefname}{Theorem}%
 					\renewcommand*{\appendixautorefname}{Anhang}%
-					\renewcommand*{\equationautorefname}{Gleichung}%        
+					\renewcommand*{\equationautorefname}{Gleichung}%
 					\renewcommand*{\itemautorefname}{Punkt}%
-				}%	
+				}%
 			% Fix to getting autorefs for subfigures right
-			\newcommand{\subfigureautorefname}{\figureautorefname}% 			
+			\newcommand{\subfigureautorefname}{\figureautorefname}%
     }{\relax}
 
 
@@ -228,7 +228,7 @@ subfig,eulermath,parts, dottedtoc}{thesis}
 \ifthenelse{\boolean{cld@backref}}%
 {%
 		\PassOptionsToPackage{hyperpageref}{backref}
-		\RequirePackage{backref} % to be loaded after hyperref package 
+		\RequirePackage{backref} % to be loaded after hyperref package
 		   \renewcommand{\backreftwosep}{ and~} % seperate 2 pages
 		   \renewcommand{\backreflastsep}{, and~} % seperate last of longer list
 		   \renewcommand*{\backref}[1]{}  % Disable standard
@@ -241,7 +241,7 @@ subfig,eulermath,parts, dottedtoc}{thesis}
 		         \backrefcitedmultistring{#2}%
 		      \fi}%
 }{\relax}
-   
+
 %   \hspace*{\fill}{\scriptsize\itshape\mbox{%
 %   \ifnum#1=1 %
 %     (Cited on page~%
@@ -249,7 +249,7 @@ subfig,eulermath,parts, dottedtoc}{thesis}
 %     (Cited on pages~%
 %   \fi
 %   #2)}
-%}    
+%}
 
 % ********************************************************************
 % Language/strings for backrefs (change here, thanks, Lorenzo)
@@ -281,7 +281,7 @@ subfig,eulermath,parts, dottedtoc}{thesis}
     frame=single,
     belowcaptionskip=.75\baselineskip
     %frame=L
-} 
+}
 
 % ********************************************************************
 % Hyperreferences
@@ -290,7 +290,7 @@ subfig,eulermath,parts, dottedtoc}{thesis}
 		%draft,	% = no hyperlinking at all (useful in b/w printouts)
     colorlinks=true, linktocpage=true, pdfstartpage=3, pdfstartview=FitV,%
     % uncomment the following line if you want to have black links (e.g., for printing)
-    %colorlinks=false, linktocpage=false, pdfborder={0 0 0}, pdfstartpage=3, pdfstartview=FitV,% 
+    %colorlinks=false, linktocpage=false, pdfborder={0 0 0}, pdfstartpage=3, pdfstartview=FitV,%
     breaklinks=true, pdfpagemode=UseNone, pageanchor=true, pdfpagemode=UseOutlines,%
     plainpages=false, bookmarksnumbered, bookmarksopen=true, bookmarksopenlevel=1,%
     hypertexnames=true, pdfhighlight=/O,%hyperfootnotes=true,%nesting=true,%frenchlinks,%
@@ -302,11 +302,11 @@ subfig,eulermath,parts, dottedtoc}{thesis}
     pdfkeywords={},%
     pdfcreator={pdfLaTeX},%
     pdfproducer={LaTeX with hyperref and thesis}%
-}   
+}
 
 % ********************************************************************
 % Last, but not least...
 %*******************************************************
-\RequirePackage{thesis} 
+\RequirePackage{thesis}
 
 

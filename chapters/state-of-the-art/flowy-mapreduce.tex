@@ -6,7 +6,7 @@ Flowy, although clearly setting itself apart with its additional functionality
 to query intricate patterns in the flows demonstrates relatively high
 execution times when compared to contemporary flow-processing tools. A recent
 study \cite{pnemeth:thesis:2010} revealed that a sample query run on small
-record set (around 250MB) took 19 minutes on Flowy as compared to 45 seconds
+record set (around $250$ MiB) took 19 minutes on Flowy as compared to 45 seconds
 on \texttt{flow-tools}. It, therefore is imperative that the application will
 benefit from distributed and parallel processing. To this end, recent efforts
 were made to investigate possibility of making Flowy Map/Reduce aware
@@ -14,54 +14,129 @@ were made to investigate possibility of making Flowy Map/Reduce aware
 
 \section{Map/Reduce Frameworks}\label{sec:map-reduce}
 
-Map/Reduce is a programming model for processing large data sets by automatically parallelizing the computation across large-scale clusters of machines \cite{jdean:2004}. It defines an abstraction scheme where the users specify the computation in terms of a \texttt{map} and \texttt{reduce} function and the underlying systems hides away the intricate details of parallelization, fault tolerance, data distribution and load balancing behind an \ac{API}.
+Map/Reduce is a programming model for processing large data sets by
+automatically parallelizing the computation across large-scale clusters of
+machines \cite{jdean:2004}. It defines an abstraction scheme where the users
+specify the computation in terms of a \texttt{map} and \texttt{reduce}
+function and the underlying systems hides away the intricate details of
+parallelization, fault tolerance, data distribution and load balancing behind
+an \ac{API}.
 
-\subsection{Apache Hadoop}\label{subsec:hadoop}
-Apache Hadoop is a Map/Reduce Framework written in Java that exposes a simple programming API to distribute large scale processing across clusters of computers \cite{twhite:hadoop:2010}. However in order to make Flowy play well with the framework, the implementation either has to use a Python wrapper around the Java \ac{API} or translate the complete implementation to Java through Jython. Even more since Flowy uses \ac{HDF} files for it's I/O processing, staging the \ac{HDF} files properly in the \ac{HDFS} \cite{kshvachko:2010} and then later streaming them using Hadoop Streaming utility would still be an issue as suggested in \cite{pnemeth:thesis:2010}
-	
-\subsection{The Disco Project}\label{subsec:disco}
-Disco is a distributed computing platform using the Map/Reduce framework for large-scale data intensive applications \cite{pmundkur:2011}. The core of the platform is written in Erlang and the standard library to interface with the core is written in Python. Since the \texttt{map} and \texttt{reduce} jobs can be easily written as Python functions and dispatched to the worker threads in a pre-packaged format, it is less difficult to setup Disco to utilize Flowy as a \texttt{map} function. In addition, the usage of \ac{HDF} files for I/O processing pose no additional modifications whatsoever since the input data files can be anywhere and supplied to the worker threads in absolute paths.
+Apache Hadoop \cite{twhite:hadoop:2010} is a Map/Reduce Framework written in
+Java that exposes a simple programming API to distribute large scale
+processing across clusters of computers.  However in order to make Flowy play
+well with the framework, the implementation either has to use a Python wrapper
+around \marginpar{apache hadoop} the Java \ac{API} or translate the complete
+implementation to Java through Jython. Even more since Flowy uses \ac{HDF}
+files for it's I/O processing, staging the \ac{HDF} files properly in the
+\ac{HDFS} \cite{kshvachko:2010} and then later streaming them using Hadoop
+Streaming utility would still be an issue as suggested in
+\cite{pnemeth:thesis:2010}
+
+Disco \cite{pmundkur:2011} is a distributed computing platform using the
+Map/Reduce framework for large-scale data intensive applications. The core of
+the platform is written in Erlang and the standard library to interface with
+the core is written in Python. Since the \texttt{map} and \texttt{reduce} jobs
+can be easily \marginpar{the disco project} written as Python functions and
+dispatched to the worker threads in a pre-packaged format, it is less
+difficult to setup Disco to utilize Flowy as a \texttt{map} function. In
+addition, the usage of \ac{HDF} files for I/O processing pose no additional
+modifications whatsoever since the input data files can be anywhere and
+supplied to the worker threads in absolute paths.
+
 
 \section{Parallelizing Flowy}\label{sec:parallel-flowy}
 \begin{figure}[h!]
 \begin{center}
-  \includegraphics* [width=1.0\linewidth]{figures/flowy-mapreduce}	
+  \includegraphics* [width=0.7\linewidth]{figures/flowy-mapreduce}
   \caption{Parallelizing Flowy using Map/Reduce \cite{pnemeth:thesis:2010}}
   \label{fig:flowy-mapreduce}
 \end{center}
 \end{figure}
-In an attempt to parallelize Flowy, it was run as a map function on a successful single node Disco installation as shown in \ref{fig:flowy-mapreduce}. Although the setup on a multiple node cluster would be theoretically almost equivalent, Flowy has not yet been tested in such a scenario.
-	
-\subsection{Slicing Inputs}\label{subsec:slice-input}
-When running several instances of Flowy, it is imperative to effectively slice the input flow-records data in such a way so as to minimize the redundancy in distribution of input. To achieve this, the semantics of the flow-query needs to be examined from the simplest to the most complex cases. However, it is also important to realize that as of now it is not possible to \emph{leave} out any stage in the Flowy's processing pipeline and the following examination was based on such an assumption.
 
-\subsubsection{Using \emph{only} Filters}\label{subsec:filters-only}
-A flow query that involves only the filtering stage of the processing pipeline can slice its input flow data by either adding explicit export timestamps to allow each branch to skip records or separate out the input flow data into multiple input files for each branch.
+In an attempt to parallelize Flowy, it was run as a map function on a
+successful single node Disco installation as shown in
+\ref{fig:flowy-mapreduce}. Although the setup on a multiple node cluster would
+be theoretically almost equivalent, Flowy has not yet been tested in such a
+scenario.
 
-\subsubsection{Using Groupers}\label{subsec:using-groupers}
-A flow query that also involves groupers and group-filters cannot use static slice boundaries since the grouping rules can be either absolute or relative. As a result, Flowy needs to be made aware of slice boundaries by passing the timestamps as command line parameters. In such a scenario, each branch will skip the pre-slices, whereby the actual slices and the post-slices will be processed to create relevant groups as shown in figure \ref{fig:flowy-grouper-slices}. It is advisable to slice the flow-records at low traffic spots to avoid the risk of cutting the records belonging to the same group.
+When running several instances of Flowy, it is imperative to effectively slice
+the input flow-records data in such a way so as to minimize the redundancy in
+distribution of input. To achieve this, the semantics of the flow-query needs
+to be examined from the simplest to the most complex cases. However, it is
+also important to realize that as of now it is not possible to \emph{leave}
+out any stage in the Flowy's processing pipeline and the following examination
+was based on such an assumption.
+
+A flow query that involves only the filtering stage of the processing pipeline
+can \marginpar{slicing inputs using only filters} slice its input flow data by
+either adding explicit export timestamps to allow each branch to skip records
+or separate out the input flow data into multiple input files for each branch.
+
+A flow query that also involves groupers and group-filters cannot use static
+slice boundaries since the grouping rules can be either absolute or relative.
+As a result, Flowy needs to be made aware of slice boundaries by passing the
+timestamps \marginpar{slicing inputs using groupers} as command line
+parameters. In such a scenario, each branch will skip the pre-slices, whereby
+the actual slices and the post-slices will be processed to create relevant
+groups as shown in figure \ref{fig:flowy-grouper-slices}. It is advisable to
+slice the flow-records at low traffic spots to avoid the risk of cutting the
+records belonging to the same group.
+
 \begin{figure}[h!]
 \begin{center}
-  \includegraphics* [width=1.0\linewidth]{figures/flowy-grouper-slices}	
+  \includegraphics* [width=0.7\linewidth]{figures/flowy-grouper-slices}
   \caption{Slice Boundaries Aware Flowy \cite{pnemeth:thesis:2010}}
   \label{fig:flowy-grouper-slices}
 \end{center}
 \end{figure}
-The idea of skipping pre-slices and sweeping across post-slices can result in many fragmented redundant groups. These can be identified by the \texttt{reduce} function by removing the groups that are a proper subset of the previous group in the slice at the cost of additional complexity as shown in figure \ref{fig:flowy-redundant-groups}
+
+The idea of skipping pre-slices and sweeping across post-slices can result in
+many fragmented redundant groups. These can be identified by the
+\texttt{reduce} function by removing the groups that are a proper subset of
+the previous group in the slice at the cost of additional complexity as shown
+in figure \ref{fig:flowy-redundant-groups}
+
 \begin{figure}[h!]
 \begin{center}
-  \includegraphics* [width=1.0\linewidth]{figures/flowy-redundant-groups}	
+  \includegraphics* [width=0.7\linewidth]{figures/flowy-redundant-groups}
   \caption{Flowy: Redundant Groups \cite{pnemeth:thesis:2010}}
   \label{fig:flowy-redundant-groups}
 \end{center}
 \end{figure}
 
-\subsubsection{Using Mergers}\label{subsec:using-mergers}
-The relative dependency in the merger stage of the pipeline is even worse, since the comparison needs to take place between groups resulting from the output of separate \texttt{map} functions. This calls for inhibiting parallelism up to and including the group-filter stage. As a result each worker thread would return back its filtered groups to the master node, which then would apply the rules of the merger stage to all the received groups at once in a \texttt{reduce} function. In such a scenario, although the branch with the longest runtime complexity will become the bottleneck for the merger, the overall runtime would still be dramatically reduced when the number of branches are large as suggested in \cite{jschauer:2012}
+The relative dependency in the merger stage of the pipeline is even worse,
+since the comparison needs to take place between groups resulting from the
+output of separate \texttt{map} functions. This calls for inhibiting
+parallelism up to and including the group-filter stage. As a result each
+worker thread would return back its filtered groups to the master node, which
+then \marignpar{slicing inputs using mergers} would apply the rules of the
+merger stage to all the received groups at once in a \texttt{reduce} function.
+In such a scenario, although the branch with the longest runtime complexity
+will become the bottleneck for the merger, the overall runtime would still be
+dramatically reduced when the number of branches are large as suggested in
+\cite{jschauer:2012}
 
-\subsection{Flowy as a Map Function}\label{subsec:flowy-map}
-A Disco job function is created that contains the \texttt{map}/\texttt{reduce} function definitions and a location of an input file of flow-records data. A \texttt{sliceIt(...)} function within a newly defined \texttt{sliceFileCreator} module is used to create the input file. The function takes a \ac{HDF} file and number of worker threads as input and writes out the slices in the input file by equally dividing \ac{HDF} timespan by the number of worker threads. 
 
-In this way, the input file gets slice times for each worker thread in a separate line, which the Disco job function eventually reads to spawn a new \texttt{map} function with the slice times passed as arguments. The \texttt{map} function then starts an instance of Flowy and passes the slice times and the \ac{HDF} file as command line parameters for processing. 
+A Disco job function is created that contains the \texttt{map}/\texttt{reduce}
+function definitions and a location of an input file of flow-records data. A
+\texttt{sliceIt(...)} function within a newly defined
+\texttt{sliceFileCreator} module \marginpar{flowy as a map function} is used
+to create the input file. The function takes a \ac{HDF} file and number of
+worker threads as input and writes out the slices in the input file by equally
+dividing \ac{HDF} timespan by the number of worker threads.
 
-This required modification to the \texttt{flowy\_exec} module to add support for extra parameters. The filter stage of the pipeline was modified to allow for skipping of the pre-slices in the flow-records data. The grouper stage was modified as well to restrict creation of new groups that do \emph{not} fall within the passed slice boundaries. However, the modification of the \texttt{reduce} function to work with the files pushed out by each Flowy instance of the \texttt{map} function to merge groups from each branch and eliminate duplicate records is left open. 
+In this way, the input file gets slice times for each worker thread in a
+separate line, which the Disco job function eventually reads to spawn a new
+\texttt{map} function with the slice times passed as arguments. The
+\texttt{map} function then starts an instance of Flowy and passes the slice
+times and the \ac{HDF} file as command line parameters for processing.
+
+This required modification to the \texttt{flowy\_exec} module to add support
+for extra parameters. The filter stage of the pipeline was modified to allow
+for skipping of the pre-slices in the flow-records data. The grouper stage was
+modified as well to restrict creation of new groups that do \emph{not} fall
+within the passed slice boundaries. However, the modification of the
+\texttt{reduce} function to work with the files pushed out by each Flowy
+instance of the \texttt{map} function to merge groups from each branch and
+eliminate duplicate records is left open.
