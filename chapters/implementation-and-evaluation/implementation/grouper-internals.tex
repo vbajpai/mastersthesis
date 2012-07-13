@@ -1,44 +1,34 @@
-A typical grouper module is shown listing \ref{lst:fv2-grouper-module}. In
-order to be able to make comparisons on field offsets, the grouper initially
-creates a copy of the pointers in the filtered recordset. A n\"aive approach
-is to linearly walk through \marginpar{possible grouping approaches} all the
-pointers against each pointer in the copy leading to a complexity of $O(n^2)$.
-A smarter approach is to put the copy in a hash table and then try to map each
-pointer while walking down the recordset once, leading to a complexity of
-$O(n)$. The hash table approach, although will work on this specific example,
-will fail badly on other relative comparisons.
+In order to be able to make comparisons on field offsets, the grouper
+initially creates a copy of the pointers in the filtered recordset. A n\"aive
+approach is to linearly walk through all the pointers against each pointer in
+the copy leading to a complexity of $O(n^2)$, where $n$ is the number of flow
+records. A smarter approach is to put the copy in a hash table and then try to
+map each pointer while walking down the recordset once, leading to a
+complexity of $O(n)$. The hash table approach, although will work on this
+specific example, will fail badly on other relative comparisons. The F$(v1)$
+\marginpar{functional grouping using qsort and bsearch} execution engine
+\cite{jschauer:thesis:2011} formulates an approach to grouping records using a
+binary search after a quick sort on the field offset of the first grouping
+rule of each record in the filtered recordset. This helps the grouper perform
+faster search lookups to find records that must group together in $O(n*lg(k))$
+time with a preprocessing step taking $O(n*lg(n)) + O(n)$ in the worst case,
+where $n$ is the number of flow records and $k$ is the number of unique flow
+records that passed the filter.  The implementation of this idea was broken
+and used to segfault at multiple steps within the grouping stage.  $F(v2)$
+introduces a completely functional implementation of this approach that does
+not incorporate any assumptions on the type of field offsets and is robust
+enough to work with different types of grouping queries.
 
-\lstset{caption=F$(v2)$: Grouper Module,
-				tabsize=2, language=bash, numbers=left,stepnumber=1,
-        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
-        keywordstyle=\color{blue}, frame=shadowbox,
-        rulesepcolor=\color{black}, label=lst:fv2-grouper-module,
-        aboveskip=20pt, captionpos=b}
-\begin{lstlisting}
-grouper g1 {
-  srcIP = srcIP
-  dstIP = dstIP
-}
-\end{lstlisting}
+The approach of grouping records using \texttt{qsort} and \texttt{bsearch}
+definitely is an improvement. However, it appears having an actual binary
+search tree would benefit more, whereby one of the recordset will be traversed
+sequentially in $O(n)$ time and for each record, the comparison will be
+performed by tree lookups in $O(log(n))$ time bringing down the complexity to
+$O(nlog(n))$ and is a future action item. In \marginpar{using search trees and
+hash tables} addition, it would be best if the engine can figure out the
+type of the relative comparison to trigger a hash table lookup for equality
+comparisons to bring down the complexity to $O(n)$ for this specific case.
 
-It is clear that a middle ground compromise was needed. As a result, using a
-binary search after a quick sort on the filtered recordset was thought out. To
-achieve this, the array of pointers to the copy were sorted according to the
-offset \marginpar{using quick sort and binary search} on the right side of the
-comparsion of the first grouping rule. Such a sorted array of pointers was
-then traversed linearly to find unique values.  This helped the grouper
-perform binary searches to find records that would group together. The
-preprocessing step takes $O(n*lg(n)) + O(n)$ in the worst case, with a
-$O(n*lg(k))$ for binary search on the entire recordset.
-
-However, it appears having an actual search tree would benefit more, whereby
-one of the recordset will be traversed sequentially in $O(n)$ time and for
-each record, the comparison will be performed by tree \marginpar{using search
-trees and hash tables} lookups in $O(log(n))$ time bringing down the
-complexity to $O(nlog(n))$ and is a future action item. In addition, it would
-be best if the engine can figure out the type of the relative comparison to
-trigger a hash table lookup for equality comparisons to bring down the
-complexity to $O(n)$ for this specific case.
 
 \lstset{caption=F$(v2)$: qsort\_r Invocation,
 				tabsize=2, language=C, numbers=left,stepnumber=1,

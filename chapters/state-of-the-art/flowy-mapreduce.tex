@@ -120,11 +120,11 @@ dramatically reduced when the number of branches are large as suggested in
 
 A Disco job function is created that contains the \texttt{map}/\texttt{reduce}
 function definitions and a location of an input file of flow-records data. A
-\texttt{sliceIt(...)} function within a newly defined
-\texttt{sliceFileCreator} module \marginpar{flowy as a map function} is used
-to create the input file. The function takes a \ac{HDF} file and number of
-worker threads as input and writes out the slices in the input file by equally
-dividing \ac{HDF} timespan by the number of worker threads.
+\texttt{sliceIt(...)} function \marginpar{flowy as a map function} within a
+newly defined \texttt{sliceFileCreator} module is used to create the input
+file. The function takes a \ac{HDF} file and number of worker threads as input
+and writes out the slices in the input file by equally dividing \ac{HDF}
+timespan by the number of worker threads.
 
 In this way, the input file gets slice times for each worker thread in a
 separate line, which the Disco job function eventually reads to spawn a new

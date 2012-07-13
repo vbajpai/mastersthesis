@@ -1,15 +1,15 @@
 %**************************************
-\chapter{Flowy $2.0$}\label{ch:flowy-2}
+\chapter{F $(v1)$}\label{ch:flowy-2}
 %**************************************
 
-In an attempt to make the first prototype implementation of Flowy comparable
-with the contemporary flow-record analysis tools, the substitution of the
-performance hit sections of the Python code was thought out. Flowy $2.0$
-\cite{jschauer:thesis:2011} is the outcome of a complete rewrite of the core
-of the prototype implementation in C making it relatively faster in orders of
-magnitude.
+In an attempt to develop a prototype implementation of \ac{NFQL} which will be
+comparable with the contemporary flow-record analysis tools, the substitution
+of the performance hit sections of the python code was thought out. Flowy
+$2.0$ \cite{jschauer:thesis:2011} is the first attempt to try rewriting the
+core of the prototype implementation in C.
 
-\section{Performance Issues}\label{sec:performance-issues}
+\section{Flowy Performance Issues}\label{sec:performance-issues}
+
 \begin{table}[h!]
 	\begin{tabular}{|c|c|c|c|c|}
 	\hline
@@ -32,7 +32,7 @@ magnitude.
 \end{table}
 
 The runtime breakup of individual stages of the processing pipeline as shown
-in \ref{tab:flowy2-profiling} reveal that the grouper and merger incur a
+in table \ref{tab:flowy2-profiling} reveal that the grouper and merger incur a
 massive performance hit. A quick \marginpar{deep nested loops} investigation
 hints towards usage of large deep nested loops in the merger with a worst-case
 $O(n^3)$ runtime complexity.
@@ -44,19 +44,20 @@ in a branch would have sufficed. Similar behavior is visible when the grouper
 when passing group records saved the individual flow-records in a temporary
 location tagged with the groups and/or subgroups they belonged to.
 
-The decision decision to use PyTables to read and write flow-records in
+The decision to use PyTables to read and write flow-records in
 \ac{HDF} format also added to the complexity. Since, the input flow-records
 were most of the time \marginpar{pytables and hdf} in either
 \texttt{flow-tools} or \texttt{nfdump} file-formats, each time they had to be
 converted into \ac{HDF} file formats prior to Flowy's execution which was
 unnecessary.
 
-\section{Flowy Improvements}\label{sec:flowy-improvements}
 
-The flow-querier parser written in \ac{PLY} and the validators written for
+\section{Preliminary Improvements}\label{sec:prelim-improvements}
+
+The python parser written in \ac{PLY} and the validators written for
 each stage of the processing pipeline that check for semantics correctness
 were left unmodified, since their execution time was invariant of the size of
-the input data and slightly varying on the query complexity in itself.
+the input data and slightly varied on the query complexity.
 
 Thread affinity masks were set for each new thread created to delegate the
 thread to a separate processor core. \texttt{try/except} blocks were narrowed
@@ -74,42 +75,48 @@ delimiters which can be easily parsed by other tools. The flow query was also
 extended to allow file contents to be supplied using \texttt{stdin}. Variable
 names that are now part of Python identifiers were renamed.
 
-A C library was written to parse and read/write flow-records in
-\texttt{flow-tools} compatible format. The C library was connected to the
-Python prototype using Cython \cite{dseljebotn:2009}\cite{wilbers:2009}. This
-allowed the flow-records to be easily referenced by an \marginpar{cython to
-connect c extensions to python} identifier, thereby giving away the need to
-every time copy all the flow-records when moving ahead in the processing
-pipeline. Cython was used since it allowed to write C extensions in a Pythonic
-way by strong-typing variables, calling native C libraries and allowing usage
-of pointers and structs, thereby providing the best of both worlds
-\cite{sbehnel:2011}.
-
 A custom C library was written to directly read/write data in the
 \texttt{flow-tools} format to provide a drop-in replacement for PyTables and
 overcome the overhead of format conversions. The library sequentially reads
 the complete flow-records into memory to support random access required for
-relative filtering. \marginpar{a custom c library to replace pytables} Each
-flow-record is stored in a \texttt{char} array and the offsets to each field
-are stored in a separate \texttt{struct}. The array of such records are
-indexed allowing fast retrieval in $O(1)$ time. The C library is currently
-limited to support \emph{only} \texttt{flow-tools} formats; \texttt{nfdump}
-file formats are yet to be supported.
+relative filtering. Each flow-record is stored in a \texttt{char} array and
+the offsets to each field are stored in a separate \texttt{struct}.
+\marginpar{a custom c library to replace pytables, cython to connect the
+library to python} The array of such records are indexed allowing fast
+retrieval in $O(1)$ time.  The C library was connected to the Python prototype
+using Cython \cite{dseljebotn:2009}\cite{wilbers:2009}.  This allowed the
+flow-records to be easily referenced by an identifier, thereby giving away the
+need to every time copy all the flow-records when moving ahead in the
+processing pipeline.  Cython was used since it allowed to write C extensions
+in a Pythonic way by strong-typing variables, calling native C libraries and
+allowing usage of pointers and structs, thereby providing the best of both
+worlds \cite{sbehnel:2011}.
 
-A design decision was made to rewrite the entire processing pipeline in C.
-However, currently the core cannot parse the flow-query file, therefore the
-execution is triggered by a tedious manual filling of the \texttt{structs} by
-the contents of the query.
 
-A filter stage \texttt{struct} is shown in listing \ref{lst:filterrule}. The
-field to be filtered is indicated using a \texttt{field\_offset} and
-\texttt{field\_length} in the \texttt{char} array of a records. The value to
-be compared against with is also supplied which can be either a
-\marginpar{filter stage struct} static value or another field of a record.
-\texttt{func} is a function pointer to the operation that is to be carried out
-on a record whose record identifier is passed to it. The filter runs in $O(n)$
-time as it needs to traverse through all the records of the \texttt{char}
-array.
+%The current core implementation also strictly adheres to the processing
+%pipeline shown in figure \ref{fig:flowy-pipeline}. As such, it is not
+%currently possible to skip \marginpar{core limitations} stages. In addition it
+%is not currently possible to have more than one merger or grouper in the
+%flow-query or aggregate fields in the grouper module since \texttt{char} array
+%storage is not possible.
+
+
+
+\section{Rule Interfaces}\label{sec:rule-interfaces}
+
+
+A design decision was made to attempt to rewrite the entire processing
+pipeline in C.  However, currently the core can only run absolute filters and
+cannot parse the flowquery file. Therefore the execution is triggered by a
+tedious manual filling of the \texttt{struct} by the contents of the query.  A
+filter \marginpar{filter stage struct} stage \texttt{struct} is shown in
+listing \ref{lst:filterrule}. The field to be filtered is indicated using a
+\texttt{field\_offset} and \texttt{field\_length} in the \texttt{char} array
+of a records. The value to be compared against with is also supplied which can
+be either a static value or another field of a record.  \texttt{func} is a
+function pointer to the operation that is to be carried out on a record whose
+record identifier is passed to it. The filter runs in $O(n)$ time as it needs
+to traverse through all the records of the \texttt{char} array.
 
 \lstset{caption=Filter Rule Struct \cite{jschauer:thesis:2011},
 				basicstyle=\tiny\ttfamily, tabsize=2, language=C, numbers=left,
@@ -129,40 +136,94 @@ struct filter_rule {
 };
 \end{lstlisting}
 
-Similarly, a merger stage \texttt{struct} is shown in listing
-\ref{lst:mergerrrule}. \texttt{branch\{1,2\}} are branch identifiers and
-\texttt{field\{1,2\}} are the aggregated field identifers in the order of
-aggregation. \texttt{func} is a function pointer pointing to the operation to
-be carried out. The merger \marginpar{merger stage struct} runs in $O(n^k)$
-time where $k$ is the number of branches. The \texttt{char} arrays in each
-branch are disjoint since a record cannot be part of more than one group.
 
-\lstset{caption=Merger Rule Struct \cite{jschauer:thesis:2011},
-				basicstyle=\tiny\ttfamily, tabsize=2, language=C, numbers=left,
-        stepnumber=1, numberstyle=\ttfamily\color{gray},
-        keywordstyle=\color{blue}, frame=shadowbox, rulesepcolor=\color{black},
-			  label=lst:mergerrrule, aboveskip=20pt, captionpos=b}
+\section{Efficient Rule Processing}\label{sec:efficient-rule-processing}
+
+The comparison operations, previously were required to make costly checks on
+the length of the field type passed to them, to be able to make appropriate
+casts. Such checks are now no longer needed. F $(v1)$ now allows filtering of
+records via two methods: using specialized comparison functions or using one
+main fall through \texttt{switch} statement. The implementation defaults to
+using specialized comparison functions to encourage modularity in source code.
+
+\lstset{caption=Auto Generated Comparison Functions \cite{jschauer:2012},
+				tabsize=2, language=C, numbers=left,stepnumber=1,
+				numberstyle=\ttfamily\color{gray}, keywordstyle=\color{blue},
+				frame=shadowbox, rulesepcolor=\color{black},
+			  label=lst:autocompfunc, aboveskip=20pt, captionpos=b}
 \begin{lstlisting}
-struct merger_rule {
-	size_t branch1;
-	size_t field1;
-	size_t branch2;
-	size_t field2;
-	uint64_t delta;
-	bool (*func)(struct group *group1,
-		size_t field1,
-		struct group *group2,
-		size_t field2,
-		uint64_t delta);
-};
+bool filter_eq_uint8_t(...);
+bool filter_eq_uint16_t(...);
+...
 \end{lstlisting}
 
-The current core implementation also strictly adheres to the processing
-pipeline shown in figure \ref{fig:flowy-pipeline}. As such, it is not
-currently possible to skip \marginpar{core limitations} stages. In addition it
-is not currently possible to have more than one merger or grouper in the
-flow-query or aggregate fields in the grouper module since \texttt{char} array
-storage is not possible.
+In the default method, there is a comparison function defined for every
+possible field length $(33)$ and comparison operations $(19)$. These functions
+are generated using a Python script
+\footnote{\texttt{scripts/generate-functions.py}} and are declared/defined in
+\texttt{auto\_comps.\{h,c\}} as shown in listing $\ref{lst:autocompfunc}$. The
+rule definitions are now able to make calls \marginpar{using function pointers
+and switch cases} using a function name derived from the combination of field
+length, delta type and operation. This subverts the need to define complex
+branching statements and reduces complexity. In the other method, the logic is
+executed by comparing the field length and the operation by falling through a
+huge switch statement.  Such a huge switch statement is again generated using
+the same Python script and is defined in \texttt{auto\_switch.c} as shown in
+listing $\ref{lst:autoswitch}$.
+
+
+\lstset{caption=Auto Generated Switch Statement \cite{jschauer:2012},
+				tabsize=2, language=C, numbers=left,stepnumber=1,
+				numberstyle=\ttfamily\color{gray}, keywordstyle=\color{blue},
+				frame=shadowbox, rulesepcolor=\color{black},
+			  label=lst:autoswitch, aboveskip=20pt, captionpos=b}
+\begin{lstlisting}
+switch (group_modules[k].op) {
+  case RULE_EQ | RULE_S1_8 | RULE_S2_8 | RULE_ABS:
+  case RULE_EQ | RULE_S1_8 | RULE_S2_8 | RULE_REL:
+  ...
+\end{lstlisting}
+
+
+
+
+
+\section{Faster Grouping Approach}\label{sec:faster-grouper}
+A typical grouper module is shown listing \ref{lst:fv2-grouper-module}. In
+order to be able to make comparisons on field offsets, the grouper initially
+creates a copy of the pointers in the filtered recordset. A n\"aive approach
+is to linearly walk through \marginpar{possible grouping approaches} all the
+pointers against each pointer in the copy leading to a complexity of $O(n^2)$.
+A smarter approach is to put the copy in a hash table and then try to map each
+pointer while walking down the recordset once, leading to a complexity of
+$O(n)$. The hash table approach, although will work on this specific example,
+will fail badly on other relative comparisons.
+
+\lstset{caption=A Grouper Module,
+				tabsize=2, language=bash, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:fv2-grouper-module,
+        aboveskip=20pt, captionpos=b}
+\begin{lstlisting}
+grouper g1 {
+  srcIP = srcIP
+  dstIP = dstIP
+}
+\end{lstlisting}
+
+It is clear that a middle ground compromise was needed. As a result, using a
+binary search after a quick sort on the filtered recordset was thought out. To
+achieve this, the array of pointers to the copy are sorted according to the
+offset on the right side of the comparsion of the first grouping rule.
+\marginpar{using quick sort and binary search} Such a sorted array of pointers
+is then traversed linearly to find unique values. This helps the grouper
+perform binary searches to find records that will eventually group together.
+The preprocessing step takes $O(n*lg(n)) + O(n)$ in the worst case, with a
+$O(n*lg(k))$ for binary search on the entire recordset. The implementation of
+this idea is currently broken and segfaults at multiple stages. In essence,
+this approach is not currently used in practise and quite some effort is
+needed to bring it to life.
 
 
 \section{Benchmarks}\label{sec:benchmarks}
@@ -171,7 +232,7 @@ storage is not possible.
 	\begin{center}
 		\begin{tabular}{|c|c|c|}
 		\hline
-		Number of records & Flowy & Flowy $2.0$ \\
+		Number of records & Flowy & F $(v1)$ \\
 		\hline
 		\hline
 		$103k$ & $1177s$ & $0.3s$\\
@@ -186,83 +247,35 @@ storage is not possible.
 		\hline
 		\end{tabular}
 	\end{center}
-\caption{Flowy vs Flowy2 \cite{jschauer:thesis:2011}}
+\caption{Flowy vs $F (v1)$ \cite{jschauer:thesis:2011}}
 \label{tab:flowy2-benchmarks}
 \end{table}
 
-A flow query with the union aggregations stripped off was used as a sample to
-compare the runtime performance of Flowy \cite{kkanev:thesis:2009} with Flowy
-$2.0$ \marginpar{flowy 2.0 vs flowy} \cite{jschauer:thesis:2011}. The
-benchmarks are shown in figure \ref{tab:flowy2-benchmarks}. It is conspicuous
-how well the replacement of the core algorithms from Python to C turned out to
-be.
+The benchmarks in table \ref{tab:flowy2-benchmarks} show the relative
+comparison of Flowy \cite{kkanev:thesis:2009} with F $(v1)$
+\cite{jschauer:thesis:2011}. As the author appropriately points out, an
+accurate comparison of Flowy with F $v1$ cannot be done accurately, since, the
+the C execution engine \marginpar{vs flowy} lacks many feature-set and
+pipeline stages. However, running a common flow query that can be run on both
+the implementations was used and it was not surprising that F $(v1)$ was in
+orders of magnitude faster in comparison.
 
-In another test, Flowy $2.0$'s functionality was reduced to absolute filtering
-\marginpar{flowy 2.0 vs flow-tools} to compare its performance with a
-state-of-the-art \texttt{flow-tools} analysis tool using
-listing \ref{lst:flowy2vflowtools}. It turned out Flowy $2.0$ performed just as
-comparable if not better on an average.
-
-\lstset{caption=Flowy2 vs \texttt{flow-tools} \cite{jschauer:thesis:2011},
-				basicstyle=\tiny\ttfamily, tabsize=2, keywordstyle=\color{blue},
-        language=bash, frame=shadowbox, rulesepcolor=\color{black},
-			  label=lst:flowy2vflowtools, aboveskip=20pt, captionpos=b,
-				moredelim=[s][\ttfamily]{"}{"}}
+\lstset{caption=F$(v1)$ vs {\texttt{flow-tools, nfdump}} \cite{jschauer:2012},
+				tabsize=2, language=C, numbers=left,stepnumber=1,
+				numberstyle=\ttfamily\color{gray}, keywordstyle=\color{blue},
+				frame=shadowbox, rulesepcolor=\color{black},
+			  label=lst:f-benchmark-queries, aboveskip=20pt, captionpos=b}
 \begin{lstlisting}
-$ time sh -c "flow-cat traces | flow-filter -P80"
-$ time sh -c "flow-cat traces | ./flowy"
+src port 80
+src port 80 or dst port 25
+src port 443 or (src port 80 and dst port 25)
 \end{lstlisting}
 
-
-\section{Future Outlook}\label{sec:flowy2-future}
-
-In a follow up to a commendable effort in making the Flowy prototype
-drastically improve by orders of magnitude, the author in
-\cite{jschauer:thesis:2011} has suggested numerous areas of improvement to
-make the software fully functional again.
-
-The Python prototype is currently left unused. The idea is at this stage is to
-allow the Python prototype to parse and validate the flow query file which in
-turn would pass the contents to a Cython wrapper which on the fly will forward
-them \marginpar{system integration} to the core to properly fill in the
-structs. At this point, the C core will process the query pipeline and
-eventually forward back the results to the Python prototype which it can use
-to display the results in a human friendly format.
-
-The benchmarks performed in \cite{jschauer:thesis:2011} had a complexity of
-$O(n^2)$ for the grouper and merger. This was when the number of branches in
-the pipeline was reduced to maximum of $2$ and the flow-query had a single
-module for both the merger and grouper. With the current implementation, this
-complexity is deemed to increase exponentially as the number of records,
-branches and the grouper, merger modules in the flow-query increase.
-\marginpar{searching with trees} Therefore, having a search tree lookup for
-the grouper and merger stage would help bring the runtime costs down, whereby
-one of the fields will be traversed sequentially in $O(n)$ time and for each
-field comparison will be performed by search tree lookups in $O(log(n))$ time
-bringing down the complexity to $O(nlog(n))$. B+trees would essentially work
-in this case, since records can still be traversed sequentially along a list
-after a search tree lookup.
-
-The comparison operations are currently passed an offset and the length of the
-field type to be compared as shown in listings \ref{lst:filterrule},
-\ref{lst:mergerrrule}. The length needs to be checked before making a cast to
-an appropriate type inside these functions. Such checks can be avoided by
-writing specialized functions for each combination of the field type $(33)$
-and supported \marginpar{specialized functions in inner loops} operations
-$(19)$ totaling to $20K$ functions. Such functions can be dynamically
-generated from the Python code and would take around $3$MiB of space in memory
-as suggested in \cite{jschauer:thesis:2011} which looks like worth the effort
-considering these functions are invoked from the innermost loops in each stage
-of the pipeline, and therefore squeezing such optimizations would go a long
-way in improving the C core.
-
-The core C implementation currently has limited multithreading. Each branch in
-the pipeline runs on a separate thread and uses affinity masks to delegate the
-thread to a separate processor core. However, this implies that merger and
-ungrouper stages still remain single-threaded and the multithreaded
-utilization largely depends on \marginpar{efficient multithreading} the query
-being executed. The situation can be improved by writing a \texttt{pthreads}
-wrapper that auto detects the number of available cores, creates a appropriate
-size thread pool and equally divides the tasks among the threads in the pool.
-This would also lead to increased complexity of managing mutual exclusion of
-shared memory and needs to be investigated.
+In order to evaluate how well F now performs with these added improvements,
+the authors decided to compare it with the state-of-the-art flow-processing
+tools: \marginpar{vs flow-tools and nfdump} \texttt{flow-tools}
+\cite{sromig:2000} and \texttt{nfdump} \cite{phaag:2006}. A set of $3$ queries
+involving only absolute filters was defined as shown in listing
+$\ref{lst:f-benchmark-queries}$ and evaluated on a set of $500K-10M$
+flow-records. It turned out that F $(v1)$ performed as well if not better than
+the other flow tools.

@@ -110,14 +110,13 @@ merger M {
 \end{lstlisting}
 
 Each module of the pipeline in an \ac{NFQL} query is a \ac{CNF} expression.
-All the rules of a submodule are \texttt{AND}'d together while all the submodules
-themselves are \texttt{OR}'d. The execution engine currently reads all the
+All the rules of a submodule are \texttt{AND}'d together while all the
+submodules themselves are \texttt{OR}'d. The engine currently reads all the
 rules of a stage and applies an \texttt{AND} \marginpar{multiple modules and
-or expressions} operation. The engine cannot handle submodules in a module
-that can be \texttt{OR'd} together as shown in listing
-\ref{lst:nfql-multiple-modules}. An atomic rule in a query, for instance in a
-filter module also cannot have an \texttt{OR} expression as shown in listing
-\ref{lst:nfql-or-expr}
+or expressions} operation. It cannot handle submodules in a module that can be
+\texttt{OR'd} together as shown in listing \ref{lst:nfql-multiple-modules}. An
+atomic rule in a query, for instance in a filter module also cannot have an
+\texttt{OR} expression as shown in listing \ref{lst:nfql-or-expr}
 
 \lstset{caption=\ac{NFQL}: \texttt{OR} Expressions in Atomic Rules,
 				tabsize=2, language=C, numbers=left,stepnumber=1,
