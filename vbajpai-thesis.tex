@@ -7,6 +7,9 @@
 \usepackage{datetime}
 \hypersetup{pdffitwindow=true}
 
+\usepackage[resetlabels]{multibib}
+\newcites{pub}{publications}
+
 \begin{document}
 \frenchspacing
 \raggedbottom
@@ -15,7 +18,12 @@
 \pagestyle{plain}
 
 \include{frontback/titlepage}
+\cleardoublepage
 \include{frontback/abstract}
+\cleardoublepage
+\include{frontback/publication}
+\cleardoublepage
+\include{frontback/acknowledgments}
 \pagestyle{scrheadings}
 \include{frontback/contents}
 
@@ -63,4 +71,5 @@
 \include{chapters/appendix/acronyms}
 \include{frontback/bibliography}
 \include{frontback/declaration}
+\include{frontback/colophon}
 \end{document}
