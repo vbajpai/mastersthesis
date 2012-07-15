@@ -1,18 +1,18 @@
 The bencharking suite was used to run a number of queries over a varied size
 of flow traces. The smallest trace was $500K$ flow records, going upto $10M$
-flow records with a step size of $500K$. This accounts for a week worth of
-flow data in a university environment. The suite was run on a high-end machine
-with $24$ cores of $2.5$ GHz clock speed and $18$GiB of memory. The results
-for NFQL and SiLK \footnote{detailed silk installation and usage instructions
-are available in the appendix.} \cite{SiLK} are available on the \texttt{benchmarks}
-branch of the \texttt{git} repository.
+flow records with a step size of $500K$. The suite was run on a high-end
+machine\footnote{\texttt{crystal.eecs.jacobs-university.de}} with $24$ cores
+of $2.5$ GHz clock speed and $18$GiB of memory. The results for NFQL and SiLK
+\footnote{Detailed silk installation and usage instructions are available in
+the appendix.} \cite{SiLK} are available on the \texttt{benchmarks} branch of
+the \texttt{git} repository.
 
 The first query attempts to find all the DNS (over UDP) traffic of the
-supplied trace. One of the branch, filters and groups the flow records that
-contain DNS requests, while the other holds the DNS responses. The
+supplied trace. The first branch filters and groups the flow records that
+contain DNS requests, while the other branch holds the DNS responses. The
 request-response pairs are then merged according to the endpoints and unfolded
 to \marginpar{dns and mdns request-response over udp} display the flow-record
-streams in each such pair. Such a query in SiLK \footnote{detailed
+streams in each such pair. Such a query in SiLK \footnote{Detailed
 instructions to convert flow-tools traces to silk are available in the
 appendix} can be represented by piping multiple tools together as shown in
 listing \ref{lst:silk-mdns-dns-udp}. The subsequent NFQL query is available at
@@ -65,7 +65,7 @@ https sessions over tcp} filters filter the groups to keep only those that
 generate at-least 200 packets, while the merger relates the request-response
 pairs to create a session. Each such session is then unfolded to display the
 stream of flow-records in each session. SiLK queries that tend to emulate the
-behavior of findiing HTTP (and HTTPs) sessions is shown in listing
+behavior of finding HTTP (and HTTPs) sessions is shown in listing
 \ref{lst:silk-http-https-tcp}. The comparison results are shown in figure
 \ref{fig:http-https-tcp-sessions}.
 
@@ -115,7 +115,7 @@ rwmatch --relate=1,2 --relate=2,1 /tmp/A.raw /tmp/B.raw /tmp/result.raw;
 
 The third query attempts to collect an overall statistics of the amount of
 HTTP traffic in the supplied flow trace. The two branches represent HTTP
-requests and responses. The filters in each such branch, filters in all HTTP
+requests and responses. The filters in each such branch select all HTTP
 traffic over port $80$. The result from both the branches are
 \marginpar{conglomerating http traffic} concatenated together and a sum of all
 the packets and octets is generated as a summary. In NFQL such a query is
