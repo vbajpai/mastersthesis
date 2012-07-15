@@ -166,10 +166,10 @@ No. of Groups: 1 (Aggregations)
 ...    2356654
 \end{lstlisting}
 
-Records are clubbed together into one group if no group modules are
-defined. Previously such a query used to form groups for each individual
-filtered record. \marginpar{clubbing records with no grouper rules} That
-was less useful since then it was not possible meaningful aggregations
-on all the records that passed the filter stage. Now, when the group
-modules are empty, all the filtered records are clubbed into one group
-to allow aggregations as shown in listing \ref{lst:fv2-club-example}.
+Records are clubbed together into one group if no group modules are defined.
+Previously such a query used to form groups for each individual filtered
+record. \marginpar{clubbing records with no grouper rules} That was less
+useful since then it was not possible to calculate meaningful aggregations on
+all the records that passed the filter stage. Now, when the group modules are
+empty, all the filtered records are clubbed into one group to allow
+aggregations as shown in listing \ref{lst:fv2-club-example}.

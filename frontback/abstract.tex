@@ -9,20 +9,19 @@
 \let\cleardoublepage\relax
 \chapter*{Abstract}
 
-With the long dominance of Cisco's NetFlow \cite{rfc3954} protocol and now
-with the emergence of \ac{IETF}'s \ac{IPFIX} \cite{rfc5101} open standard,
-traffic measurement practitioners have finally settled down with using \ac{IP}
-flow export as the de-facto technique for sending traffic patterns. These
-patterns have the potential to be used for billing and mediation, bandwidth
+Cisco's NetFlow protocol \cite{rfc3954} and \ac{IETF}'s \ac{IPFIX}
+\cite{rfc5101} open standard have contributed heavily in pushing \ac{IP} flow
+export as the de-facto technique for sending traffic patterns. These patterns
+have the potential to be used for billing and mediation, bandwidth
 provisioning, detecting malicious attacks, network performance evaluation and
 overall improvement. \\
 
-However, making sense of these patterns calls for sophisticated flow-analysis
+However, making sense of these patterns calls for sophisticated flow analysis
 tools that can mine them for such a usage. Unfortunately current tools fail to
-deliver owing to their poor language design and n\"aive filtering methods. Our
+deliver owing to their poor language design and na\"ive filtering methods. Our
 research group, by going clean slate has come up with the \ac{NFQL}
 \cite{vmarinov:thesis:2009} that can cap flow-exports to full potential.
-The flowquery language can process flow-records, aggregate them into groups,
+The flow query language can process flow records, aggregate them into groups,
 apply absolute (or relative) filters and invoke Allen interval algebra rules
 \cite{fallen:1983} on them. \\
 

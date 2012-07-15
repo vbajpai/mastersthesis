@@ -1,12 +1,10 @@
-SiLK \footnote{\url{http://tools.netsa.cert.org/silk/}} is a network traffic
+SiLK\footnote{\url{http://tools.netsa.cert.org/silk/}} is a network traffic
 collection and analysis tool developed and maintained by the CERT Network
-Situational Awareness Team (CERT NetSA) at Carnegie Mellon University.  Since
-SiLK is the only tool that comes even remotely closer to the functionality
-offered by the \ac{NFQL}, it was used as a reference point to compare the
-performance of the \ac{NFQL} execution engine. This section illustrates the
-instructions on how to install and use SiLK. The installation was tried on
-Debian Squeeze and is pretty straight forward as shown in listing
-\ref{lst:silk-debian}.
+Situational Awareness Team (CERT NetSA) at Carnegie Mellon University. SiLK
+was used as a reference point to compare the performance of the \ac{NFQL}
+execution engine. This section illustrates the instructions on how to install
+and use SiLK. The installation was tried on Debian Squeeze and is pretty
+straight forward as shown in listing \ref{lst:silk-debian}.
 
 \lstset{caption=SiLK Installation on Debian,
 				tabsize=2, language=bash, numbers=left,stepnumber=1,
@@ -24,15 +22,15 @@ $ sudo make install
 $ sudo ldconfig
 \end{lstlisting}
 
-SiLK design and implementation differs a lot from \ac{NFQL}. SiLK believes in
-the philosophy of a tool performing a single task well. For instance, in SiLK
-there are separate tools to perform the task of each stage of the \ac{NFQL}
-processing pipeline. The stage functionality is not full-fledged though. The
-grouping \marginpar{nfql equivalent silk tools} and merging operations can
-only be performed using an equality operator. This is assumed in the tool,
-thereby allowing it to perform optimization such as using hash tables to
-perform lookups. The usage instruction of tools that can perform (if not) an
-equivalent \ac{NFQL} stage operation is given in listing
+The design and implementation of SiLK differs a lot from \ac{NFQL}. SiLK
+believes in the philosophy of a tool performing a single task well. For
+instance, in SiLK there are separate tools to perform the task of each stage
+of the \ac{NFQL} processing pipeline. The stage functionality is not
+full-fledged though. The grouping \marginpar{nfql equivalent silk tools} and
+merging operations can only be performed using an equality operator. This is
+assumed in the tool, thereby allowing it to perform optimization such as using
+hash tables to perform lookups. The usage instruction of tools that can
+perform (if not) an equivalent \ac{NFQL} stage operation is given in listing
 \ref{lst:silk-nfql-usage}.
 
 \lstset{caption=NFQL Equivalent SiLK Tools,
@@ -61,8 +59,8 @@ $ rwmatch --relate=1,2 --relate=2,1 \
            query.rwf.gz response.rwf.gz stdout
 \end{lstlisting}
 
-There are also stringent requirements to how a flow-data needs to be organized
-before it can be piped into a tool. The grouping tool, for instance assumes
+There are also stringent requirements to how flow-data needs to be organized
+before it can be piped into a tool. The grouping tool, for instance, assumes
 that the to-be supplied input flow data is already sorted on the field column.
 These requirements made it a little cumbersome \marginpar{additional silk
 analysis and capture tools} to design a full-fledged \ac{NFQL} query. The

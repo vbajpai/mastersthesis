@@ -1,10 +1,10 @@
-SiLK uses its own proprietory format for reading flow traces. In order to be
+SiLK uses its own proprietary format for reading flow traces. In order to be
 able to perform the evaluation on the same flow traces, it was essential to
 convert the \texttt{flow-tools}
 \footnote{\url{http://www.splintered.net/sw/flow-tools/}} format trace files
-to SiLK proprietory format. The best way is to replay the original trace files
-on a \marginpar{flow-tools to nfdump} host-port combination, and let SiLK flow
-capturing daemon pick it up to save it in its proprietory format.
+to SiLK proprietary format. The best way is to replay the original trace files
+on a \marginpar{flow-tools to nfdump} host-port combination, and let SiLK's
+flow capturing daemon pick it up to save it in its proprietory format.
 Unfortunately, \texttt{flow-tools} does not have any such replay tool.
 Although, one is provided by the \texttt{nfdump}
 \footnote{\url{http://nfdump.sourceforge.net/}} package. Listing
@@ -31,10 +31,10 @@ The converted \texttt{nfdump} traces were then replayed using
 \texttt{nfreplay}. By default, the tools replays the traces to $127.0.0.1$ at
 port $9995$. A sensor configuration file was created on the other end for SiLK
 to collect the replayed data. The configuration file defines the NetFlow
-protocol used in the replay, host-port combination and defintion of internal
+protocol used in the replay, host-port combination and definition of internal
 and external \ac{IP} blocks to separate \marginpar{nfdump to silk} the
-flow-traces accordingly. SiLK' \texttt{rwflowpack} was then used to regenerate
-the traces in the proprietory format. The tool segregates the flows into
+flow-traces accordingly. SiLK's \texttt{rwflowpack} was then used to regenerate
+the traces in the proprietary format. The tool segregates the flows into
 multiple hierarchically arranged directories. Since, only the runtime analysis
 of SilK on the original query was of interest, a combination of \texttt{find}
 and \texttt{xargs} was used to flattern the directory and combine the flows

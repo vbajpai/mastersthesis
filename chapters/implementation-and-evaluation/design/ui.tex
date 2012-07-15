@@ -56,7 +56,7 @@ ERROR: ftio_init(...)
 
 With a software undergoing such a rapid pace of development, it's helpful to
 be \marginpar{backtrace on graceful exits} able to see  the inner workings of
-each stage of pipeline during a debugging lifecycle. As such, the engine
+each stage of the pipeline during a debugging lifecycle. As such, the engine
 echoes a backtrace whenever it fails gracefully as shown in listing
 \ref{lst:fv2-backtrace}.
 
@@ -85,12 +85,15 @@ BACKTRACE:
   \end{center}
 \end{figure}
 
-The engine also allows to increase the amount of echo using a number of
-verbosity levels. A specific function is designed to handle the echo of each
-stage of the pipeline as shown in figure \ref{fig:engine-verbosity}.  In its
-default state, the engine only echoes the resultant streams \marginpar{debug
-and verbosity levels} of flow records.  A debug (or \texttt{--verbose=3})
-level engine execution is shown in listing \ref{lst:fv2-debug}. In addition to
+The engine also allows to increase the amount of output generated using a
+number of verbosity levels. A specific function is designed to handle the
+output generation of each stage of the pipeline as shown in figure
+\ref{fig:engine-verbosity}.  In its default state, the engine only outputs the
+resultant streams \footnote{A \texttt{stream} is a collection of flow-records
+of a group unfolded by the ungrouper}\footnote{A \texttt{streamset} is
+collection of all the streams unfolded by the ungrouper} \marginpar{debug and
+verbosity levels} of flow records. A debug (or \texttt{--verbose=3}) level
+engine execution is shown in listing \ref{lst:fv2-debug}. In addition to
 echoing the flow (or group) records resulting from each stage, it also echoes
 the results of each intermediate stage alongwith the original trace that was
 passed to it. With \texttt{--verbose=2}, the echo of the original trace is
@@ -104,9 +107,7 @@ pruned, while intermediate results get pruned with \texttt{--verbose=1}.
 \begin{lstlisting}
 $ bin/engine tracefile queryfile --debug
 
-# mode:                 normal
-# capture hostname:     ihp.jacobs.jacobs-university.de
-...
+# capture hostname:     ihp.jacobs.jacobs-university.de ...
 
 No. of Filtered Records: ...
 No. of Sorted Records: ...

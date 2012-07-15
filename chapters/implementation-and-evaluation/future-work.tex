@@ -6,9 +6,9 @@ The C execution engine is a major leap forward to a fast and robust
 implementation of \ac{NFQL}. It is the first time when a \ac{NFQL}
 implementation can actually be used on practically sized flow traces. However
 it is far from being deemed complete. The fast-paced development is clear from
-the fact that engine's issue tracker
+the fact that the engine's issue tracker
 \footnote{\url{https://github.com/vbajpai/mthesis-src/issues}} has a $1:1$
-ratio of closed to open issues. As a resut, the future outlook of the engine
+ratio of closed to open issues. As a result, the future outlook of the engine
 is divided into major goals and minor issues that still need to be addressed.
 
 \section{Major Goals}\label{sec:major-goals}
@@ -35,18 +35,19 @@ be used by the engine to provide \ac{IPFIX} capability in the future.
 
 The python parser is currently unused. The idea at this stage is to allow the
 parser to parse and validate the flow query and generate an equivalent
-intermediate \texttt{JSON} format. This is supposed to be a preprocessing step
-performed offline. The \texttt{JSON} flowquery file can then later be supplied
-to the execution engine at runtime.  It can also be foreseen to push parts of
-the \texttt{JSON} flowquery using a RESTful interface to \marginpar{parser and
-engine convergence} multiple map/reduce jobs running the execution engine to
-completely distribute the workflow for faster processing. The first step to
-achieve such a convergence will be by pruning the processing pipeline out of
-the python implementation. The reverse engineered package and class diagrams
+intermediate \texttt{JSON} format. This is supposed to be a preprocessing
+step. The \texttt{JSON} flowquery file can then later be supplied to the
+execution engine at runtime.  It can also be foreseen to push parts of the
+\texttt{JSON} flowquery using a RESTful interface to \marginpar{a frontend
+parser} multiple map/reduce jobs running the execution engine to completely
+distribute the workflow for faster processing. The first step to achieve such
+a convergence will be by removing the processing pipeline implementation code
+out of the python framework. The reverse engineered package and class diagrams
 generated using \texttt{pyreverse} are available in \texttt{parser/docs/} and
 will help one get started with this task. The installation and usage
 instructions available in the appendix will make the convergence head start a
-breeze.
+breeze. Alternatively, it is also possible to re-implement the frontend parser
+from scratch using \texttt{LEX/YACC}.
 
 
 
@@ -60,10 +61,10 @@ passed the filter stage. Therefore, a search tree lookup would help bring the
 runtime costs down, whereby \marginpar{search tree and hash table lookups} one
 of the fields will be traversed sequentially in $O(n)$ time and for each
 field, a comparison will be performed by search tree lookups in $O(log(n))$
-time bringing down the overall complexity to $O(nlog(n))$. In addition,
-letting the execution engine override the search tree lookups by hash table
-lookups for equality operators will further bring down the runtime to $O(n)$
-for this specific case.
+time bringing down the overall complexity of both merger and grouper to
+$O(nlog(n))$ respectively. In addition, letting the execution engine override
+the search tree lookups by hash table lookups for equality operators will
+further bring down the runtime to $O(n)$ for this specific case.
 
 
 
@@ -71,16 +72,14 @@ for this specific case.
 
 The execution engine currently has limited multithreading. Each branch in the
 pipeline runs on a separate thread. However, this implies that the merger and
-ungrouper stages still remain single-threaded. The merger stage in the
-processing pipeline is currently the most computationlly intensive operation
-with an exponential runtime complexity \marginpar{efficient multithreading} of
-$O(n^m)$ for $n$ flow records and $m$ branches. It is possible to handle the
-merger' outermost branch loop using multiple threads in a non-blocking fashion
-to improve performance. The situation can further be improved by writing a
-\texttt{pthreads} wrapper that auto detects the number of available cores,
-creates a appropriate size thread pool and equally divides the tasks among the
-threads. This would also lead to an increased complexity of managing mutual
--exclusion of shared memory, but the performance gains will go a long way.
+ungrouper stages still remain single-threaded. It is possible to handle the
+merger's outermost branch loop using multiple threads in a non-blocking
+fashion to improve performance \marginpar{efficient multithreading}, or by
+writing a \texttt{pthreads} wrapper that auto detects the number of available
+cores, creates a appropriate size thread pool and equally divides the tasks
+among the threads. This would also lead to an increased complexity of managing
+mutual-exclusion of shared memory, but the performance gains will go a long
+way.
 
 
 
@@ -112,11 +111,12 @@ merger M {
 Each module of the pipeline in an \ac{NFQL} query is a \ac{CNF} expression.
 All the rules of a submodule are \texttt{AND}'d together while all the
 submodules themselves are \texttt{OR}'d. The engine currently reads all the
-rules of a stage and applies an \texttt{AND} \marginpar{multiple modules and
-or expressions} operation. It cannot handle submodules in a module that can be
-\texttt{OR'd} together as shown in listing \ref{lst:nfql-multiple-modules}. An
-atomic rule in a query, for instance in a filter module also cannot have an
-\texttt{OR} expression as shown in listing \ref{lst:nfql-or-expr}
+rules of a stage and applies an \texttt{AND} \marginpar{multiple submodules,
+or expressions} operation. It cannot handle multiple submodules that can be
+\texttt{OR'd} together as shown in listing \ref{lst:nfql-multiple-modules}. In
+the example, \texttt{M} is a merger module with $2$ submodules \texttt{m1,
+m2}. An atomic rule in a query, for instance in a filter module also cannot
+have an \texttt{OR} expression as shown in listing \ref{lst:nfql-or-expr}
 
 \lstset{caption=\ac{NFQL}: \texttt{OR} Expressions in Atomic Rules,
 				tabsize=2, language=C, numbers=left,stepnumber=1,
@@ -135,7 +135,8 @@ group records are currently unset. These timestamps should be superset of
 their member \marginpar{superset intervals in group records} flow-records.
 This will allow the group filter to skip checking the timestamps of each
 member of the group and only focus on the superset interval of the group
-record itself when performing allen interval operations.
+record itself when performing allen interval operations and is an easy issue
+to resolve.
 
 \lstset{caption=F$(v2)$: Redundant Structs,
 				tabsize=2, language=C, numbers=left,stepnumber=1,
@@ -146,7 +147,6 @@ record itself when performing allen interval operations.
 \begin{lstlisting}
 struct json*
 json_query = parse_json_query(param_data->query_mmap);
-
 struct flowquery*
 fquery = prepare_flowquery(param_data->trace, json_query);
 \end{lstlisting}
@@ -163,14 +163,13 @@ is not needed, and is a redundant datastructure. There is no reason why
 
 The ungrouper reads the tuples of merged group records and unfolds each one of
 them to create a stream. Each such stream is a collection of flow-records that
-went \marginpar{eliminating redundant flows from a stream} pass the whole
+\marginpar{eliminating redundant flows from a stream} passed the whole
 pipeline. However, it is possible that a flow record is part of multiple
 groups in a single group tuple, and is therefore outputted multiple times. The
-engine currently does not eliminate such flow records repetitions. It is also
-does not order the flow records according to their timestamps as defined in
-the \ac{NFQL} specification.
-
-
+engine currently does not eliminate such flow records repetitions. In the
+future, the engine can take an option if one desires to eliminate such
+repetitions. It is also does not order the flow records according to their
+timestamps as defined in the \ac{NFQL} specification.
 
 
 \section{Conclusion}\label{sec:conclusion}

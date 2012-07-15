@@ -56,15 +56,14 @@ iter_destroy(iter);
 \end{lstlisting}
 
 As a result, an iterator that can provide all possible permutations of
-$N-$tuple (where $N$ is the number of branches) group record $ID$s was needed.
+$m-$tuple (where $m$ is the number of branches) group record $ID$s was needed.
 The result of the iterator can then be used to make a match. The merger stage,
-therefore begins by initializing this iterator passing \marginpar{merger
-iterator utility} it the number of branches, and information about each
-branch. Then, it loops over to get a new $N-$tuple group record $ID$s on each
-iteration until the iterator returns \texttt{false}. A sample to print all
-possible group $ID$ permutation is shown in listing
-\ref{lst:fv2-iter-codeblock}, with the output in listing
-\ref{lst:fv2-iter-out}
+begins by initializing this iterator passing \marginpar{merger iterator
+utility} it the number of branches, and information about each branch. Then,
+it loops over to get a new $m-$tuple of group record $ID$s on each iteration
+until the iterator returns \texttt{false}. A sample to print all possible
+group $ID$ permutation is shown in listing \ref{lst:fv2-iter-codeblock}, with
+the output in listing \ref{lst:fv2-iter-out}
 
 \lstset{caption=F$(v2)$: Merger Iterator Utility Output,
 				tabsize=2, language=C, numbers=left,stepnumber=1,

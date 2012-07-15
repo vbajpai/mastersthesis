@@ -1,7 +1,7 @@
 Since both the parser and the engine were developed in an isolated sandboxed
 environments, an extensive validation of how their functionality (or errors)
 would regress was always needed. In this pursuit, the first challenge was to
-get F$(v1)$ engine to compile smoothely.  Since, the engine was using
+get the F$(v1)$ engine to compile smoothely. Since, the engine was using
 linux-specific integer types to read the flow record \marginpar{compilation
 and runtime issues} offsets, its compilation was an issue on other Unix
 flavors. As such moving to C$99$ \cite{c99:1999} fixed-width integer types
@@ -78,7 +78,7 @@ execution engine was reverse engineered to generate \ac{UML} using
 \texttt{doxygen}.  \marginpar{reverse-engineering} A similar technique was
 used to generate \ac{UML} for the parser using \texttt{pylint} and
 \texttt{pyreverse}. Makefile targets were added to ease documentation
-generation for future developers as shown in listing \ref{lst:hld}
+generation for future developers as shown in listing \ref{lst:hld}.
 
 \lstset{caption=F$(v2)$: High Level Documentation,
 				tabsize=2, language=bash, numbers=left,stepnumber=1,
@@ -106,7 +106,7 @@ listings \ref{lst:flowy-interfaces}.
 usage: flowy.py [options] query.flw
 
 [parser] $ python src/ft2hdf.py
-usage: ft2hdf.py [options] input_path1 [input_path2 [\cdots]] output_file.h5
+usage: ft2hdf.py [options] input_path1 [input_path2 [...]] output_file.h5
 
 [parser] $ python src/printhdf.py
 usage: printhdf.py trace.h5
@@ -120,11 +120,12 @@ multiple stages of refactoring before it can be deemed maintainable. As such
 forward declarations were removed and thus arising circular dependencies were
 resolved by reorganizing the code in multiple files. For  \marginpar{minor
 refactor} instance, a \texttt{base} header was added to include common library
-headers as shown in figure \ref{fig:base-header}.  \texttt{error\_functions}
-module was added to avoid plaguing error handlers everywhere. Each stage of
-the pipeline was moved into its separate module, while utility functions were
-moved to \texttt{utils} module. All the pipeline structs were also moved to a
-specific \texttt{pipeline} header to increase readability.
+headers as shown in figure \ref{fig:base-header}.  An
+\texttt{error\_functions} module was added to avoid plaguing error handlers
+everywhere. Each stage of the pipeline was moved into its separate module,
+while utility functions were moved to the \texttt{utils} module. All the
+pipeline structs were also moved to a specific \texttt{pipeline} header to
+increase readability.
 
 \begin{figure}[h!]
   \begin{center}
