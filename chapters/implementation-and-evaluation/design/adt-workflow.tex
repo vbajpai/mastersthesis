@@ -14,6 +14,72 @@ independent module blackboxed into one public interface function. Each stage
 is also wrapped around conditional compilation macros to allow them to be
 easily enabled/disabled during development if desired so.
 
+\lstset{caption=F$(v2)$: Flow Query Composition using \ac{DNF} Expressions,
+				tabsize=2, language=bash, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:flowquery-dnf,
+        aboveskip=20pt, captionpos=b, upquote=true}
+\begin{lstlisting}
+{
+  "branchset": [
+    { "filter": {
+        "dnf-expr": [
+          { "clause": [
+              { "term": { ... } },
+              { "term": { ... } }
+            ]
+          }
+        ]
+      },
+      "grouper": {
+        "dnf-expr": [
+          { "clause": [
+              { "term": { ... } },
+              { "term": { ... } }
+            ]
+          }
+        ],
+        "aggregation": {
+          "clause": [
+            { "term": { ... } },
+            { "term": { ... } }
+          ]
+        }
+      },
+      "groupfilter": {
+        "dnf-expr": [
+          { "clause": [
+              { "term": { ... } },
+              { "term": { ... } }
+            ]
+          }
+        ]
+      }
+    },
+  ],
+  "merger": {
+    "dnf-expr": [
+      { "clause": [
+          { "term": { ... } },
+          { "term": { ... } }
+        ]
+      }
+    ]
+  },
+  "ungrouper": {}
+}
+\end{lstlisting}
+
+A \ac{DNF} is a disjunction of conjunctive clauses. The elements of the
+conjuctive clauses are terms. Each stage of the pipeline is represented in the
+flowquery as a \ac{DNF} expression as shown in listing
+\ref{lst:flowquery-dnf}. The clauses \marginpar{flowquery composition using
+dnf expressions} in the \ac{DNF} are OR'd together, while the terms in each
+clauses themselves are AND'd. This terminology using clauses and terms is
+more useful and intuitive over modules, submodules and rulesets used
+previously by \ac{NFQL} and its implementations.
+
 \lstset{caption=F$(v2)$: Flow Query Struct,
 				tabsize=2, language=C, numbers=left,stepnumber=1,
         basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
@@ -22,14 +88,13 @@ easily enabled/disabled during development if desired so.
         aboveskip=20pt, captionpos=b}
 \begin{lstlisting}
 struct flowquery {
-  size_t                           num_branches;
-  struct branch**                  branchset;
+  size_t                                      num_branches;
+  size_t                                      num_merger_clauses;
 
-  size_t                           num_merger_rules;
-  struct merger_rule**             mruleset;
-
-  struct merger_result*            merger_result;
-  struct ungrouper_result*         ungrouper_result;
+  struct branch**                             branchset;
+  struct merger_clause**                      merger_clauseset;
+  struct merger_result*                       merger_result;
+  struct ungrouper_result*                    ungrouper_result;
 };
 \end{lstlisting}
 
@@ -40,8 +105,9 @@ the \texttt{flowquery} \marginpar{flowquery and branch struct} struct as shown
 in listing \ref{lst:fv2-flowquery-struct}. Each individual branch of the
 flowquery itself is described in a \texttt{branch} struct. A collection of
 these \texttt{branch} structs are referenced in the parent \texttt{flowquery}
-struct. All the query rules are clubbed into \texttt{X\_ruleset}, where
-\texttt{X} can be any stage as shown in listing \ref{lst:fv2-branch-struct}.
+struct. All the clauses of the \ac{DNF} expression are clubbed into
+\texttt{X\_clauseset}, where \texttt{X} can be any stage as shown in listing
+\ref{lst:fv2-branch-struct}.
 
 \lstset{caption=F$(v2)$: Branch Struct,
 				tabsize=2, language=C, numbers=left,stepnumber=1,
@@ -51,18 +117,39 @@ struct. All the query rules are clubbed into \texttt{X\_ruleset}, where
         aboveskip=20pt, captionpos=b}
 \begin{lstlisting}
 struct branch {
-  size_t                          num_grouper_rules;
-  size_t                          num_aggr_rules;
-  size_t                          num_gfilter_rules;
 
-  struct filter_rule**            filter_ruleset;
-  struct grouper_rule**           grouper_ruleset;
-  struct aggr_rule**              aggr_ruleset;
-  struct gfilter_rule**           gfilter_ruleset;
+/* -----------------------------------------------------------------------*/
+/*                              inputs                                    */
+/* -----------------------------------------------------------------------*/
 
-  struct filter_result*           filter_result;
-  struct grouper_result*          grouper_result;
-  struct groupfilter_result*      gfilter_result;
+  int                                         branch_id;
+  struct ftio*                                ftio_out;
+  struct ft_data*                             data;
+
+  size_t                                      num_filter_clauses;
+  size_t                                      num_grouper_clauses;
+  size_t                                      num_aggr_clause_terms;
+  size_t                                      num_groupfilter_clauses;
+
+  struct filter_clause**                      filter_clauseset;
+  struct grouper_clause**                     grouper_clauseset;
+  struct aggr_term**                          aggr_clause_termset;
+  struct groupfilter_clause**                 groupfilter_clauseset;
+
+/* -----------------------------------------------------------------------*/
+
+
+
+
+/* -----------------------------------------------------------------------*/
+/*                               output                                   */
+/* -----------------------------------------------------------------------*/
+
+  struct filter_result*                       filter_result;
+  struct grouper_result*                      grouper_result;
+  struct groupfilter_result*                  gfilter_result;
+
+/* -----------------------------------------------------------------------*/
 };
 \end{lstlisting}
 
@@ -80,9 +167,6 @@ maintainbility of in-memory object stores.
         rulesepcolor=\color{black}, label=lst:fv2-interfaces,
         aboveskip=20pt, captionpos=b}
 \begin{lstlisting}
-struct filter_result*
-filter(...) {...}
-
 struct grouper_result*
 grouper(...) {...}
 
@@ -113,40 +197,38 @@ original flow trace are.
         aboveskip=20pt, captionpos=b}
 \begin{lstlisting}
 struct filter_result {
-  size_t                          num_filtered_records;
-  char**                          filtered_recordset;
+  uint32_t                                    num_filtered_records;
+  char**                                      filtered_recordset;
 };
 
 struct grouper_result {
-  size_t                          num_unique_records;
-  char**                          sorted_recordset;
-  char**                          unique_recordset;
-  size_t                          num_groups;
-  struct group**                  groupset;
+  char**                                      sorted_recordset;
+  uint32_t                                    num_groups;
+  struct group**                              groupset;
 };
 
 struct groupfilter_result {
-  size_t                          num_filtered_groups;
-  struct group**                  filtered_groupset;
+  uint32_t                                    num_filtered_groups;
+  struct group**                              filtered_groupset;
 };
 
 struct merger_result {
-  size_t                          num_group_tuples;
-  size_t                          total_num_group_tuples;
-  struct group***                 group_tuples;
+  uint32_t                                    num_group_tuples;
+  size_t                                      total_num_group_tuples;
+  struct group***                             group_tuples;
 };
 
 struct ungrouper_result {
-  size_t                          num_streams;
-  struct stream**                 streamset;
+  size_t                                      num_streams;
+  struct stream**                             streamset;
 };
 \end{lstlisting}
 
 
-The query fragment structs} (\texttt{X\_ruleset}) used to get the result is
+The query fragment structs (\texttt{X\_clauseset}) used to get the result is
 greedily deallocated soon after the stage returns to keep the in-memory usage
-to the minimum. The \texttt{filter\_ruleset} \marginpar{greedy ruleset
-deallocation} although are kept until the end of the grouper stage since it
+to the minimum. The \texttt{filter\_clauseset} \marginpar{greedy clauseset
+deallocation} although is kept until the end of the grouper stage since it
 helps the grouper aggregation stage make decisions on whether a linear pass
 through the flow trace is required to aggregate a column that may have been
 already a criteron for the filter stage.
@@ -161,20 +243,20 @@ already a criteron for the filter stage.
 branch->grouper_result = grouper(...);
 if (branch->grouper_result == NULL)  ...
 else {
-  /* free filter rules */
-  /* free grouper rules */
-  /* free grouper aggregation rules */
+  /* free filter clauses */
+  /* free grouper clauses */
+  /* free grouper aggregation clause */
 }
 
 branch->gfilter_result = groupfilter(...);
 if (branch->gfilter_result == NULL) ...
 else {
-  /* free group filter rules */
+  /* free group filter clauses */
 }
 
 fquery->merger_result = merger(...);
 if (fquery->merger_result == NULL) ...
 else {
-    /* free merger rules */
+    /* free merger clauses */
 }
 \end{lstlisting}

@@ -19,10 +19,12 @@ usage: bin/engine [OPTIONS] queryfile tracefile      query the specified trace
    or: bin/engine [OPTIONS] queryfile -              read the trace from stdin
 
 OPTIONS:
--d, --debug              enable debugging mode
+-z, --zlevel             change the compression level (default:5)
+-d, --dirpath            save the results as flow-tools files in given dirpath
+-D, --debug              enable debugging mode
 -v, --verbose            increase the verbosity level
+-V, --version            output version information and exit
 -h, --help               display this help and exit
--V, --version            output version information and enablexit
 
 $ bin/engine queryfile tracefile --foo
 bin/engine: invalid option --foo
@@ -138,3 +140,36 @@ No. of Merged Groups: 3 (Tuples): ...
 
 No. of Streams: ...
 \end{lstlisting}
+
+The flow-records echoed to the standard output can also be written to a
+Netflow $v5$ flow-tools file. The \texttt{--dirpath} switch allows one to
+provide a directory path where the results can be stored.  Each stream is
+stored as \marginpar{writing results as flow-tools files} its own file with an ID to
+disambiguate it. Results from each stage of the pipeline can also be written
+to separate files with the increase in the verbosity level. In fact,
+\texttt{--dirpath} and \texttt{--verbose} work well together to adjust the
+level at which the writes are to be made. Such a feature allows one to
+blackbox each stage's functionality and analyze it independently, which can be
+useful not only for unit testing but also for performance evaluations
+purposes.
+
+
+\begin{figure}[h!]
+  \begin{center}
+    \includegraphics* [width=0.8\linewidth]{figures/benchmarks/zlevel}
+    \caption{F$(v2)$: \texttt{z-level} Effect on Performance}
+    \label{fig:engine-zlevel}
+  \end{center}
+\end{figure}
+
+
+The engine uses the \texttt{zlib} \cite{rfc1950} software library to compress
+the results written to the flow-tools files. \texttt{zlib} supports $9$
+compression levels with $9$ being the highest. The \ac{NFQL} engine supports
+\texttt{--zlevel} \marginpar{adaptable compression levels} switch to allow the
+user to supply its desired choice of the of the compression level. A default
+level of $5$ is used for writes if the switch is not supplied during runtime.
+Figure \ref{fig:engine-zlevel} shows the time taken to write a sample of
+records passing the filter stage for each \texttt{z-level}. It goes to show
+that each level adds its own performance overhead and must be used with
+discretion.
