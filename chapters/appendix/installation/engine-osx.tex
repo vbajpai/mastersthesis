@@ -1,24 +1,24 @@
 The \ac{NFQL} engine installation on OS X is quite similar. The external
-dependecies can either be installed from source or using a package manager.
+dependencies can either be installed from source or using a package manager.
 It is recommended to use
 Homebrew\footnote{\url{http://mxcl.github.com/homebrew/}} to install the
 external dependencies \marginpar{nfql engine on osx} since it does not require
 and plague the install with \texttt{sudo} privileges and installs the packages
-at \texttt{/usr/local/}. The external dependencies are shown in listing
-\ref{lst:nfql-engine-osx}. The build and usage instructions are also listed.
-The build environment was tested on OS X Lion $10.7$.
+at \texttt{/usr/local/}. The instructions are shown in listing
+\ref{lst:nfql-engine-osx-homebrew}. Alternatively,
+MacPorts\footnote{\url{http://www.macports.org}} can also be used to build and
+install the tool as shown in listing \ref{lst:nfql-engine-osx-macports}. The build
+environment was tested on OS X Lion $10.7$.
 
-\lstset{caption=NFQL Engine on OS X,
+\lstset{caption=NFQL Engine on OS X using Homebrew,
 				tabsize=2, language=bash, numbers=left,stepnumber=1,
         basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
         keywordstyle=\color{blue}, frame=shadowbox,
-        rulesepcolor=\color{black}, label=lst:nfql-engine-osx,
+        rulesepcolor=\color{black}, label=lst:nfql-engine-osx-homebrew,
         aboveskip=20pt, captionpos=b, upquote=true}
 \begin{lstlisting}
-$ brew install cmake
-$ brew install json-c
-$ brew install doxygen
-$ brew install graphviz
+$ brew install cmake json-c
+$ brew install doxygen graphviz
 
 $ wget http://dl.dropbox.com/u/500389/flow-tools-0.68.4.tar.bz2
 $ tar -xvf flow-tools-0.68.4.tar.bz2
@@ -34,8 +34,28 @@ $ tar -xvf flow-tools-0.68.4.tar.bz2
 [engine] $ make clean
 \end{lstlisting}
 
-There is a ruby \texttt{gem} for \texttt{flow-tools} in the Homebrew package
-repository, however currently it fails to build. The $v0.68$ stable build at
+\lstset{caption=NFQL Engine on OS X using MacPorts,
+				tabsize=2, language=bash, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:nfql-engine-osx-macports,
+        aboveskip=20pt, captionpos=b, upquote=true}
+\begin{lstlisting}
+$ sudo port install cmake
+$ sudo port install flow-tools
+$ sudo port install json-c
+$ sudo port install doxygen graphviz
+
+[engine] $ make CMAKE_PREFIX_PATH=/opt/local
+[engine] $ make doc
+
+[engine] $ bin/engine queryfile tracefile
+[engine] $ make clean
+\end{lstlisting}
+
+There is a ruby \texttt{formula} for \texttt{flow-tools} in the Homebrew
+package repository, however currently it fails to build. The $v0.68$ stable
+build at
 splintered.net\footnote{\url{http://www.splintered.net/sw/flow-tools/}} has a
 bug\footnote{\url{http://ensight.eos.nasa.gov/FlowViewer/faq.html#14}} that
 inhibits it from correctly parsing the trace timestamps \marginpar{flow-tools
@@ -44,3 +64,4 @@ branch\footnote{\url{https://code.google.com/p/flow-tools/}} resolves the
 $64$-bit issues but then the latest stable release $v0.68.5.1$ does not build
 successfully. The previous release of the forked branch $v0.68.4$ works well
 and is used by the execution engine on OS X.
+
