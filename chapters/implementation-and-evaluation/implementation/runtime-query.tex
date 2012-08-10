@@ -1,12 +1,9 @@
 The complete \texttt{JSON} query is now read in at \emph{runtime}. The
-branchsets and each ruleset of the pipeline is a \texttt{JSON array} as shown
-in listing \ref{lst:fv2-fquery-json}. A \texttt{ruleset} is similar to a
-submodule \footnote{All submodules within a module are OR'd together} where
-all the rules of the set are \texttt{AND}'ed together. The engine currently
-only supports a single submodule. The aggregation is also treated as a
-separate stage and is not considered part of the grouper in contrast to the
-\ac{NFQL} specification. This is to ensure easier filling up of the flow query
-\texttt{struct}.
+branchsets and each \ac{DNF} expression of the stage is a \texttt{JSON array}
+as shown in listing \ref{lst:fv2-fquery-json}. A \ac{DNF} expression is a
+disjunction of conjunctive clauses. Each clause in the expression is OR'd
+while each term within the clause is AND'd together. This terminology is more
+intuitive to modules, submodules and rulesets as used previously by F$(v1)$.
 
 \lstset{caption=F$(v2)$: Flow Query in \texttt{JSON},
 				tabsize=2, language=JSON, numbers=left,stepnumber=1,
@@ -16,19 +13,34 @@ separate stage and is not considered part of the grouper in contrast to the
         aboveskip=20pt, captionpos=b, upquote=true}
 \begin{lstlisting}
 {
-  branchset: [
-    {
-      filter: { ruleset: [...] },
-      grouper: { ruleset: [...] },
-      aggregation: { ruleset: [...] },
-      groupfilter: { ruleset: [...] },
-    }, { ... }, ...
+  "branchset": [
+    { "filter": {
+        "dnf-expr": [
+          { "clause": [
+              { "term": { ... } },
+              { "term": { ... } }
+            ]
+          }
+        ]
+      },
+      ...
+    },
   ],
-  merger: { ruleset: [...] },
+  "merger": {
+    "dnf-expr": [
+      { "clause": [
+          { "term": { ... } },
+          { "term": { ... } }
+        ]
+      }
+    ]
+  },
+  "ungrouper": {}
 }
 \end{lstlisting}
 
-\texttt{json-c} is used to parse such a query file read into memory by calling
+\texttt{json-c}\footnote{\url{http://oss.metaparadigm.com/json-c/}} is used
+to parse such a query file read into memory by calling
 \texttt{parse\_json\_query(\ldots)} \marginpar{parsing using json-c}. The
 \texttt{json\_query} is then used to prepare the \texttt{struct flowquery}
 used by the pipeline stages as shown in listing \ref{lst:fv2-json-c}.  The
@@ -42,27 +54,28 @@ used by the pipeline stages as shown in listing \ref{lst:fv2-json-c}.  The
         aboveskip=20pt, captionpos=b, upquote=true}
 \begin{lstlisting}
 struct json {
-  size_t                          num_branches;
-  size_t                          num_mrules;
+  size_t                                 num_branches;
+  size_t                                 num_merger_clauses;
 
-  struct json_branch_rules**      branchset;
-  struct json_merger_rule**       mruleset;
+  struct json_branch**                   branchset;
+  struct json_merger_clause**            merger_clauseset;
 };
 
-struct json_branch_rules {
-  size_t                          num_frules;
-  size_t                          num_grules;
-  size_t                          num_arules;
-  size_t                          num_gfrules;
+struct json_branch {
+  size_t                                 num_filter_clauses;
+  size_t                                 num_grouper_clauses;
+  size_t                                 num_aggr_clause_terms;
+  size_t                                 num_groupfilter_clauses;
 
-  struct json_filter_rule**       fruleset;
-  struct json_grouper_rule**      gruleset;
-  struct json_aggr_rule**         aruleset;
-  struct json_gfilter_rule**      gfruleset;
+  struct json_filter_clause**            filter_clauseset;
+  struct json_grouper_clause**           grouper_clauseset;
+  struct json_aggr_term**                aggr_clause_termset;
+  struct json_groupfilter_clause**       groupfilter_clauseset;
 };
 
 struct json*
 json_query = parse_json_query(param_data->query_mmap);
+
 struct flowquery*
 fquery = prepare_flowquery(param_data->trace, json_query);
 \end{lstlisting}
@@ -96,10 +109,10 @@ class MergerRule: ...
 \end{lstlisting}
 
 A sample script to generate a query is shown in listing
-\ref{lst:fv2-python-scripts-json-queries}. Each \texttt{ruleset} is a list of
+\ref{lst:fv2-python-scripts-json-queries}. Each \texttt{clause} is a list of
 python objects of a specific class of the \texttt{pipeline} module. At this
 point, \marginpar{sample scripts} the python parser just needs to create each
-stage rule objects and the script will take care to emit the \texttt{JSON}.
+stage term objects and the script will take care to emit the \texttt{JSON}.
 Example scripts to generate different queries are provided in
 \texttt{scripts/queries/}.
 
@@ -118,35 +131,45 @@ from pipeline import protocol
 
 if __name__ == '__main__':
 
-  fruleset = []
-  fruleset.append(vars(FilterRule(...))) ...
-  filter = {'ruleset': fruleset}
+  # filter stage
+  term1 = {'term': vars(FilterRule(...))}
+  clause1 = {'clause': [term1] + ...}
+  filter1 = {'dnf-expr': [clause1] + ...}
 
-  gruleset = []
-  gruleset.append(vars(GrouperRule(...))) ...
-  grouper = {'ruleset': gruleset}
+  # grouper stage
+  term1 = {'term': vars(GrouperRule(...))}
+  clause1 = {'clause': [term1] + ...}
+  term1 = {'term': vars(AggregationRule(...))}
+  aggregation1 = {'clause': [term1] + ...}
+  grouper1 = {'dnf-expr': [clause1] + ..., 'aggregation': aggregation1}i
 
-  aruleset = []
-  aruleset.append(vars(AggregationRule(...))) ...
-  a = {'ruleset' : aruleset}
-
-  gfruleset = []
-  gfruleset.append(vars(GroupFilterRule(...))) ...
-  gfilter = {'ruleset' : gfruleset}
+  # group filter stage
+  term1 = {'term': vars(GroupFilterRule(...))}
+  clause1 = {'clause': [term1] + ...}
+  gfilter1 = {'dnf-expr': [clause1] + ...}
 
   branchset = []
-  branchset.append({'filter': filter,
-                    'grouper': grouper,
-                    'aggregation': a,
-                    'gfilter': gfilter,
-                   })
+  branchset.append(
+                    {
+                      'filter': filter1,
+                      'grouper': grouper1,
+                      'groupfilter': gfilter1,
+                    }, ...
+                  )
 
-  mruleset = []
-  mruleset.append(vars(MergerRule(...))) ...
-  merger = {'ruleset' : mruleset}
+  # merger stage
+  term1 = {'term': vars(MergerRule(...))}
+  clause1 = {'clause': [term1] + ...}
+  merger = {'dnf-expr': [clause1] + ...}
 
-  query = {'branchset': branchset, 'merger': merger}
-  fjson = json.dumps(query, indent=2)
+  # ungrouper stage
+  ungrouper = {}
+
+  query = {
+            'branchset': branchset,
+            'merger': merger,
+            'ungrouper': ungrouper
+          }
 \end{lstlisting}
 
 
@@ -222,3 +245,59 @@ get_enum(const char * const name) {
 }
 \end{lstlisting}
 
+The \texttt{JSON} query can also trigger and disable the stages at runtime.
+This means that one only has to supply the constructs that one wishes to use.
+The constructs that are not defined in the \texttt{JSON} query are inferred by
+the engine as a \marginpar{disabling pipeline stages at runtime} disable
+request. The execution engine uses disable flags that are turned on when the
+\texttt{JSON} query is parsed as shown in listing
+\ref{lst:fv2-disable-runtime}. These flags are used throughout the engine to
+only enable the requested functionality. It is important to note though that
+the engine is currently not smart to understand the interdependency amongst
+the stages. For instance, disabling the merger when the ungrouper is kept
+enabled will lead to undefined behavior.
+
+\lstset{caption=F$(v2)$: Disabling Pipeline Stages at Runtime,
+				tabsize=2, language=C, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:fv2-disable-runtime,
+        aboveskip=20pt, captionpos=b, upquote=true}
+\begin{lstlisting}
+struct json*
+parse_json_query(const char* const query_mmap) {
+
+  ...
+  /* filter */
+  struct json_object* filter = json_object_object_get(branch_json, "filter");
+  if (filter != NULL) filter_enabled = true;
+  if (filter_enabled) ...
+
+  /* grouper */
+  struct json_object* grouper = json_object_object_get(branch_json, "grouper");
+  if (grouper != NULL) grouper_enabled = true;
+  if (grouper_enabled) ...
+
+  /* grouper aggregation */
+  if (grouper_enabled) {
+    struct json_object* aggr = json_object_object_get(grouper, "aggregation");
+    if (aggr != NULL) groupaggregations_enabled = true;
+    if (groupaggregations_enabled) ...
+  }
+
+  /* group filter */
+  struct json_object* gfilter = json_object_object_get(branch_json, "groupfilter");
+  if (gfilter != NULL) groupfilter_enabled = true;
+  if (groupfilter_enabled) ...
+
+  /* merger */
+  struct json_object* merger = json_object_object_get(query, "merger");
+  if (merger != NULL) merger_enabled = true;
+  if (merger_enabled) ...
+
+  /* ungrouper */
+  struct json_object* ungrouper = json_object_object_get(query, "ungrouper");
+  if (ungrouper != NULL) ungrouper_enabled = true;
+  ...
+}
+\end{lstlisting}

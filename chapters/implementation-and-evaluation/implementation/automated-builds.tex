@@ -1,8 +1,11 @@
 The execution engine uses GNU$99$ extensions such as anonymous unions.  In
 addition, since the engine depends on the \texttt{flow-tools} library that
-uses BSD \marginpar{feature test macros} extensions, it proved useful to
-include the \texttt{GNU\_SOURCE} feature test macro.  \texttt{GNU\_SOURCE}
-allows to request and let the compiler enable a larger class of features.
+uses BSD \marginpar{feature test macros, compiler flags} extensions, it proved
+useful to include the \texttt{GNU\_SOURCE} feature test macro.
+\texttt{GNU\_SOURCE} allows to request and let the compiler enable a larger
+class of features. The execution engine is compiled using a \texttt{C99}
+compiler with \texttt{\{-Wall, -Werror\}} warning flags and \texttt{-O2}
+optimization level.
 
 CMake \cite{masteringcmake:2008} was used to ensure a compiler and platform
 independent build process \footnote{Detailed engine installation instructions

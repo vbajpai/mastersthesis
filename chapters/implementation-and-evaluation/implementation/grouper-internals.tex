@@ -1,34 +1,33 @@
-In order to be able to make comparisons on field offsets, the grouper
-initially creates a copy of the pointers in the filtered recordset. A n\"aive
-approach is to linearly walk through all the pointers against each pointer in
-the copy leading to a complexity of $O(n^2)$, where $n$ is the number of flow
-records. A smarter approach is to put the copy in a hash table and then try to
-map each pointer while walking down the recordset once, leading to a
-complexity of $O(n)$. The hash table approach, although will work on this
-specific example, will fail badly on other relative comparisons. The F$(v1)$
-\marginpar{functional grouping using qsort and bsearch} execution engine
-\cite{jschauer:thesis:2011} formulates an approach to grouping records using a
-binary search after a quick sort on the field offset of the first grouping
-rule of each record in the filtered recordset. This helps the grouper perform
-faster search lookups to find records that must group together in $O(n*lg(k))$
-time with a preprocessing step taking $O(n*lg(n)) + O(n)$ in the worst case,
-where $n$ is the number of flow records and $k$ is the number of unique flow
-records that passed the filter.  The implementation of this idea was broken
+In order to be able to make comparisons on field offsets, a n\"aive approach
+is to linearly walk through each filtered record against the filtered
+recordset leading to a complexity of $O(n^2)$, where $n$ is the number of
+filtered records. A smarter approach is to put the copy in a hash table and
+then try to map each pointer while walking down the filtered recordset once,
+leading to a complexity of $O(n)$. The hash table approach, although will work
+on this specific example, will fail badly on other relative comparisons. The
+F$(v1)$ \marginpar{functional grouping using qsort and bsearch} execution
+engine \cite{jschauer:thesis:2011} formulates an approach to grouping records
+using a binary search after a quick sort on the field offset of the first
+grouping rule of each record in the filtered recordset. This helps the grouper
+perform faster search lookups to find records that must group together in
+$O(n*lg(k))$ time with a preprocessing step taking $O(n*lg(n)) + O(n)$ in the
+average case, where $n$ is the number of filtered records and $k$ is the
+number of unique filtered records.  The implementation of this idea was broken
 and used to segfault at multiple steps within the grouping stage.  $F(v2)$
 introduces a completely functional implementation of this approach that does
 not incorporate any assumptions on the type of field offsets and is robust
 enough to work with different types of grouping queries.
 
-The approach of grouping records using \texttt{qsort} and \texttt{bsearch}
-definitely is an improvement. However, it appears having an actual binary
-search tree would benefit more, whereby one of the recordset will be traversed
-sequentially in $O(n)$ time and for each record, the comparison will be
-performed by tree lookups in $O(log(n))$ time bringing down the complexity to
-$O(nlog(n))$ and is a future action item. In \marginpar{using search trees and
-hash tables} addition, it would be best if the engine can figure out the
-type of the relative comparison to trigger a hash table lookup for equality
-comparisons to bring down the complexity to $O(n)$ for this specific case.
-
+The reetrant \texttt{qsort\_r} was used, since it can pass an additional
+argument \texttt{thunk} to the comparator, which in our case is the field
+offset used for \marginpar{cross platform qsort\_r and bsearch\_r} comparing
+two flow records. Since the order of arguments of \texttt{qsort\_r} are
+different for \texttt{glibc} and \texttt{BSD}, the function invocation had to
+be wrapped around platform specific macros as shown in listing
+\ref{lst:fv2-qsortr}. More Surprisingly, there is currently no equivalent
+\texttt{bsearch\_r} to complement \texttt{qsort\_r}. As such, the contemporary
+\texttt{bsearch} function from the \texttt{glibc} library was adapted to
+accommodate the void and is defined in \texttt{utils} module.
 
 \lstset{caption=F$(v2)$: qsort\_r Invocation,
 				tabsize=2, language=C, numbers=left,stepnumber=1,
@@ -72,16 +71,15 @@ struct grouper_type {
 #endif
 \end{lstlisting}
 
-The reetrant \texttt{qsort\_r} was used, since it can pass an additional
-argument \texttt{thunk} to the comparator, which in our case is the field
-offset used for comparing two flow records. Since the order of arguments of
-\texttt{qsort\_r} are \marginpar{cross platform qsort\_r and bsearch\_r}
-different for \texttt{glibc} and \texttt{BSD}, the function invocation had to
-be wrapped around platform specific macros as shown in listing
-\ref{lst:fv2-qsortr}. More Surprisingly, there is currently no equivalent
-\texttt{bsearch\_r} to complement \texttt{qsort\_r}. As such, the contemporary
-\texttt{bsearch} function from the \texttt{glibc} library was adapted to
-accommodate the void and is defined in \texttt{utils} module.
+Group records are a conglomeration of several flow records with some common
+characteristics defined by the flow query. Some of the non-common
+characteristics can also be aggregated into a single value using group
+\marginpar{groups as cooked netflow v5 records} aggregations as shown in
+listing \ref{lst:fv2-aggr-example}. Since, the execution engine supports
+multiple verbosity levels, it is useful if a single group record can be again
+mapped into a NetFlow $v5$ record template, so that it can be echoed as the
+representative of all its members. This was achieved using a struct
+\texttt{group} as shown in listing \ref{lst:fv2-group-struct}.
 
 \lstset{caption=F$(v2)$: Group Struct,
 				tabsize=2, language=C, numbers=left,stepnumber=1,
@@ -91,7 +89,7 @@ accommodate the void and is defined in \texttt{utils} module.
         aboveskip=20pt, captionpos=b}
 \begin{lstlisting}
 struct group {
-  size_t                              num_members;
+  uint32_t                            num_members;
   char**                              members;
   struct aggr_result*                 aggr_result;
 };
@@ -103,15 +101,14 @@ struct aggr_result {
 
 \end{lstlisting}
 
-Group records are a conglomeration of several flow records with some common
-characteristics defined by the flow query. Some of the non-common
-characteristics can also be aggregated into a single value using group
-\marginpar{groups as cooked netflow v5 records} aggregations as shown in
-listing \ref{lst:fv2-aggr-example}. Since, the execution engine supports
-multiple verbosity levels, it is useful if a single group record can be again
-mapped into a NetFlow $v5$ record template, so that it can be echoed as the
-representative of all its members. This was achieved using a struct
-\texttt{group} as shown in listing \ref{lst:fv2-group-struct}.
+There can be a situtation where the query designer might incorrectly ask
+for aggregation on a field already specified in a grouper (or filter)
+module. If \marginpar{ignoring redundant aggregation requests} the
+relative operator is an equality comparison, the aggregation on such a
+field becomes less useful, since the members of the grouped record will
+always have the same value for that field. The engine is now smart to
+realize this redundant request and ignores such aggregations as shown in
+listing \ref{lst:fv2-aggr-example}.
 
 \lstset{caption=F$(v2)$: Aggregations Example,
 				tabsize=2, language=C, numbers=left,stepnumber=1,
@@ -121,7 +118,7 @@ representative of all its members. This was achieved using a struct
         aboveskip=20pt, captionpos=b}
 \begin{lstlisting}
 grouper g_www_res {
-   module g1 {
+   g1 {
       srcip = srcip
       dstip = dstip
    }
@@ -137,14 +134,13 @@ No. of Groups: ...
 ...    8.12.214.126    ...      192.168.1.138     2         5065
 \end{lstlisting}
 
-There can be a situtation where the query designer might incorrectly ask
-for aggregation on a field already specified in a grouper (or filter)
-module. If \marginpar{ignoring redundant aggregation requests} the
-relative operator is an equality comparison, the aggregation on such a
-field becomes less useful, since the members of the grouped record will
-always have the same value for that field. The engine is now smart to
-realize this redundant request and ignores such aggregations as shown in
-listing \ref{lst:fv2-aggr-example}.
+Records are clubbed together into one group if no group modules are defined.
+Previously such a query used to form groups for each individual filtered
+record. \marginpar{clubbing records with no grouper rules} That was less
+useful since then it was not possible to calculate meaningful aggregations on
+all the records that passed the filter stage. Now, when the group modules are
+empty, all the filtered records are clubbed into one group to allow
+aggregations as shown in listing \ref{lst:fv2-club-example}.
 
 \lstset{caption=F$(v2)$: Clubbing Records with No Grouper Rules,
 				tabsize=2, language=C, numbers=left,stepnumber=1,
@@ -154,7 +150,7 @@ listing \ref{lst:fv2-aggr-example}.
         aboveskip=20pt, captionpos=b}
 \begin{lstlisting}
 grouper g_www_res {
-   module g1 {}
+   g1 {}
    aggregate sum(bytes) as bytes
 }
 
@@ -166,10 +162,3 @@ No. of Groups: 1 (Aggregations)
 ...    2356654
 \end{lstlisting}
 
-Records are clubbed together into one group if no group modules are defined.
-Previously such a query used to form groups for each individual filtered
-record. \marginpar{clubbing records with no grouper rules} That was less
-useful since then it was not possible to calculate meaningful aggregations on
-all the records that passed the filter stage. Now, when the group modules are
-empty, all the filtered records are clubbed into one group to allow
-aggregations as shown in listing \ref{lst:fv2-club-example}.
