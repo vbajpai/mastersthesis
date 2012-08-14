@@ -47,24 +47,114 @@ generated using \texttt{pyreverse} are available in \texttt{parser/docs/} and
 will help one get started with this task. The installation and usage
 instructions available in the appendix will make the convergence head start a
 breeze. Alternatively, it is also possible to re-implement the frontend parser
-from scratch using \texttt{LEX/YACC}.
+from scratch using \texttt{lex/YACC}.
 
 
 
 
-The runtime complexity is deemed to increase exponentially as the number of
-records, and the modules in the grouper and merger increase.  The current
-grouper implementation runs in $O(n*lg(n)) + O(n) + O(n*lg(k))$, while the
-merger runs in $O(n^m)$ time, where $n$ is the number of flow records, $m$ is
-the number of branches, and $k$ is the number of unique flow records that
-passed the filter stage. Therefore, a search tree lookup would help bring the
-runtime costs down, whereby \marginpar{search tree and hash table lookups} one
-of the fields will be traversed sequentially in $O(n)$ time and for each
-field, a comparison will be performed by search tree lookups in $O(log(n))$
-time bringing down the overall complexity of both merger and grouper to
-$O(nlog(n))$ respectively. In addition, letting the execution engine override
-the search tree lookups by hash table lookups for equality operators will
-further bring down the runtime to $O(n)$ for this specific case.
+\lstset{caption=F$(v2):$ GNU gprof on Filter,
+				tabsize=2, language=shell, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:fv2-gprof-filter,
+        aboveskip=20pt, captionpos=b}
+\begin{lstlisting}
+$ bin/engine examples/filter/filter-1.0.json examples/trace-2012.ftz
+
+   % time   	name
+   66.67  ... ft_read
+   33.33  ... ftio_read
+   ...
+\end{lstlisting}
+
+The execution engine currently memory maps the (usually small) \texttt{JSON}
+query file. However, the (usually large) trace file is not memory mapped. This
+is because the engine uses the \texttt{flowtools} library which uses
+\texttt{read} system calls to read the trace. Listing
+\ref{lst:fv2-gprof-filter} shows the GNU \texttt{gprof} \cite{graham:1982}
+profiling results when \marginpar{memory mapping the tracefile, multithreaded
+filtering} stressing only the filter stage.  It is clear that the majority of
+the time is taken in reading the flow records from the trace file.  Memory
+mapping the trace file to engine's virtual space will increase I/O
+performance. This is because the \texttt{mmap} region is a kernel's cache
+itself avoiding the need to create further copies in userspace.  In addition,
+accessing the engine's virtual space is in orders of magnitude faster to
+making system calls and a linear walk through the file only requires disk
+access across page boundaries. Memory mapping will also allow to parallelize
+the filter stage by taking advantage of the available random file access.
+
+
+
+
+
+The execution engine uses the \texttt{flowtools} API to write the results as
+NetFlow v$5$ records. Writing the results to flat files is important since it
+allows one to not only blackbox a pipeline stage operation, but also help plug
+the results to another network analysis tool, thereby increasing
+interoperability.\marginpar{lzo compression support} The \texttt{flowtools}
+API, however, currently only support \texttt{zlib} compression. Contemporary
+tools like \texttt{nfdump} and SiLK generally use
+\texttt{lzo}\footnote{\url{http://www.oberhumer.com/opensource/lzo/}}
+compression to achieve faster compression and decompression rates when doing
+I/O operations.  Adding \texttt{lzo} compression support in the
+\texttt{flowtools} API will further decrease the flow read/write times of the
+execution engine.
+
+
+
+
+\lstset{caption=F$(v2):$ GNU gprof on Grouper,
+				tabsize=2, language=shell, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:fv2-gprof-grouper,
+        aboveskip=20pt, captionpos=b}
+\begin{lstlisting}
+$ bin/engine examples/grouper/grouper-1.0.json examples/trace-2012.ftz
+
+   % time   	name
+   40.00  ... comp_uint32_t
+   12.73  ... qsort_comp
+    7.27  ... comp_uint16_t
+    5.45  ... comp_uint8_t
+    ...
+\end{lstlisting}
+
+The grouper in F$(v2)$ sorts the filtered recordset on all the grouping rules.
+This implies that the comparator has to make nested calls using all the rules
+until a \marginpar{parallelized grouper qsort} tie-breakup is resolved. This
+allows the grouper to make a nested \texttt{bsearch} invocation for the
+generic case to reduce a linear pass through the filtered recordset.  However,
+the number of comparator calls increase and now account for almost $60\%$ of
+the time taken in the grouper as can be seen from the GNU \texttt{gprof}
+results shown in listing \ref{lst:fv2-gprof-grouper}. The \texttt{qsort} call
+is currently single-threaded. Since the size of the filtered recordset is
+known before the invocation, bifurcating the \texttt{qsort} invocation to
+multiple threads and merging the results back using merge sort will help
+parallelize the operation.
+
+
+
+
+
+ The current grouper implementation runs in $O(p * n*lg(n)) + O(n) +
+ O(n*lg(k))$, while the merger runs in $O(n^m)$ time, where $n$ is the number
+ of flow records, $m$ is the number of branches, $k$ is the number of unique
+ \marginpar{search tree and hash table lookups} filtered records and $p$ is
+ the number of grouper terms.  Therefore, a search tree lookup would help
+ bring the runtime costs down, whereby one of the fields will be traversed
+ sequentially in $O(n)$ time and for each field, a comparison will be
+ performed by search tree lookups in $O(log(n))$ time bringing down the
+ overall complexity of both merger and grouper to $O(nlog(n))$ respectively.
+ In addition, letting the execution engine override the search tree lookups by
+ hash table lookups for equality operators will further bring down the runtime
+ to $O(n)$ for this specific case.
+
+
+
+
+
+
 
 
 
@@ -74,7 +164,7 @@ The execution engine currently has limited multithreading. Each branch in the
 pipeline runs on a separate thread. However, this implies that the merger and
 ungrouper stages still remain single-threaded. It is possible to handle the
 merger's outermost branch loop using multiple threads in a non-blocking
-fashion to improve performance \marginpar{efficient multithreading}, or by
+fashion to improve performance \marginpar{multithreaded merger}, or by
 writing a \texttt{pthreads} wrapper that auto detects the number of available
 cores, creates a appropriate size thread pool and equally divides the tasks
 among the threads. This would also lead to an increased complexity of managing
@@ -85,48 +175,76 @@ way.
 
 
 
+
+F$(v2)$ introduces a regression test-suite framework that helps keep the
+quality of the execution engine at a certain minimum threshold. However, the
+execution engine is as robust as its test-suite. The tests defined in the
+regression test-suite are not exhaustive and do not touch every aspect of the
+engine's \marginpar{exhaustive regression test-suite} functionality. For
+instance, the queries executed by the suite only hit few of many comparator
+operations supported by the engine. Unless every aspect of the engine's offered
+functionality has a test case associated with it, it cannot be guaranteed that
+the engine will not fail in one or more corner cases not hit by the suite. As a
+result, it is imperative that addition of more test-cases to touch these corner
+cases will make the execution engine better
+
+
+
+
+
 \section{Minor Issues}\label{sec:minor-issues}
 
-\lstset{caption=\ac{NFQL}: Multiple Modules,
-				tabsize=2, language=C, numbers=left,stepnumber=1,
+
+
+
+The execution engine in F$(v2)$ introduces two approaches to boost up the speed
+of the grouper. One of the approaches uses \texttt{qsort} on each requested
+grouping rule and a nested \texttt{bsearch} to find a more specific filtered
+recordset pointer to signicantly reduce the linear pass when grouping members.
+This approach works well for a generic case and spans different type of
+comparator operations. This approach is further optimized when the grouping is
+requested on equality comparison. In such a scenario, the
+\marginpar{dynamically choosing an appropriate grouper approach} need to
+perform a \texttt{bsearch} goes away, and groups can be formed in a single
+linear pass on the filtered recordset. The engine currently uses the second
+approach, while the first approach is in the source code history. Ideally, the
+engine must be smart to use the second approach when equality grouping is
+requested, and fallback to the first approach otherwise.
+
+
+
+
+The group filter is currently a separate module in the execution engine as
+shown in listing \ref{lst:fv2-groupfilter-indy}. This means that it is invoked
+only after the grouper returns. As a consequence, the group filter has to
+iterate over the groups again in order to make decision on which ones to filter
+out. This decision can also be m\marginpar{inline group filter} made as soon as
+the group is realized in the grouper. Such a refactor will phase out the
+distinct boundary between the grouper and group filter in the source code.
+However, it will eliminate a duplicate iteration of the groupset in the group
+filter thereby improving performance. The performance gains will be more
+visible when the ratio of the number of groups formed to the number of input
+filtered records is high.
+
+ \lstset{caption=F$(v2):$ Group Filter as an Independent Module,
+				tabsize=2, language=c, numbers=left,stepnumber=1,
         basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
         keywordstyle=\color{blue}, frame=shadowbox,
-        rulesepcolor=\color{black}, label=lst:nfql-multiple-modules,
+        rulesepcolor=\color{black}, label=lst:fv2-groupfilter-indy,
         aboveskip=20pt, captionpos=b}
 \begin{lstlisting}
-merger M {
-  module m1 {
-    branches a, b
-    a.srcIP = b.dstIP
-    a.dstIP = b.srcIP
-  }
-  mobule m2 {
-    branches a, b
-    a.srcIP = b.srcIP
-    a.dstIP = b.dstIP
-  }
-}
-\end{lstlisting}
+if (groupfilter_enabled) {
 
-Each module of the pipeline in an \ac{NFQL} query is a \ac{CNF} expression.
-All the rules of a submodule are \texttt{AND}'d together while all the
-submodules themselves are \texttt{OR}'d. The engine currently reads all the
-rules of a stage and applies an \texttt{AND} \marginpar{multiple submodules,
-or expressions} operation. It cannot handle multiple submodules that can be
-\texttt{OR'd} together as shown in listing \ref{lst:nfql-multiple-modules}. In
-the example, \texttt{M} is a merger module with $2$ submodules \texttt{m1,
-m2}. An atomic rule in a query, for instance in a filter module also cannot
-have an \texttt{OR} expression as shown in listing \ref{lst:nfql-or-expr}
+  branch->gfilter_result = groupfilter(
+                                        branch->num_groupfilter_clauses,
+                                        branch->groupfilter_clauseset,
 
-\lstset{caption=\ac{NFQL}: \texttt{OR} Expressions in Atomic Rules,
-				tabsize=2, language=C, numbers=left,stepnumber=1,
-        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
-        keywordstyle=\color{blue}, frame=shadowbox,
-        rulesepcolor=\color{black}, label=lst:nfql-or-expr,
-        aboveskip=20pt, captionpos=b}
-\begin{lstlisting}
-filter http {
-  srcPort = 80 OR dstPort = 80
+                                        branch->grouper_result,
+
+                                        branch->data,
+                                        branch->branch_id
+                                      );
+  ...
 }
 \end{lstlisting}
 
@@ -152,10 +270,10 @@ fquery = prepare_flowquery(param_data->trace, json_query);
 \end{lstlisting}
 
 The execution engine currently uses an additional data structure
-(\texttt{struct json}) to hold the parsed \texttt{JSON} query. This data
-structure is then read by \texttt{prepare\_flowquery(\ldots)} to generate
-\texttt{struct flowquery} which is eventually \marginpar{eliminating redundant
-structs} used by the pipeline stages as shown in listing
+(\texttt{struct json}) \marginpar{eliminating redundant structs} to hold the
+parsed \texttt{JSON} query. This data structure is then read by
+\texttt{prepare\_flowquery(\ldots)} to generate \texttt{struct flowquery} which
+is eventually used by the pipeline stages as shown in listing
 \ref{lst:fv2-redundant-structs}. In essence, the intermediate \texttt{struct}
 is not needed, and is a redundant datastructure. There is no reason why
 \texttt{parse\_json\_query(...)} cannot directly read the query elements into
