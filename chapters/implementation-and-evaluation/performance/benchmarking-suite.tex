@@ -25,14 +25,13 @@ for each network analysis application as shown in listing
 \ref{lst:fv2-automated-benchmarking}. The directories containing the traces
 and the queries required by the script can be supplied as command line
 arguments. Few examples are provided in \texttt{examples/}. The benchmarking
-suite only runs on python $2.7$ and above. Each query-trace combination is run
-$10$ times and the timings are averaged and echoed on the screen. Attention is
-given to clear \texttt{pagecaches}, \texttt{dentries} and \texttt{inodes}
-before each iteration invocation as shown in listing
-\ref{lst:fv2-clear-caches}. The script, therefore needs to run with
-\texttt{sudo} privileges. The results are saved in
-\texttt{benchmarks/results/}. SiLK query files are simply bash commands
-separated by a delimiter and are further discussed in the next section.
+suite only runs on python $2.7$ and above. Attention is given to clear
+\texttt{pagecaches}, \texttt{dentries} and \texttt{inodes} before each
+iteration invocation as shown in listing \ref{lst:fv2-clear-caches}. The
+script, therefore needs to run with \texttt{sudo} privileges. The results are
+saved in \texttt{benchmarks/results/}. SiLK query files are simply bash
+commands separated by a delimiter and are further discussed in the next
+section.
 
 \lstset{caption=F$(v2)$ Benchmarking: Clearing Kernel Caches,
 				tabsize=2, language=python, numbers=left,stepnumber=1,
@@ -47,8 +46,5 @@ os.system('sync')
 try:
   with open('/proc/sys/vm/drop_caches', 'w') as stream:
     stream.write('3\n')
-except IOError as e:
-  print 'run the script with sudo privileges'
-  exit(1)
 ...
 \end{lstlisting}

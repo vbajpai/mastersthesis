@@ -214,17 +214,18 @@ requested, and fallback to the first approach otherwise.
 
 
 
-The group filter is currently a separate module in the execution engine as
-shown in listing \ref{lst:fv2-groupfilter-indy}. This means that it is invoked
-only after the grouper returns. As a consequence, the group filter has to
-iterate over the groups again in order to make decision on which ones to filter
-out. This decision can also be m\marginpar{inline group filter} made as soon as
-the group is realized in the grouper. Such a refactor will phase out the
-distinct boundary between the grouper and group filter in the source code.
-However, it will eliminate a duplicate iteration of the groupset in the group
-filter thereby improving performance. The performance gains will be more
-visible when the ratio of the number of groups formed to the number of input
-filtered records is high.
+The group filter is currently a separate module in the execution engine
+as shown in listing \ref{lst:fv2-groupfilter-indy}. This means that it
+is invoked only after the grouper returns. As a consequence, the group
+filter has to iterate over the groups again in order to make decision on
+which ones to filter out. This decision can also be \marginpar{inline
+group filter} made as soon as the group is realized in the grouper. Such
+a refactor will phase out the distinct boundary between the grouper and
+group filter in the source code.  However, it will eliminate a duplicate
+iteration of the groupset in the group filter thereby improving
+performance. The performance gains will be more visible when the ratio
+of the number of groups formed to the number of input filtered records
+is high.
 
  \lstset{caption=F$(v2):$ Group Filter as an Independent Module,
 				tabsize=2, language=c, numbers=left,stepnumber=1,

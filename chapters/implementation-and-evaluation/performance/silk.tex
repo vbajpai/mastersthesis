@@ -1,202 +1,276 @@
-The bencharking suite was used to run a number of queries over a varied size
-of flow traces. The smallest trace was $500K$ flow records, going upto $10M$
-flow records with a step size of $500K$. The suite was run on a high-end
-machine\footnote{\texttt{crystal.eecs.jacobs-university.de}} with $24$ cores
-of $2.5$ GHz clock speed and $18$GiB of memory. The results for NFQL and SiLK
-\footnote{Detailed silk installation and usage instructions are available in
-the appendix.} \cite{SiLK} are available on the \texttt{benchmarks} branch of
-the \texttt{git} repository.
+The benchmarking suite was used to run a number of queries over a public flow
+trace containing $20M$ records. We used trace $#7$
+\footnote{\url{http://traces.simpleweb.org/traces/netflow/netflow1/netflow000.tar.bz2}},
+from Simpleweb \footnote{Simpleweb is a data repository of traffic traces from
+University of Twente}.  The input trace was compressed at \texttt{ZLIB\_LEVEL}
+$5$ using the \texttt{zlib} suite. It was also converted to \texttt{nfdump}
+and SiLK\footnote{Detailed conversion instructions are available in the
+appendix} \cite{SiLK} compatible formats and compressed with \texttt{zlib}
+keeping the same compression level.  The suite was run on a high-end
+machine\footnote{\url{crystal.eecs.jacobs-university.de}} with $24$ cores of
+$2.5$ GHz clock speed and $18$ GiB of memory. The results and graphs are
+available on the \texttt{benchmarks} branch of the \texttt{git} repository.
 
-The first query attempts to find all the DNS (over UDP) traffic of the
-supplied trace. The first branch filters and groups the flow records that
-contain DNS requests, while the other branch holds the DNS responses. The
-request-response pairs are then merged according to the endpoints and unfolded
-to \marginpar{dns and mdns request-response over udp} display the flow-record
-streams in each such pair. Such a query in SiLK \footnote{Detailed
-instructions to convert flow-tools traces to silk are available in the
-appendix} can be represented by piping multiple tools together as shown in
-listing \ref{lst:silk-mdns-dns-udp}. The subsequent NFQL query is available at
-\texttt{examples/} and is omitted here for brevity reasons. The query is
-similar for mDNS whereby the port $53$ is replaced by $5353$. The results are
-shown in figure \ref{fig:dns-mdns-udp}.
+\lstset{caption=Filter Stage: SiLK Queries,
+				tabsize=2, language=bash, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:silk-filter,
+        aboveskip=20pt, captionpos=b, upquote=true}
+\begin{lstlisting}
+# ratio: 0.0
+rm -f $OUTPUT; \
+rwfilter --packets=0-  --compression-method=zlib --fail=$OUTPUT $INPUT;
 
-\lstset{caption=SiLK Query: DNS and mDNS over UDP,
+# ratio: 0.2
+rm -f $OUTPUT; \
+rwfilter --packets=3- --compression-method=zlib --pass=$OUTPUT $INPUT;
+
+# ratio: 0.4
+rm -f $OUTPUT; \
+rwfilter --packets=2- --compression-method=zlib --pass=$OUTPUT $INPUT;
+
+# ratio: 0.6
+rm -f $OUTPUT; \
+rwfilter --packets=2- --compression-method=zlib --fail=$OUTPUT $INPUT;
+
+# ratio: 0.8
+rm -f $OUTPUT; \
+rwfilter --packets=3- --compression-method=zlib --fail=$OUTPUT $INPUT;
+
+# ratio: 1.0
+rm -f $OUTPUT; \
+rwfilter --packets=0- --compression-method=zlib --pass=$OUTPUT $INPUT;
+\end{lstlisting}
+
+The first query attempts to stress the filter stage.  It uses varying values
+on the packet field offset to determine the amount of flow records that are
+passed by the filter. The resultant filtered records are written to
+\texttt{flow-tools} compatible file format and compressed at  at
+\texttt{ZLIB\_LEVEL} $5$ \marginpar{stressing the filter} using \texttt{zlib}
+suite. The ratio of the number of filtered records in the output trace to the
+number of the flow records in the input trace is plotted against time. SiLK
+example queries using \texttt{rwfilter} are shown in listing
+\ref{lst:silk-filter}. The queries for \ac{NFQL}, \texttt{flowtools},
+\texttt{nfdump} are similar and can be referenced from \texttt{benchmarks}
+branch\footnote{\texttt{benchmarks/august/filter/queries/\{flowtools, nfql,
+nfdump, silk\}}}. The evaluation results are shown in figure
+\ref{fig:benchmarks-filter}.
+
+\begin{figure}[h!]
+  \begin{center}
+    \includegraphics* [width=0.8\linewidth]{figures/benchmarks/filter}
+    \caption{Filter Stage: NFQL vs SiLK, Flow-Tools, Nfdump}
+    \label{fig:benchmarks-filter}
+  \end{center}
+\end{figure}
+
+It can be seen that the performance of the filter stage in \ac{NFQL} is
+comparable to that of \texttt{flowtools} and SiLK. SiLK takes less time on
+lower ratios, but then again SilK and \texttt{nfdump} also use their own
+proprietary format for trace files. As a result, the amount of data that needs
+to read (or written) may be different to what it is for \ac{NFQL} and
+\texttt{flowtools}. On the other hand, \texttt{nfdump} appears to be
+significantly faster than the rest. This \marginpar{stressing the filter:
+discussion} is because \texttt{nfdump} lacks \texttt{zlib} support, and as
+such the files that were read and written used \texttt{lzo} compression scheme
+which trades space for achieving faster compression and decompression. It is
+important to note, that all the tools were single-threaded in this evaluation,
+and did not completely utilize the $24$ cores that were at their disposal. It
+comes as a realization, that filtering the input using multiple threads by
+memory mapping the trace and adding \texttt{lzo} compression will drastically
+improve \ac{NFQL}'s filter performance.
+
+\lstset{caption=Grouper Stage: SiLK Queries,
+				tabsize=2, language=bash, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:silk-grouper,
+        aboveskip=20pt, captionpos=b, upquote=true}
+\begin{lstlisting}
+# ratio: 0.1
+rm -f /tmp/filter.rwz $OUTPUT; \
+rwfilter --packets=0- --compression-method=zlib --pass=/tmp/filter.rwz $INPUT; \
+rwsort --fields=sIP /tmp/filter.rwz | \
+rwgroup --id-fields=sIP --summarize \
+        --compression-method=zlib --output-path=$OUTPUT;
+
+# ratio: 0.4
+rm -f /tmp/filter.rwz $OUTPUT; \
+rwfilter --packets=0- --compression-method=zlib --pass=/tmp/filter.rwz $INPUT; \
+rwsort --fields=sIP,dIP,sPort,dPort /tmp/filter.rwz | \
+rwgroup --id-fields=sIP,dIP,sPort,dPort --summarize \
+        --compression-method=zlib --output-path=$OUTPUT;
+
+# ratio: 0.8
+rm -f /tmp/filter.rwz $OUTPUT; \
+rwfilter --packets=0- --compression-method=zlib --pass=/tmp/filter.rwz $INPUT; \
+rwsort --fields=5-9 /tmp/filter.rwz | \
+rwgroup --id-fields=5-9 --summarize \
+        --compression-method=zlib --output-path=$OUTPUT;
+
+# ratio: 1.0
+rm -f /tmp/filter.rwz $OUTPUT; \
+rwfilter --packets=0- --compression-method=zlib --pass=/tmp/filter.rwz $INPUT; \
+rwsort --fields=1-9 /tmp/filter.rwz | \
+rwgroup --id-fields=1-9 --summarize \
+        --compression-method=zlib --output-path=$OUTPUT;
+\end{lstlisting}
+
+The second query attempts to stress the grouper stage. It reuses the filter
+query that produces a $1.0$ ratio to allow the grouper to receive the entire
+trace as a filtered recordset. The grouper part of the query then gradually
+increases the number of grouping terms in the \ac{DNF} expression to increase
+the output/input ratio. The resultant groups \marginpar{stressing the grouper}
+are again written as \texttt{flowtools} files using the same \texttt{zlib}
+compression level. The ratio of the number of groups formed to the number of
+the input filtered records is plotted against time. SiLK example queries using
+a combination of \texttt{rwfilter-rwsort-rwgroup} are shown in listing
+\ref{lst:silk-grouper}.  The queries for \ac{NFQL} are similar and can be
+referenced from \texttt{benchmarks}
+branch\footnote{\texttt{benchmarks/august/grouper/queries/\{nfql, silk\}}}.
+\texttt{nfdump} and \texttt{flowtools} do not support grouping, and therefore
+are not considered in this evaluation. The evaluation results are shown in
+figure \ref{fig:benchmarks-grouper}.
+
+\begin{figure}[h!]
+  \begin{center}
+    \includegraphics* [width=0.8\linewidth]{figures/benchmarks/grouper}
+    \caption{Grouper Stage: NFQL vs SiLK}
+    \label{fig:benchmarks-grouper}
+  \end{center}
+\end{figure}
+
+The evaluation graph reveals that the performance of the \ac{NFQL} grouper
+stage is close. The time taken by the tools are comparable on lower ratios,
+but on higher ratios, \ac{NFQL} starts to drift apart. SiLK, however remains
+almost linear throughout the evaluation. Since most of the time is taken in
+writing the records to files, it is unclear whether SiLK's usage of a
+proprietary format which may reduce reads/writes is responsible for the drift
+on higher ratios. SiLK's \texttt{rwgroup} tool is also supplied a
+\texttt{--summarize} flag in all the queries. This gives SiLK the leverage to
+not store information about which members are part of the group.  \ac{NFQL} on
+the other hand needs to allocate resources (which may take time) to keep this
+information in its data structures, since \marginpar{stressing the grouper:
+discussion} the ungrouper later may request to write the members of a group
+while unfolding the tuples.  The ungrouper although was disabled in this
+evaluation, the allocation of space for group members was not. It is also
+important to note that both the tools again remained single-threaded
+throughout the evaluation. SiLK took an advantage of an inherent concurency
+arising from how the query is structured as one single \texttt{bash} command
+using pipes. The pipe between \texttt{rwsort} and \texttt{rwgroup} makes the
+two process run concurrently, the effect of which gets more pronounced on
+higher ratios and can be a drift determining factor. The profiling results
+from GNU \texttt{gprof} \cite{graham:1982} indicate that $60\%$ of the time is
+taken in \texttt{qsort} comparator calls.  As a result, it comes as no
+surprise, that bifurcating \texttt{qsort} invocation to multiple threads and
+later merging the results back using merge sort will help parallelize the
+grouper stage and maybe reduce the drift on higher ratios. In addition, since
+all of the evaluation queries had grouping terms using an equality comparator,
+\ac{NFQL} can introspect such a grouping rule to dynamically optimize
+processing searches using a hashtable and turn to \texttt{qsort} based
+grouping only as a fallback.
+
+
+\lstset{caption=Group Filter Stage: SiLK Queries,
 				tabsize=2, language=bash, numbers=left,stepnumber=1,
         basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
         keywordstyle=\color{blue}, frame=shadowbox,
         rulesepcolor=\color{black}, label=lst:silk-mdns-dns-udp,
         aboveskip=20pt, captionpos=b, upquote=true}
 \begin{lstlisting}
-$ cat dns-udp.txt
-rm -f /tmp/A.raw /tmp/B.raw /tmp/result.raw; \
-rwfilter --sport=53 --proto=17 --pass=stdout %s | \
-rwsort --fields=sIP,dIP | \
-rwgroup --id-fields=sIP,dIP --summarize | \
-rwfilter --input-pipe=stdin --pass=/tmp/A.raw --packets=10-; \
-rwfilter --dport=53 --proto=6 --pass=stdout %s | \
-rwsort --fields=sIP,dIP | \
-rwgroup --id-fields=sIP,dIP --summarize | \
-rwfilter --input-pipe=stdin --pass=/tmp/B.raw --packets=10-; \
-rwmatch --relate=1,2 --relate=2,1 /tmp/A.raw /tmp/B.raw /tmp/result.raw;
+# ratio: 0.0
+rm -f /tmp/filter.rwz /tmp/grouper.rwz $OUTPUT; \
+rwfilter --packets=0- --compression-method=zlib --pass=/tmp/filter.rwz $INPUT; \
+rwsort --fields=1-9 /tmp/filter.rwz | \
+rwgroup --id-fields=1-9 --summarize \
+        --compression-method=zlib --output-path=/tmp/grouper.rwz; \
+rwfilter --packets=0- --compression-method=zlib /tmp/grouper.rwz \
+         --fail=$OUTPUT;
 
-$ cat mdns-udp.txt
-rm -f /tmp/result.raw; \
-rwfilter --sport=5353 --dport=5353 --proto=17 --pass=stdout %s | \
-rwsort --fields=sIP,dIP | \
-rwgroup --id-fields=sIP,dIP --summarize | \
-rwfilter --input-pipe=stdin --pass=/tmp/result.raw --packets=500-; \
-\end{lstlisting}
+# ratio: 0.2
+rm -f /tmp/filter.rwz /tmp/grouper.rwz $OUTPUT; \
+rwfilter --packets=0- --compression-method=zlib --pass=/tmp/filter.rwz $INPUT; \
+rwsort --fields=1-9 /tmp/filter.rwz | \
+rwgroup --id-fields=1-9 --summarize \
+        --compression-method=zlib --output-path=/tmp/grouper.rwz; \
+rwfilter --packets=3- --compression-method=zlib /tmp/grouper.rwz \
+         --pass=$OUTPUT;
 
-\begin{figure}[ht!]
-\centering
-\subfigure{\includegraphics[width=.48\linewidth]{figures/benchmarks/mdns-udp}}\quad
-\subfigure{\includegraphics[width=.48\linewidth]{figures/benchmarks/dns-udp}}\\
-\caption{F$(v2)$: DNS and mDNS over UDP}
-\label{fig:dns-mdns-udp}
-\end{figure}
+# ratio: 0.4
+rm -f /tmp/filter.rwz /tmp/grouper.rwz $OUTPUT; \
+rwfilter --packets=0- --compression-method=zlib --pass=/tmp/filter.rwz $INPUT; \
+rwsort --fields=1-9 /tmp/filter.rwz | \
+rwgroup --id-fields=1-9 --summarize \
+        --compression-method=zlib --output-path=/tmp/grouper.rwz; \
+rwfilter --packets=2- --compression-method=zlib /tmp/grouper.rwz \
+         --pass=$OUTPUT;
 
+# ratio: 0.6
+rm -f /tmp/filter.rwz /tmp/grouper.rwz $OUTPUT; \
+rwfilter --packets=0- --compression-method=zlib --pass=/tmp/filter.rwz $INPUT; \
+rwsort --fields=1-9 /tmp/filter.rwz | \
+rwgroup --id-fields=1-9 --summarize \
+        --compression-method=zlib --output-path=/tmp/grouper.rwz; \
+rwfilter --packets=2- --compression-method=zlib /tmp/grouper.rwz \
+         --fail=$OUTPUT;
 
-The second query searches for all the HTTP and HTTPs sessions over TCP on a
-supplied trace. There are separate branches for requests and responses.
-Filters in each such branch search for all HTTP (or HTTPs) traffic over port
-$80$ (or $443$). The groupers group all the flow-records with respect to the
-endpoints, ie. source-destination IP pairs. The group \marginpar{http and
-https sessions over tcp} filters filter the groups to keep only those that
-generate at-least 200 packets, while the merger relates the request-response
-pairs to create a session. Each such session is then unfolded to display the
-stream of flow-records in each session. SiLK queries that tend to emulate the
-behavior of finding HTTP (and HTTPs) sessions is shown in listing
-\ref{lst:silk-http-https-tcp}. The comparison results are shown in figure
-\ref{fig:http-https-tcp-sessions}.
+# ratio: 0.8
+rm -f /tmp/filter.rwz /tmp/grouper.rwz $OUTPUT; \
+rwfilter --packets=0- --compression-method=zlib --pass=/tmp/filter.rwz $INPUT; \
+rwsort --fields=1-9 /tmp/filter.rwz | \
+rwgroup --id-fields=1-9 --summarize \
+        --compression-method=zlib --output-path=/tmp/grouper.rwz; \
+rwfilter --packets=3- --compression-method=zlib /tmp/grouper.rwz \
+         --fail=$OUTPUT;
 
-
-\lstset{caption=SiLK Query: HTTP and HTTPs Sessions over TCP,
-				tabsize=2, language=bash, numbers=left,stepnumber=1,
-        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
-        keywordstyle=\color{blue}, frame=shadowbox,
-        rulesepcolor=\color{black}, label=lst:silk-http-https-tcp,
-        aboveskip=20pt, captionpos=b, upquote=true}
-\begin{lstlisting}
-$ cat http-tcp-session.txt
-rm -f /tmp/A.raw /tmp/B.raw /tmp/result.raw; \
-rwfilter --sport=80 --proto=6 --pass=stdout %s | \
-rwsort --fields=sIP,dIP | \
-rwgroup --id-fields=sIP,dIP --summarize | \
-rwfilter --input-pipe=stdin --pass=/tmp/A.raw --packets=200-; \
-rwfilter --dport=80 --proto=6 --pass=stdout %s | \
-rwsort --fields=sIP,dIP | \
-rwgroup --id-fields=sIP,dIP --summarize | \
-rwfilter --input-pipe=stdin --pass=/tmp/B.raw --packets=200-; \
-rwmatch --relate=1,2 --relate=2,1 /tmp/A.raw /tmp/B.raw /tmp/result.raw;
-
-$ cat https-tcp-session.txt
-rm -f /tmp/A.raw /tmp/B.raw /tmp/result.raw; \
-rwfilter --sport=443 --proto=6 --pass=stdout %s | \
-rwsort --fields=sIP,dIP | \
-rwgroup --id-fields=sIP,dIP --summarize | \
-rwfilter --input-pipe=stdin --pass=/tmp/A.raw --packets=200-; \
-rwfilter --dport=443 --proto=6 --pass=stdout %s | \
-rwsort --fields=sIP,dIP | \
-rwgroup --id-fields=sIP,dIP --summarize | \
-rwfilter --input-pipe=stdin --pass=/tmp/B.raw --packets=200-; \
-rwmatch --relate=1,2 --relate=2,1 /tmp/A.raw /tmp/B.raw /tmp/result.raw;
-\end{lstlisting}
-
-\begin{figure}[ht!]
-\centering
-\subfigure{\includegraphics[width=.48\linewidth]{figures/benchmarks/http-tcp}}\quad
-\subfigure{\includegraphics[width=.48\linewidth]{figures/benchmarks/https-tcp}}\\
-\caption{F$(v2)$: HTTP and HTTPs Sessions over TCP}
-\label{fig:http-https-tcp-sessions}
-\end{figure}
-
-
-
-
-The third query attempts to collect an overall statistics of the amount of
-HTTP traffic in the supplied flow trace. The two branches represent HTTP
-requests and responses. The filters in each such branch select all HTTP
-traffic over port $80$. The result from both the branches are
-\marginpar{conglomerating http traffic} concatenated together and a sum of all
-the packets and octets is generated as a summary. In NFQL such a query is
-defined by omitting the grouper module and aggregating all the traffic
-generated by the filters.  The merger and ungrouper modules are also omitted.
-The SiLK query is shown in listing \ref{lst:silk-http-octets} and the results
-are shown in figure \ref{fig:summarizing-http-octets}.
-
-
-\lstset{caption=SiLK Query: Conglomerating HTTP Traffic,
-				tabsize=2, language=bash, numbers=left,stepnumber=1,
-        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
-        keywordstyle=\color{blue}, frame=shadowbox,
-        rulesepcolor=\color{black}, label=lst:silk-http-octets,
-        aboveskip=20pt, captionpos=b, upquote=true}
-\begin{lstlisting}
-$ cat http-octets.txt
-rm -f /tmp/A.raw /tmp/B.raw /tmp/result.raw /tmp/result.txt; \
-rwfilter --sport=80 --pass=stdout %s | \
-rwfilter --input-pipe=stdin --pass=/tmp/A.raw --packets=0-; \
-rwfilter --dport=80 --pass=stdout %s | \
-rwfilter --input-pipe=stdin --pass=/tmp/B.raw --packets=0-; \
-rwcat --output=/tmp/result.raw /tmp/A.raw /tmp/B.raw; \
-rwstats --overall-stats --output-path=/tmp/result.txt /tmp/result.raw
-\end{lstlisting}
-
-\begin{figure}[ht!]
-\centering
-\subfigure{\includegraphics[width=.55\linewidth]{figures/benchmarks/http-octets}}\quad
-\caption{F$(v2)$: Conglomerating HTTP Traffic}
-\label{fig:summarizing-http-octets}
-\end{figure}
-
-
-
-
-
-
-The fourth query searches for all application-protocol agnostic TCP sessions
-in the supplied trace. The two branches represent TCP requests and responses.
-The filters in each branch filter in all the TCP traffic, while the grouper
-clubs the flow-records coming to (or from) a specific end-point into one group
-record. The group filter, filters in all groups that have at-least $20K$
-packets to reduce the merger load. The merger eventually
-\marginpar{application agnostic tcp sessions} relates the branches together to
-form request-response pairs. The ungrouper unfolds these pairs to print the
-stream of flow-records members in each pair. The SiLK query is shown in
-listing \ref{lst:silk-tcp-session} and the NFQL comparison results are shown
-in figure \ref{fig:tcp-sessions}.
-
-
-\lstset{caption=SiLK Query: Application Agnostic TCP Session,
-				tabsize=2, language=bash, numbers=left,stepnumber=1,
-        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
-        keywordstyle=\color{blue}, frame=shadowbox,
-        rulesepcolor=\color{black}, label=lst:silk-tcp-session,
-        aboveskip=20pt, captionpos=b, upquote=true}
-\begin{lstlisting}
-$ cat tcp-session.txt
-rm -f /tmp/A.raw /tmp/B.raw /tmp/result.raw; \
-rwfilter --proto=6 --pass=stdout %s | \
-rwsort --fields=sIP,dIP | \
-rwgroup --id-fields=sIP,dIP --summarize | \
-rwfilter --input-pipe=stdin --pass=/tmp/A.raw --packets=20000-; \
-rwfilter --proto=6 --pass=stdout %s | \
-rwsort --fields=sIP,dIP | \
-rwgroup --id-fields=sIP,dIP --summarize | \
-rwfilter --input-pipe=stdin --pass=/tmp/B.raw --packets=20000-; \
-rwmatch --relate=1,2 --relate=2,1 /tmp/A.raw /tmp/B.raw /tmp/result.raw;
+# ratio: 1.0
+rm -f /tmp/filter.rwz /tmp/grouper.rwz $OUTPUT; \
+rwfilter --packets=0- --compression-method=zlib --pass=/tmp/filter.rwz $INPUT; \
+rwsort --fields=1-9 /tmp/filter.rwz | \
+rwgroup --id-fields=1-9 --summarize \
+        --compression-method=zlib --output-path=/tmp/grouper.rwz; \
+rwfilter --packets=0- --compression-method=zlib /tmp/grouper.rwz \
+         --pass=$OUTPUT;
 \end{lstlisting}
 
 
-\begin{figure}[ht!]
-\centering
-\includegraphics[width=.55\linewidth]{figures/benchmarks/tcp}\\
-\caption{F$(v2)$: Application Agnostic TCP Sessions}
-\label{fig:tcp-sessions}
+
+The third query attempts to stress the group filter stage. It reuses the
+filter and grouper queries that produce a $1.0$ ratio to allow the group
+filter to receive the entire trace as input. That means, each flow record of
+the original trace now becomes a group record for the group filter.  The group
+filter then reuses the same varying values of the packet offset to determine
+the amount of groups that are filtered ahead. The filtered groups
+\marginpar{stressing the group filter} are again written as \texttt{flowtools}
+files using the same \texttt{zlib} compression level. The ratio of the number
+of filtered groups formed to the number of the input group records is plotted
+against time. SiLK example queries using a combination of
+\texttt{rwfilter-rwsort-rwgroup-rwfilter} are shown in listing
+\ref{lst:silk-grouper}.  The queries for \ac{NFQL} are similar and can be
+referenced from \texttt{benchmarks}
+branch\footnote{\texttt{benchmarks/august/groupfilter/queries/\{nfql,
+silk\}}}.  The evaluation results are shown in figure
+\ref{fig:benchmarks-grouper}.
+
+\begin{figure}[h!]
+  \begin{center}
+    \includegraphics* [width=0.8\linewidth]{figures/benchmarks/groupfilter}
+    \caption{Group Filter Stage: NFQL vs SiLK}
+    \label{fig:fv1-fv2-filter}
+  \end{center}
 \end{figure}
 
-It is clear that the merger is the bottleneck of the processing pipeline. The
-near exponential growth is due the $O(n^m)$ complexity of the merger. It
-appears that using a hash table for an equality relative operation and search
-trees for generic operators will go a long way in improving the merger speed
-and is a future work item.
+It can be seen that the timings of \ac{NFQL} are far apart from that of SiLK.
+It is due to the drift already created by the grouper at $1.0$ ratio in the
+previous stage. As a result, the group filter comes into play only after $300$
+seconds, whereas SiLK's group filtering already starts just below $150$
+seconds. Even if \marginpar{stressing the groupfilter: discussion} we
+normalize the graph, it can be observed that the group filter has a
+significantly higher slope. This is because the group filter is a separate
+blackbox in the execution engine. This means that it is only executed once the
+grouper returns. As a result, the group filter has to reiterate the groups to
+make a filtering decision, which costs time as is seen from the graph. The
+group filter can also be merged with the grouper, so as to be able to make a
+filtering decision as soon as a group is formed, thereby eliminating an extra
+loop over.
