@@ -5,6 +5,7 @@
 \usepackage{pifont}
 \usepackage{todonotes}
 \usepackage{datetime}
+\usepackage[pdftex]{graphicx}
 \hypersetup{pdffitwindow=true}
 
 \usepackage[resetlabels]{multibib}
@@ -17,7 +18,12 @@
 \pagenumbering{roman}
 \pagestyle{plain}
 
-\include{frontback/titlepage}
+\newdateformat{onlydate}{%
+\ordinal{DAY}}
+
+\include{frontback/titlepagecnds}
+\cleardoublepage
+\include{frontback/declaration}
 \cleardoublepage
 \include{frontback/dedication}
 \cleardoublepage
@@ -72,6 +78,5 @@
 \include{chapters/appendix/releases}
 \include{chapters/appendix/acronyms}
 \include{frontback/bibliography}
-\include{frontback/declaration}
 \include{frontback/colophon}
 \end{document}
