@@ -43,9 +43,9 @@ rm -f $OUTPUT; \
 rwfilter --packets=0- --compression-method=zlib --pass=$OUTPUT $INPUT;
 \end{lstlisting}
 
-The first query attempts to stress the filter stage.  It uses varying values
-on the packet field offset to determine the amount of flow records that are
-passed by the filter. The resultant filtered records are written to
+The first set of queries attempt to stress the filter stage.  They use varying
+values on the packet field offset to determine the amount of flow records that
+are passed by the filter. The resultant filtered records are written to
 \texttt{flow-tools} compatible file format and compressed at  at
 \texttt{ZLIB\_LEVEL} $5$ \marginpar{stressing the filter} using \texttt{zlib}
 suite. The ratio of the number of filtered records in the output trace to the
@@ -117,17 +117,17 @@ rwgroup --id-fields=1-9 --summarize \
         --compression-method=zlib --output-path=$OUTPUT;
 \end{lstlisting}
 
-The second query attempts to stress the grouper stage. It reuses the filter
-query that produces a $1.0$ ratio to allow the grouper to receive the entire
-trace as a filtered recordset. The grouper part of the query then gradually
-increases the number of grouping terms in the \ac{DNF} expression to increase
-the output/input ratio. The resultant groups \marginpar{stressing the grouper}
-are again written as \texttt{flowtools} files using the same \texttt{zlib}
-compression level. The ratio of the number of groups formed to the number of
-the input filtered records is plotted against time. SiLK example queries using
-a combination of \texttt{rwfilter-rwsort-rwgroup} are shown in listing
-\ref{lst:silk-grouper}.  The queries for \ac{NFQL} are similar and can be
-referenced from \texttt{benchmarks}
+The second set of queries attempt to stress the grouper stage. They reuse the
+filter query that produces a $1.0$ ratio to allow the grouper to receive the
+entire trace as a filtered recordset. The grouper part of the query then
+gradually increases the number of grouping terms in the \ac{DNF} expression to
+increase the output/input ratio. The resultant groups \marginpar{stressing the
+grouper} are again written as \texttt{flowtools} files using the same
+\texttt{zlib} compression level. The ratio of the number of groups formed to
+the number of the input filtered records is plotted against time. SiLK example
+queries using a combination of \texttt{rwfilter-rwsort-rwgroup} are shown in
+listing \ref{lst:silk-grouper}.  The queries for \ac{NFQL} are similar and can
+be referenced from \texttt{benchmarks}
 branch\footnote{\texttt{benchmarks/august/grouper/queries/\{nfql, silk\}}}.
 \texttt{nfdump} and \texttt{flowtools} do not support grouping, and therefore
 are not considered in this evaluation. The evaluation results are shown in
@@ -176,7 +176,7 @@ grouping only as a fallback.
 				tabsize=2, language=bash, numbers=left,stepnumber=1,
         basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
         keywordstyle=\color{blue}, frame=shadowbox,
-        rulesepcolor=\color{black}, label=lst:silk-mdns-dns-udp,
+        rulesepcolor=\color{black}, label=lst:silk-groupfilter,
         aboveskip=20pt, captionpos=b, upquote=true}
 \begin{lstlisting}
 # ratio: 0.0
@@ -236,8 +236,8 @@ rwfilter --packets=0- --compression-method=zlib /tmp/grouper.rwz \
 
 
 
-The third query attempts to stress the group filter stage. It reuses the
-filter and grouper queries that produce a $1.0$ ratio to allow the group
+The third set of queries attempt to stress the group filter stage. They reuse
+the filter and grouper queries that produce a $1.0$ ratio to allow the group
 filter to receive the entire trace as input. That means, each flow record of
 the original trace now becomes a group record for the group filter.  The group
 filter then reuses the same varying values of the packet offset to determine
@@ -247,30 +247,142 @@ files using the same \texttt{zlib} compression level. The ratio of the number
 of filtered groups formed to the number of the input group records is plotted
 against time. SiLK example queries using a combination of
 \texttt{rwfilter-rwsort-rwgroup-rwfilter} are shown in listing
-\ref{lst:silk-grouper}.  The queries for \ac{NFQL} are similar and can be
+\ref{lst:silk-groupfilter}.  The queries for \ac{NFQL} are similar and can be
 referenced from \texttt{benchmarks}
 branch\footnote{\texttt{benchmarks/august/groupfilter/queries/\{nfql,
 silk\}}}.  The evaluation results are shown in figure
-\ref{fig:benchmarks-grouper}.
+\ref{fig:benchmarks-groupfilter}.
 
 \begin{figure}[h!]
   \begin{center}
     \includegraphics* [width=0.8\linewidth]{figures/benchmarks/groupfilter}
     \caption{Group Filter Stage: NFQL vs SiLK}
-    \label{fig:fv1-fv2-filter}
+    \label{fig:benchmarks-groupfilter}
   \end{center}
 \end{figure}
 
 It can be seen that the timings of \ac{NFQL} are far apart from that of SiLK.
 It is due to the drift already created by the grouper at $1.0$ ratio in the
-previous stage. As a result, the group filter comes into play only after $300$
-seconds, whereas SiLK's group filtering already starts just below $150$
-seconds. Even if \marginpar{stressing the groupfilter: discussion} we
-normalize the graph, it can be observed that the group filter has a
-significantly higher slope. This is because the group filter is a separate
-blackbox in the execution engine. This means that it is only executed once the
-grouper returns. As a result, the group filter has to reiterate the groups to
-make a filtering decision, which costs time as is seen from the graph. The
-group filter can also be merged with the grouper, so as to be able to make a
-filtering decision as soon as a group is formed, thereby eliminating an extra
-loop over.
+previous stage. \marginpar{stressing the groupfilter: discussion} As a result,
+the group filter comes into play only after $300$ seconds, whereas SiLK's
+group filtering already starts just below $150$ seconds. Even if we normalize
+the graph, it can be observed that the group filter has a significantly higher
+slope. This is because it is only executed once the grouper returns, and
+therefore has to reiterate the groups to make a filtering decision.
+
+\lstset{caption=Merger Stage: NFQL Queries,
+				tabsize=2, language=bash, numbers=left,stepnumber=1,
+        basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
+        keywordstyle=\color{blue}, frame=shadowbox,
+        rulesepcolor=\color{black}, label=lst:nfql-merger,
+        aboveskip=20pt, captionpos=b, upquote=true}
+\begin{lstlisting}
+# ratio: 0.0
+"dnf-expr": [
+  { "clause": [ {
+      "term": { "op": { "type": "RULE_ABS", "name": "RULE_EQ" },
+                "offset": { "f1_name": "dPkts", "f2_name": "dOctets", ... } }}]},
+  { "clause": [ {
+      "term": { "op": { "type": "RULE_ABS", "name": "RULE_EQ" },
+                "offset": { "f1_name": "dOctets", "f2_name": "dPkts", ... } }}]}
+]
+
+# ratio: 0.2
+"dnf-expr": [
+  { "clause": [ {
+      "term": { "op": { "type": "RULE_ABS", "name": "RULE_EQ" },
+                "offset": { "f1_name": "prot", "f2_name": "prot", ... } }}]},
+  { "clause": [ {
+      "term": { "op": { "type": "RULE_ABS", "name": "RULE_EQ" },
+                "offset": { "f1_name": "tcp_flags", "f2_name": "tcp_flags", ... } }}]}
+]
+
+# ratio: 0.5
+"dnf-expr": [
+  { "clause": [ {
+      "term": { "op": { "type": "RULE_ABS", "name": "RULE_EQ" },
+                "offset": { "f1_name": "prot", "f2_name": "prot", ... } }}]}
+]
+
+# ratio: 1.0
+"dnf-expr": [
+  { "clause": [ {
+      "term": { "op": { "type": "RULE_ABS", "name": "RULE_EQ" },
+                "offset": { "f1_name": "srcaddr", "f2_name": "srcaddr", ... } }}]}
+]
+\end{lstlisting}
+
+The fourth set of queries attempt to stress the merger stage. They reuse the
+filter, grouper and group filter queries that produce a $1.0$ ratio. These
+queries are then run in two separate branches to produce identical filtered
+group records.  The merger then applies the queries as listed
+\ref{lst:nfql-merger} to produce different output to input ratios. The groups
+that are merged are again written as \texttt{flowtools} files
+\marginpar{stressing the merger} using the same \texttt{zlib} compression
+level. The ratio of the number of merged groups to twice\footnote{Each branch
+pushes the entire trace as an input to the merger.} the number of flow records
+in the original trace is plotted against time.  The complete \ac{NFQL} queries
+can be referenced from \texttt{benchmarks}
+branch\footnote{\texttt{benchmarks/august/merger/queries/nfql}}.  The
+evaluation results are shown in figure \ref{fig:benchmarks-groupfilter}. SiLK
+is not used in this evaluation because its behavior on matching records is
+different from \ac{NFQL}. As a result, running the same query does not end up
+with same output to input ratio.
+
+\begin{figure}[h!]
+  \begin{center}
+    \includegraphics* [width=0.8\linewidth]{figures/benchmarks/merger}
+    \caption{Merger Stage}
+    \label{fig:benchmarks-merger}
+  \end{center}
+\end{figure}
+
+It can be seen that the merger is the most performance hit and time consuming
+stage of the \ac{NFQL} pipeline thus far. It is due to the fact that the
+merger is working on twice the number of flow records than any other previous
+stage. In addition, each branch is writing the results of the filter, grouper
+and group filter stage to \texttt{flowtools} files. As a result, the amount of
+disk I/O involved is twice as much as well. Even \marginpar{stressing the
+merger: discussion} though each branch is delegated to a separate core, most
+of time is taken in writing these results to the file. These results
+although look less promising, they are way better than the previous merger
+implementation. The newer merger takes advantage of sorted nature of
+filtered groups and therefore can signifantly reduce the number of merger
+matches. It also writes a merged group record to file only once despite the
+number of times it has matched. Without these optimizations, running such
+queries on the merger would keep the CPU churning for days without results.
+
+
+The last set of queries attempt to stress the ungrouper stage. They reuse the
+entire merger queries as is, but enable the ungrouper now as well. This means,
+that the ungrouper now attempts to unfold the merged groups returned by the
+merger to write their member flow records to \texttt{flowtools} files.
+However, since the merger receives each flow record as its
+\marginpar{stressing the ungrouper} own filtered group, each merged group has
+only one member. As a result, the ungrouper ends up executing its logic and
+rewriting the merged groups as \texttt{flowtools} files using the using the
+same \texttt{zlib} compression level. The ratio of the number of result flow
+records to twice the number of the flow records in the input trace is plotted
+against time. The queries for \ac{NFQL} are similar to that of the merger and
+can be referenced from \texttt{benchmarks}
+branch\footnote{\texttt{benchmarks/august/ungrouper/queries/nfql}}.  The
+evaluation results are shown in figure \ref{fig:benchmarks-groupfilter}.
+
+\begin{figure}[h!]
+  \begin{center}
+    \includegraphics* [width=0.8\linewidth]{figures/benchmarks/ungrouper}
+    \caption{Ungrouper Stage}
+    \label{fig:benchmarks-ungrouper}
+  \end{center}
+\end{figure}
+
+It can be seen that the evaluation behavior is similar to that shown by the
+merger, but is just more involved. This is because the ungrouper also has to
+write the entire merged groupset to file, as is done by merger. This is the
+\marginpar{stressing the ungrouper: discussion} reason for the execution
+engine in taking twice the amount of time. In fact, this evaluation is
+performed only to stress the functioning of the ungrouper and running queries
+that merge each filtered group filtered individually is less useful in
+practise. Ideally, the execution engine must shutdown the ungrouper if the
+merger merges every filtered group record in its output. This is because, such
+a behavior implicitly eliminates the need of the ungrouper.

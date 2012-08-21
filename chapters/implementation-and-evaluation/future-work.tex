@@ -249,13 +249,15 @@ if (groupfilter_enabled) {
 }
 \end{lstlisting}
 
-The \texttt{START} and \texttt{END} timestamps of the cooked NetFlow $v5$
-group records are currently unset. These timestamps should be superset of
-their member \marginpar{superset intervals in group records} flow-records.
-This will allow the group filter to skip checking the timestamps of each
-member of the group and only focus on the superset interval of the group
-record itself when performing allen interval operations and is an easy issue
-to resolve.
+The execution engine currently uses an additional data structure
+(\texttt{struct json}) to hold the parsed \texttt{JSON} query. This data
+structure is then read by \texttt{prepare\_flowquery(\ldots)} to generate
+\texttt{struct flowquery} which is eventually used \marginpar{eliminating
+redundant structs} by the pipeline stages as shown in listing
+\ref{lst:fv2-redundant-structs}. In essence, the intermediate \texttt{struct}
+is not needed, and is a redundant datastructure. There is no reason why
+\texttt{parse\_json\_query(...)} cannot directly read the query elements into
+\texttt{struct flowquery} and is a future refactor item.
 
 \lstset{caption=F$(v2)$: Redundant Structs,
 				tabsize=2, language=C, numbers=left,stepnumber=1,
@@ -270,25 +272,15 @@ struct flowquery*
 fquery = prepare_flowquery(param_data->trace, json_query);
 \end{lstlisting}
 
-The execution engine currently uses an additional data structure
-(\texttt{struct json}) \marginpar{eliminating redundant structs} to hold the
-parsed \texttt{JSON} query. This data structure is then read by
-\texttt{prepare\_flowquery(\ldots)} to generate \texttt{struct flowquery} which
-is eventually used by the pipeline stages as shown in listing
-\ref{lst:fv2-redundant-structs}. In essence, the intermediate \texttt{struct}
-is not needed, and is a redundant datastructure. There is no reason why
-\texttt{parse\_json\_query(...)} cannot directly read the query elements into
-\texttt{struct flowquery} and is a future refactor item.
-
 The ungrouper reads the tuples of merged group records and unfolds each one of
 them to create a stream. Each such stream is a collection of flow-records that
-\marginpar{eliminating redundant flows from a stream} passed the whole
-pipeline. However, it is possible that a flow record is part of multiple
-groups in a single group tuple, and is therefore outputted multiple times. The
-engine currently does not eliminate such flow records repetitions. In the
-future, the engine can take an option if one desires to eliminate such
-repetitions. It is also does not order the flow records according to their
-timestamps as defined in the \ac{NFQL} specification.
+passed the whole pipeline. However, it is possible that a flow record is part
+of multiple groups in a single group tuple, and is \marginpar{eliminating
+redundant flows from a stream} therefore outputted multiple times. The engine
+currently does not eliminate such flow records repetitions. In the future, the
+engine can take an option if one desires to eliminate such repetitions. It is
+also does not order the flow records according to their timestamps as defined
+in the \ac{NFQL} specification.
 
 
 \section{Conclusion}\label{sec:conclusion}

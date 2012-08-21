@@ -41,43 +41,13 @@ The performance comparison of this approach against the one suggested by the
 specification is tricky. The merger implementation of the original
 specification is slow. It is so slow that it keeps churning the CPU for days
 without results. The newer approach takes less than an hour. The performance
-evaluation of this newer approach is performed against SiLK and is discussed
-in more details in \marginpar{performance comparison and present issues} the
-next chapter. The newer approach however is not currently pushed to
-\texttt{master} git branch\footnote{The newer merger implementation is
-available in the \texttt{fastmerger} git branch}. This is because the newer
-merger implementation has not yet been tested against the regression suite.
-Another reason is that, the newer merger implementation currently does not
-adapt itself if the terms defined in the merger clause do not exist in the
-grouper clause.
-
-
-
-
-%The execution engine in F$(v1)$ used to read all the flow records of a
-%supplied trace into memory before starting the processing pipeline.  Since,
-%the filter stage uses the  supplied set of absolute rules to make a decision
-%on whether or not to keep a flow record; it had to pass through the whole
-%in-memory recordset \emph{again} to fill in the filter results. This technique
-%involves multiple linear runs on the trace and therefore slows down when the
-%ratio of number of filtered records to the total number of flow-records is
-%high as shown in figure \ref{fig:fv1-fv2-filter}.
-
-%The filter stage in F$(v2)$, therefore has now been merged with in-memory read
-%of the trace. This means, a decision on whether or not to make room for a
-%record in memory and eventually hold a pointer for it in filter results is
-%done upfront as soon as the record is read from the trace. In addition, if a
-%request to write the filter stage results to a flow-tools file has been made,
-%the writes are also made as soon the filter stage decision is available,
-%thereby  \marginpar{faster filter}  allowing reading-filtering-writing to
-%happen in $O(n)$ time, where $n$ is the number of records in the trace. It is
-%important to note that the filtered records are saved in common location from
-%where they are referenced by each branch. This helps keep the memory costs at
-%a minimum when multiple branches are involved. A publically available Netflow
-%$v5$ trace
-%\footnote{\url{http://traces.simpleweb.org/traces/netflow/netflow1/netflow000.tar.bz2}}
-%was used to compare the performance of the new filter in F$(v2)$ with that
-%from F$(v1)$ as shown in figure \ref{fig:fv1-fv2-filter}. The trace has around
-%$20M$ flow-records. The queries executed are available in source repository
-%\footnote{\url{http://github.com/vbajpai/mthesis-src/}} and have been omitted
-%from here for brevity reasons. 
+evaluation of this newer approach is discussed in more details in
+\marginpar{performance comparison and present issues} the next chapter. The
+newer approach however is not currently pushed to \texttt{master} git
+branch\footnote{The newer merger implementation is available in the
+\texttt{fastmerger} git branch}. This is because the newer merger
+implementation currently does not adapt itself to sort the filtered group
+records on the field offset hit by the terms defined in the merger clause,
+that do not exist in the grouper clause. In addition, more test cases need to
+be defined to ensure that the newer merger works well with a variety of
+\ac{NFQL} queries before pushing it to the mainstream branch.
