@@ -110,7 +110,7 @@ since the comparison needs to take place between groups resulting from the
 output of separate \texttt{map} functions. This calls for inhibiting
 parallelism up to and including the group-filter stage. As a result each
 worker thread would return back its filtered groups to the master node, which
-then \marignpar{slicing inputs using mergers} would apply the rules of the
+then \marginpar{slicing inputs using mergers} would apply the rules of the
 merger stage to all the received groups at once in a \texttt{reduce} function.
 In such a scenario, although the branch with the longest runtime complexity
 will become the bottleneck for the merger, the overall runtime would still be

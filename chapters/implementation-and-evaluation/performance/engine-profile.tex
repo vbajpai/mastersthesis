@@ -11,14 +11,13 @@ libraries, \texttt{libsystem\_c, libsystem\_notify, libdispatch} make $10$
 \texttt{malloc} invocations that are again not free'd as shown in figure
 \ref{fig:profile-invocations}.  These \texttt{malloc} calls invoke
 \texttt{localtime(\ldots)} which uses \texttt{tzset(...)} to initialize and
-return \texttt{struct tm*}. This structure is never free'd apparantely due to
+return \texttt{struct tm*}. This structure is never free'd apparently due to
 a bug in these libraries.
 
 \begin{figure}[ht!]
 \centering
-\subfigure{\includegraphics[width=.40\linewidth]{figures/dyld}}\quad
-\subfigure{\includegraphics[width=.40\linewidth]{figures/localtime}}\\
-\caption{F$(v2)$: Backtrace of Living on Exit Blocks}
+\includegraphics[width=1.0\linewidth]{figures/dyld-localtime}
+\caption{F$(v2)$: Backtrace of Living Blocks on Exit Blocks}
 \label{fig:profile-invocations}
 \end{figure}
 

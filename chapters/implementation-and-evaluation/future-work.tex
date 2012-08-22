@@ -17,7 +17,7 @@ The execution engine uses the \texttt{flow-tools} \ac{API} to read and parse
 the flow-records. The \texttt{flow-tools} \ac{API} can only parse NetFlow $v5$
 records, thereby sandboxing the engine's functionality. It restricts the
 engine's understanding of a flow to a fixed NetFlow $v5$ format and inhibits
-the capability to parse \aci{IP}$v6$ flows. Since NetFlow $v9$ and now with
+the capability to parse \ac{IP}$v6$ flows. Since NetFlow $v9$ and now with
 \ac{IPFIX}, the flow format \marginpar{ipfix support} is dynamically parsed
 using its accompanied template. It relaxes the definition of a flow and gives
 more power to the sender on how the data should be conglomerated together.
@@ -53,7 +53,7 @@ from scratch using \texttt{lex/YACC}.
 
 
 \lstset{caption=F$(v2):$ GNU gprof on Filter,
-				tabsize=2, language=shell, numbers=left,stepnumber=1,
+				tabsize=2, language=bash, numbers=left,stepnumber=1,
         basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
         keywordstyle=\color{blue}, frame=shadowbox,
         rulesepcolor=\color{black}, label=lst:fv2-gprof-filter,
@@ -104,7 +104,7 @@ execution engine.
 
 
 \lstset{caption=F$(v2):$ GNU gprof on Grouper,
-				tabsize=2, language=shell, numbers=left,stepnumber=1,
+				tabsize=2, language=bash, numbers=left,stepnumber=1,
         basicstyle=\tiny\ttfamily, numberstyle=\ttfamily\color{gray},
         keywordstyle=\color{blue}, frame=shadowbox,
         rulesepcolor=\color{black}, label=lst:fv2-gprof-grouper,

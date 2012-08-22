@@ -1,7 +1,7 @@
 all: build make
 
 build:
-	latexmk -pvc -pdf -quiet vbajpai-thesis.tex
+	latexmk -pvc -f -pdf -quiet vbajpai-thesis.tex
 
 clean:
 	latexmk -c

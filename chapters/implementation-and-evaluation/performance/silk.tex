@@ -1,5 +1,5 @@
 The benchmarking suite was used to run a number of queries over a public flow
-trace containing $20M$ records. We used trace $#7$
+trace containing $20M$ records. We used trace $7$
 \footnote{\url{http://traces.simpleweb.org/traces/netflow/netflow1/netflow000.tar.bz2}},
 from Simpleweb \footnote{Simpleweb is a data repository of traffic traces from
 University of Twente}.  The input trace was compressed at \texttt{ZLIB\_LEVEL}
@@ -133,7 +133,7 @@ branch\footnote{\texttt{benchmarks/august/grouper/queries/\{nfql, silk\}}}.
 are not considered in this evaluation. The evaluation results are shown in
 figure \ref{fig:benchmarks-grouper}.
 
-\begin{figure}[h!]
+\begin{figure}[ht!]
   \begin{center}
     \includegraphics* [width=0.8\linewidth]{figures/benchmarks/grouper}
     \caption{Grouper Stage: NFQL vs SiLK}
@@ -253,7 +253,7 @@ branch\footnote{\texttt{benchmarks/august/groupfilter/queries/\{nfql,
 silk\}}}.  The evaluation results are shown in figure
 \ref{fig:benchmarks-groupfilter}.
 
-\begin{figure}[h!]
+\begin{figure}[ht!]
   \begin{center}
     \includegraphics* [width=0.8\linewidth]{figures/benchmarks/groupfilter}
     \caption{Group Filter Stage: NFQL vs SiLK}
@@ -331,7 +331,7 @@ A data point for SiLK for the $0.2$ ratio is not available since the \ac{NFQL}
 query executed at that data point uses \texttt{OR} expressions which are not
 supported by SiLK. As a result, an equivalent SiLK query is not formulated.
 
-\begin{figure}[h!]
+\begin{figure}[ht!]
   \begin{center}
     \includegraphics* [width=0.8\linewidth]{figures/benchmarks/merger}
     \caption{Merger Stage}
