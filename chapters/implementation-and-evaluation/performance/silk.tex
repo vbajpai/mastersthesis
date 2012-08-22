@@ -281,34 +281,36 @@ therefore has to reiterate the groups to make a filtering decision.
 "dnf-expr": [
   { "clause": [ {
       "term": { "op": { "type": "RULE_ABS", "name": "RULE_EQ" },
-                "offset": { "f1_name": "dPkts", "f2_name": "dOctets", ... } }}]},
-  { "clause": [ {
-      "term": { "op": { "type": "RULE_ABS", "name": "RULE_EQ" },
-                "offset": { "f1_name": "dOctets", "f2_name": "dPkts", ... } }}]}
+                "offset": { "f1_name": "dPkts", "f2_name": "dOctets", ... } }
+    }]}
 ]
 
 # ratio: 0.2
 "dnf-expr": [
   { "clause": [ {
       "term": { "op": { "type": "RULE_ABS", "name": "RULE_EQ" },
-                "offset": { "f1_name": "prot", "f2_name": "prot", ... } }}]},
+                "offset": { "f1_name": "prot", "f2_name": "prot", ... } }
+     }]},
   { "clause": [ {
       "term": { "op": { "type": "RULE_ABS", "name": "RULE_EQ" },
-                "offset": { "f1_name": "tcp_flags", "f2_name": "tcp_flags", ... } }}]}
+                "offset": { "f1_name": "tcp_flags", "f2_name": "tcp_flags", ... } }
+    }]}
 ]
 
 # ratio: 0.5
 "dnf-expr": [
   { "clause": [ {
       "term": { "op": { "type": "RULE_ABS", "name": "RULE_EQ" },
-                "offset": { "f1_name": "prot", "f2_name": "prot", ... } }}]}
+                "offset": { "f1_name": "prot", "f2_name": "prot", ... } }
+    }]}
 ]
 
 # ratio: 1.0
 "dnf-expr": [
   { "clause": [ {
       "term": { "op": { "type": "RULE_ABS", "name": "RULE_EQ" },
-                "offset": { "f1_name": "srcaddr", "f2_name": "srcaddr", ... } }}]}
+                "offset": { "f1_name": "srcaddr", "f2_name": "srcaddr", ... } }
+    }]}
 ]
 \end{lstlisting}
 
@@ -321,13 +323,13 @@ that are merged are again written as \texttt{flowtools} files
 \marginpar{stressing the merger} using the same \texttt{zlib} compression
 level. The ratio of the number of merged groups to twice\footnote{Each branch
 pushes the entire trace as an input to the merger.} the number of flow records
-in the original trace is plotted against time.  The complete \ac{NFQL} queries
-can be referenced from \texttt{benchmarks}
-branch\footnote{\texttt{benchmarks/august/merger/queries/nfql}}.  The
-evaluation results are shown in figure \ref{fig:benchmarks-groupfilter}. SiLK
-is not used in this evaluation because its behavior on matching records is
-different from \ac{NFQL}. As a result, running the same query does not end up
-with same output to input ratio.
+in the original trace is plotted against time.  The complete queries can be
+referenced from \texttt{benchmarks}
+branch\footnote{\texttt{benchmarks/august/merger/queries/\{nfql, silk\}}}.
+The evaluation results are shown in figure \ref{fig:benchmarks-merger}.
+A data point for SiLK for the $0.2$ ratio is not available since the \ac{NFQL}
+query executed at that data point uses \texttt{OR} expressions which are not
+supported by SiLK. As a result, an equivalent SiLK query is not formulated.
 
 \begin{figure}[h!]
   \begin{center}
@@ -366,7 +368,7 @@ records to twice the number of the flow records in the input trace is plotted
 against time. The queries for \ac{NFQL} are similar to that of the merger and
 can be referenced from \texttt{benchmarks}
 branch\footnote{\texttt{benchmarks/august/ungrouper/queries/nfql}}.  The
-evaluation results are shown in figure \ref{fig:benchmarks-groupfilter}.
+evaluation results are shown in figure \ref{fig:benchmarks-ungrouper}.
 
 \begin{figure}[h!]
   \begin{center}
